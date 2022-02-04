@@ -256,12 +256,8 @@ class LV_simulation():
 
 
         for i in np.arange(self.prot.data['no_of_time_steps']):
-            if self.total_file_disp:
-
-                self.total_file_disp << self.mesh.model['functions']['w'].sub(0)
-
-            self.implement_time_step(self.prot.data['time_step'])
-            """try:
+            
+            try:
                 if self.total_file_disp:
                     self.total_file_disp << self.mesh.model['functions']['w'].sub(0)
 
@@ -281,7 +277,7 @@ class LV_simulation():
                                 out_path = output_dir + '/' + f + '_data.csv'
                                 self.spatial_sim_data[f].to_csv(out_path)
 
-                return"""
+                return
 
         #self.total_file_disp << self.mesh.model['functions']['w'].sub(0)
         if output_struct:
