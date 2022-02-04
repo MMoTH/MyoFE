@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [1000],
+        "no_of_time_steps": [920],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -147,7 +147,7 @@
                 "k_4_1": [1],
                 "k_cb": [0.001],
                 "x_ps": [5],
-                "k_on": [2e7],
+                "k_on": [2e8],
                 "k_off": [200],
                 "k_coop": [5],
                 "int_passive_exp_sigma": [100],
