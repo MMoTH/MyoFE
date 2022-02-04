@@ -78,8 +78,18 @@ class LV_simulation():
 
         # Start handling the circulatory system
         circ_struct = instruction_data['model']['circulation']
-        
         self.circ = circ(circ_struct,self.mesh)
+
+        # set the refernece volume from mesh as a slack volume to LV
+        self.circ.data['v'][-1] = \
+            self.mesh.model['uflforms'].LVcavityvol()
+        # also assign the pressure
+        self.circ.data['p'][-1] = \
+            self.mesh.model['uflforms'].LVcavitypressure()
+
+        # Now that you have set the LV vol, deform the mesh
+       
+        
 
         # Create a heart-rate object
         hr_struct = instruction_data['heart_rate']
@@ -193,9 +203,16 @@ class LV_simulation():
 
         self.prot = prot.protocol(protocol_struct)
 
-        # Test manually diastolic filling 
-        print('initial vol')
-        print(self.mesh.model['uflforms'].LVcavityvol())
+        # Manually deform ventricle to slack volume 
+        LV_vol_1 = self.circ.data['v'][-1]
+       # self.mesh.diastolic_filling(LV_vol_1,loading_steps=5)
+        """print('initial vol')
+        print(self.mesh.model['functions']['LVCavityvol'].vol)
+        print self.mesh.model['uflforms'].LVcavityvol()
+
+        print 'initial pressure'
+        print self.mesh.model['functions']['Press'].P
+        print self.mesh.model['uflforms'].LVcavitypressure()"""
 
         LV_vol = 0.15
         n=5
@@ -239,7 +256,12 @@ class LV_simulation():
 
 
         for i in np.arange(self.prot.data['no_of_time_steps']):
-            try:
+            if self.total_file_disp:
+
+                self.total_file_disp << self.mesh.model['functions']['w'].sub(0)
+
+            self.implement_time_step(self.prot.data['time_step'])
+            """try:
                 if self.total_file_disp:
                     self.total_file_disp << self.mesh.model['functions']['w'].sub(0)
 
@@ -259,7 +281,7 @@ class LV_simulation():
                                 out_path = output_dir + '/' + f + '_data.csv'
                                 self.spatial_sim_data[f].to_csv(out_path)
 
-                return
+                return"""
 
         #self.total_file_disp << self.mesh.model['functions']['w'].sub(0)
         if output_struct:
@@ -280,14 +302,20 @@ class LV_simulation():
     def implement_time_step(self, time_step):
         """ Implements time step """
         self.data['time'] = self.data['time'] + time_step
+        print '******** NEW TIME STEP ********'
         print (self.data['time'])
         if (self.t_counter % 100 == 0):
             print('Sim time (s): %.0f  %.0f%% complete' %
                   (self.data['time'],
                    100*self.t_counter/self.prot.data['no_of_time_steps']))
 
-        system_values = self.return_system_values()
-        print(json.dumps(system_values, indent=4))
+        #system_values = self.return_system_values()
+        vol, press, flow = self.return_system_values()
+        
+
+        print(json.dumps(vol, indent=4))
+        print(json.dumps(press, indent=4))
+        print(json.dumps(flow, indent=4))
 
         # Check for baroreflex and implement
         if (self.br):
@@ -343,19 +371,26 @@ class LV_simulation():
         self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
         self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
         
-        self.circ.update_circulation(time_step, 
-                                    initial_v = self.circ.data['v'])
-        
+        #self.circ.update_circulation(time_step, 
+        #                            initial_v = self.circ.data['v'])
+        self.circ.data['v'] = \
+            self.circ.evolve_volume(time_step, self.circ.data['v'])
+        self.mesh.model['functions']['LVCavityvol'].vol = \
+            self.circ.data['v'][-1]
 
         # Update MyoSim according to delta hsl
-
+        print 'summary of LV pressure and volume'
+        print 'LV volume is'
+        print self.circ.data['v'][-1]
+        print 'pressure is'
+        print self.mesh.model['uflforms'].LVcavitypressure()
     
         #Solve cardiac mechanics weak form
-        print 'Before solving'
+        """print 'Before solving'
         print 'cb stress is'
         print self.cb_stress_list.mean()
         print 'passive stress is'
-        print self.pass_stress_list.mean()
+        print self.pass_stress_list.mean()"""
         #--------------------------------
         print 'solving weak form'
         Ftotal = self.mesh.model['Ftotal']
@@ -365,6 +400,11 @@ class LV_simulation():
 
         solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
 
+        # now update pressure
+        for i in range(self.circ.model['no_of_compartments']-1):
+            self.circ.data['p'][i] = (self.circ.data['v'][i] - self.circ.data['s'][i]) / \
+                self.circ.data['compliance'][i]
+        self.circ.data['p'][-1] = self.mesh.model['uflforms'].LVcavitypressure()
 
         self.cb_stress_list = project(self.mesh.model['functions']['cb_stress'],
                                 self.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
@@ -420,7 +460,35 @@ class LV_simulation():
 
     def return_system_values(self, time_interval=0.01):
         d = dict()
-        if (self.data['time'] > time_interval):
+        vol = dict()
+        pres = dict()
+        flow = dict()
+        vol['volume_ventricle'] = self.circ.data['v'][-1]
+        vol['volume_aorta'] = self.circ.data['v'][0]
+        vol['volume_arteries'] = self.circ.data['v'][1]
+        vol['volume_arterioles'] = self.circ.data['v'][2]
+        vol['volume_capillaries'] = self.circ.data['v'][3]
+        vol['volume_venules'] = self.circ.data['v'][4]
+        vol['volume_veins'] = self.circ.data['v'][5]
+
+        pres['pressure_ventricle'] = self.circ.data['p'][-1]
+        pres['pressure_aorta'] = self.circ.data['p'][0]
+        pres['pressure_arteries'] = self.circ.data['p'][1]
+        pres['pressure_arterioles'] = self.circ.data['p'][2]
+        pres['pressure_capillaries'] = self.circ.data['p'][3]
+        pres['pressure_venules'] = self.circ.data['p'][4]
+        pres['pressure_veins'] = self.circ.data['p'][5]
+
+        flow['flow_ventricle_to_aorta'] = self.circ.data['f'][0]
+        flow['flow_aorta_to_arteries'] = self.circ.data['f'][1]
+        flow['flow_arteries_to_arterioles'] = self.circ.data['f'][2]
+        flow['flow_arterioles_to_capillaries'] = self.circ.data['f'][3]
+        flow['flow_capillaries_to_venules'] = self.circ.data['f'][4]
+        flow['flow_venules_to_veins'] = self.circ.data['f'][5]
+        flow['flow_veins_to_ventricle'] = self.circ.data['f'][6]
+        
+
+        """if (self.data['time'] > time_interval):
             self.temp_data = \
                 self.sim_data[self.sim_data['time'].between(
                     self.data['time']-time_interval, self.data['time'])]
@@ -432,10 +500,10 @@ class LV_simulation():
             d['pressure_ventricle'] = self.temp_data['pressure_ventricle'].mean()
             #d['ejection_fraction'] = self.temp_data['ejection_fraction'].mean()
             d['heart_rate'] = self.data['heart_rate']
-            d['cardiac_output'] = d['stroke_volume'] * d['heart_rate']
+            d['cardiac_output'] = d['stroke_volume'] * d['heart_rate']"""
            
             
-        return d
+        return vol, pres,flow
 
     def write_complete_data_to_sim_data(self):
         """ Writes full data to data frame """
@@ -484,7 +552,8 @@ class LV_simulation():
                         data_field.append(h.memb.data[f]) 
                     self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
             else:
-                self.write_complete_data_to_spatial_sim_data()
+                print 'No'
+                #self.write_complete_data_to_spatial_sim_data()
             self.write_counter = self.write_counter + 1
 
     def write_complete_data_to_spatial_sim_data(self):

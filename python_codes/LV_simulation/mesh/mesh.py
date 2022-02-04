@@ -30,8 +30,10 @@ class MeshClass():
 
         # communicator to run in parallel
         self.comm = self.model['mesh'].mpi_comm()
+        print 'comminicator is defined'
 
         self.model['function_spaces'] = self.initialize_function_spaces(mesh_struct)
+        print 'function spaces are defined'
 
         self.model['functions'] = self.initialize_functions(mesh_struct)
 
@@ -148,7 +150,7 @@ class MeshClass():
         dolfin_functions = \
             self.initialize_dolfin_functions(dolfin_functions,
                                 self.model['function_spaces']['quadrature_space'])
-
+       
         # initialize myosim params
         hsl0    = Function(self.model['function_spaces']['quadrature_space'])
         hsl_old = Function(self.model['function_spaces']['quadrature_space'])
@@ -157,12 +159,14 @@ class MeshClass():
         pseudo_old.vector()[:] = 1.0
         hsl_diff_from_reference = Function(self.model['function_spaces']['quadrature_space'])
         hsl_diff_from_reference.vector()[:] = 0.0
+
         try:
             self.f.read(hsl0, "ellipsoidal" + "/" + "hsl0")
 
         except:
+            
             hsl0.vector()[:] = self.parent_parameters.hs.data["hs_length"]
-
+        
         # close f
         self.f.close()
 
@@ -431,7 +435,7 @@ class MeshClass():
             temp_dict[key].append(temp_fcn)
         return
 
-    def diastolic_filling(self,LV_vol,loading_steps):
+    def diastolic_filling(self,LV_vol,loading_steps=10):
         
         print('start to diastolic filling')
         LV_vol_0 = self.model['functions']['LVCavityvol']
@@ -446,8 +450,11 @@ class MeshClass():
         Jac = self.model['Jac']
 
         for i in range (0,loading_steps):
-            print('loading step for diastolic filling is:')
+            print 'diastolic filling step is:'
             print(i)
+            print 'LV vol is:' 
+            print LV_vol_0.vol
+            
             LV_vol_0.vol += volume_increment
 
             solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})

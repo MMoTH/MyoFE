@@ -71,8 +71,13 @@ class Circulation():
             n = ('%s_slack_volume' % c)
             self.data['s'][i] = self.data[n]
             self.data['v'][i] = self.data[n]
+        # change the slack volume for LV according 
+        # to reference volume from mesh
+        self.data['s'][-1] = self.mesh.model['uflforms'].LVcavityvol()
         self.data['total_slack_volume'] = sum(self.data['s'])
 
+
+        
         # Excess blood goes in veins
         self.data['v'][-2] = self.data['v'][-2] + \
             (self.data['blood_volume'] - self.data['total_slack_volume'])
@@ -82,7 +87,8 @@ class Circulation():
         for i in np.arange(0, self.model['no_of_compartments']-1):
             self.data['p'][i] = (self.data['v'][i] - self.data['s'][i]) / \
                 self.data['compliance'][i]
-        self.data['p'][-1] = self.mesh.model['uflforms'].LVcavitypressure()
+        
+        
     
         # Allocate space for pressure, volume and slack_volume
         for i, v in enumerate(self.model['compartment_list']):
@@ -123,14 +129,14 @@ class Circulation():
         # First update volumes
         self.data['v'] = self.evolve_volume(time_step,initial_v)
 
-        self.mesh.model['functions']['LVCavityvol'].vol = \
-            self.data['v'][-1]
+        #self.mesh.model['functions']['LVCavityvol'].vol = \
+        #    self.data['v'][-1]
 
         # Then update the pressures
         for i in range(self.model['no_of_compartments']-1):
             self.data['p'][i] = (self.data['v'][i] - self.data['s'][i]) / \
                 self.data['compliance'][i]
-        self.data['p'][-1] = self.mesh.model['uflforms'].LVcavitypressure()
+        #self.data['p'][-1] = self.mesh.model['uflforms'].LVcavitypressure()
 
     
         

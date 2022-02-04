@@ -22,7 +22,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/base/sim_inputs/ellipsoidal_degree_2.hdf5"],
+        "mesh_path":["../demos/base/sim_inputs/ellipsoidal_degree_2_new.hdf5"],
         "function_spaces":
         [
             {
@@ -140,7 +140,7 @@
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
                 "k_1": [5],
-                "k_force": [1e-3],
+                "k_force": [5e-4],
                 "k_2": [200],
                 "k_3": [100],
                 "k_4_0": [40],
