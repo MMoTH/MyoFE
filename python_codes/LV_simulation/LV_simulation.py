@@ -186,6 +186,7 @@ class LV_simulation():
                             self.spatial_memb_data_fields
         if self.spatial_data_to_mean:
             spatial_data = pd.DataFrame()
+            data_field += 'time'
             for f in data_field:
                 s = pd.Series(data=np.zeros(no_of_data_points), name=f)
                 spatial_data = pd.concat([spatial_data, s], axis=1)
@@ -214,8 +215,6 @@ class LV_simulation():
         print self.mesh.model['functions']['Press'].P
         print self.mesh.model['uflforms'].LVcavitypressure()"""
 
-        LV_vol = 0.15
-        n=5
         #self.mesh.model['functions'] = \
         #    self.mesh.diastolic_filling(LV_vol=LV_vol,loading_steps=n)
 
@@ -530,6 +529,8 @@ class LV_simulation():
             self.sim_data.at[self.write_counter, 'write_mode'] = 1
 
             if self.spatial_data_to_mean:
+                self.spatial_sim_data.at[self.write_counter,'time'] = \
+                    self.data['time']
                 for f in list(self.hs.data.keys()):
                     data_field = []
                     for h in self.hs_objs_list:
@@ -548,8 +549,8 @@ class LV_simulation():
                         data_field.append(h.memb.data[f]) 
                     self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
             else:
-                print 'No'
-                #self.write_complete_data_to_spatial_sim_data()
+                
+                self.write_complete_data_to_spatial_sim_data()
             self.write_counter = self.write_counter + 1
 
     def write_complete_data_to_spatial_sim_data(self):

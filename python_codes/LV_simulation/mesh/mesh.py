@@ -331,7 +331,7 @@ class MeshClass():
         
 
         delta_hsl = self.model['functions']["delta_hsl"]
-        bin_pops = self.y_split[2 + np.arange(0, self.hs.myof.no_of_x_bins)]
+        """bin_pops = self.y_split[2 + np.arange(0, self.hs.myof.no_of_x_bins)]
 
         cb_stress = \
                 self.hs.myof.data['cb_number_density'] * \
@@ -339,9 +339,9 @@ class MeshClass():
                 np.sum(bin_pops *
                     (self.hs.myof.x + self.hs.myof.data['x_ps'] +
                         (self.hs.myof.implementation['filament_compliance_factor'] *
-                        delta_hsl)))
+                        delta_hsl)))"""
                         
-        #cb_stress = self.return_cb_stress(self.model['functions']["delta_hsl"])
+        cb_stress = self.return_cb_stress(delta_hsl)
 
         xfiber_fraction = 0
         Pactive = \
@@ -454,7 +454,7 @@ class MeshClass():
             print(i)
             print 'LV vol is:' 
             print LV_vol_0.vol
-            
+
             LV_vol_0.vol += volume_increment
 
             solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
@@ -468,7 +468,7 @@ class MeshClass():
         if (self.hs.myof.implementation['kinetic_scheme'] == '3_state_with_SRX') or \
             (self.hs.myof.implementation['kinetic_scheme'] == '3_state_with_SRX_and_exp_detach'):
             
-            bin_pops = self.y_split[2 + np.arange(0, self.hs.myof.no_of_x_bins)][0]
+            bin_pops = self.y_split[2 + np.arange(0, self.hs.myof.no_of_x_bins)]
             cb_stress = \
                 self.hs.myof.data['cb_number_density'] * \
                 self.hs.myof.data['k_cb'] * 1e-9 * \
