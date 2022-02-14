@@ -5,11 +5,14 @@ Created on Mon Jan 10 11:15:59 2022
 @author: Hossein
 """
 
+from ast import operator
+from operator import methodcaller
 import os
 import json
 import pandas as pd
 import numpy as np
 from dolfin import *
+import time
 
 from protocol import protocol as prot
 
@@ -305,12 +308,12 @@ class LV_simulation():
                    100*self.t_counter/self.prot.data['no_of_time_steps']))
 
         #system_values = self.return_system_values()
-        vol, press, flow = self.return_system_values()
-        
+            vol, press, flow = self.return_system_values()
+            
 
-        print(json.dumps(vol, indent=4))
-        print(json.dumps(press, indent=4))
-        print(json.dumps(flow, indent=4))
+            print(json.dumps(vol, indent=4))
+            print(json.dumps(press, indent=4))
+            print(json.dumps(flow, indent=4))
 
         # Check for baroreflex and implement
         if (self.br):
@@ -332,15 +335,43 @@ class LV_simulation():
         (activation, new_beat) = \
             self.hr.implement_time_step(time_step)
         self.y_vec = self.mesh.model['functions']['y_vec'].vector().get_local()[:]
-        print 'y-vec'
+        """print 'y-vec'
         print self.y_vec[0:25]
         print 'hs_old function'
         print self.mesh.model['functions']['hsl_old'].vector().get_local()[:]
         print 'delta hsl'
-        print np.mean(self.delta_hs_length_list)
+        print np.mean(self.delta_hs_length_list)"""
 
         print 'Updating half-sarcomere objects'
+        #start = time.time()
+        """mc = operator.methodcaller('update_simulation',
+                                    time_step,
+                                    self.delta_hs_length_list,
+                                    activation,
+                                     self.cb_stress_list,
+                                     self.pass_stress_list)
+
+        map(mc,self.hs_objs_list)"""
+
+
+        ## list comprehensive
+        """self.y_vec = \
+            [self.hs_objs_list[j].update_simulation(time_step,self.delta_hs_length_list[j], 
+                                                activation,
+                                                self.cb_stress_list[j],
+                                                self.pass_stress_list[j]) for j in range(self.no_of_int_points)]
+        print '#########'
+        print self.y_vec[0]
+        print np.shape(self.y_vec)"""
+
+        # mapping
+        """self.y_vec = list(map(methodcaller('update_simulation',time_step, 
+                                                self.delta_hs_length_list, 
+                                                activation,
+                                                self.cb_stress_list,
+                                                self.pass_stress_list),self.hs_objs_list))"""
         for j in range(self.no_of_int_points):
+            
             
             self.hs_objs_list[j].update_simulation(time_step, 
                                                 self.delta_hs_length_list[j], 
@@ -356,8 +387,11 @@ class LV_simulation():
             #print self.hs_objs_list[j].myof.y[:]
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
                 self.hs_objs_list[j].myof.y[:]
-            
-        print 'Half-sarcomere objects updated!'
+        #end =time.time()
+        #print 'took time for solving myosim is:'
+        #t = end-start 
+        #print t
+        
         
         """self.hs.memb.implement_time_step(time_step,
                                            activation)
@@ -373,12 +407,7 @@ class LV_simulation():
         self.mesh.model['functions']['LVCavityvol'].vol = \
             self.circ.data['v'][-1]
 
-        # Update MyoSim according to delta hsl
-        print 'summary of LV pressure and volume'
-        print 'LV volume is'
-        print self.circ.data['v'][-1]
-        print 'pressure is'
-        print self.mesh.model['uflforms'].LVcavitypressure()
+       
     
         #Solve cardiac mechanics weak form
         """print 'Before solving'
@@ -430,11 +459,7 @@ class LV_simulation():
 
         self.pass_stress_list[self.pass_stress_list<0] = 0
 
-        print 'After solving'
-        print 'cb stress is'
-        print self.cb_stress_list.mean()
-        print 'passive stress is'
-        print self.pass_stress_list.mean()
+       
         
         # Update LV pressure 
 
