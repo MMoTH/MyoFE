@@ -52,6 +52,7 @@ class LV_simulation():
         # Initialize and define mesh objects (finite elements, function spaces, functions)
         mesh_struct = instruction_data['mesh']
         self.mesh = MeshClass(self)
+        self.y_vec = self.mesh.model['functions']['y_vec'].vector().get_local()[:]
 
          # Create a data structure for holding 
         # half_sarcomere parameters spatially 
@@ -306,7 +307,6 @@ class LV_simulation():
                   (self.data['time'],
                    100*self.t_counter/self.prot.data['no_of_time_steps']))
 
-        #system_values = self.return_system_values()
             vol, press, flow = self.return_system_values()
                 
 
@@ -326,40 +326,15 @@ class LV_simulation():
                                         time_step,
                                         reflex_active=
                                         self.data['baroreflex_active'])
-        # Update Calcium
-        
-        # Update MyoSim
-
-        # Update volume based on previous pressure 
+        # Proceed time
         (activation, new_beat) = \
             self.hr.implement_time_step(time_step)
-        self.y_vec = self.mesh.model['functions']['y_vec'].vector().get_local()[:]
-        
 
-        print 'Solving MyoSim ODEs accross the mesh'
+        # Solve MyoSim ODEs across the mesh
+        print 'Solving MyoSim ODEs across the mesh'
         start = time.time()
-        ## list comprehensive
-        """y_vec = \
-            [self.hs_objs_list[j].update_simulation(time_step,self.delta_hs_length_list[j], 
-                                                activation,
-                                                self.cb_stress_list[j],
-                                                self.pass_stress_list[j]) for j 
-                                                in range(self.no_of_int_points)]
-        [self.hs_objs_list[j].update_data() for j in range(self.no_of_int_points)]"""
+        for j in range(self.no_of_int_points):
 
-
-        
-
-        # mapping
-        y_vec = list(map(methodcaller('update_simulation',time_step,
-                                            activation),self.hs_objs_list))
-        map(methodcaller('update_data'),self.hs_objs_list)
-
-        self.y_vec = np.concatenate(y_vec)
-        
-        """for j in range(self.no_of_int_points):
-            
-            
             self.hs_objs_list[j].update_simulation(time_step, 
                                                 self.delta_hs_length_list[j], 
                                                 activation,
@@ -367,41 +342,28 @@ class LV_simulation():
                                                 self.pass_stress_list[j])
             self.hs_objs_list[j].update_data()
             
-            #if j%1000==0:
-            #    print '%.0f%% of integer points are updated' % (100*j/self.no_of_int_points)
-                
-            #print 'y_vec'
-            #print self.hs_objs_list[j].myof.y[:]
+            if j%1000==0:
+                print '%.0f%% of integer points are updated' % (100*j/self.no_of_int_points)
+
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
-                self.hs_objs_list[j].myof.y[:]"""
+                self.hs_objs_list[j].myof.y[:]
         end =time.time()
-        print 'took time for solving myosim is:'
+        print 'Required time for solving myosim was'
         t = end-start 
         print t
-        
-        
-        """self.hs.memb.implement_time_step(time_step,
-                                           activation)
-        self.hs.memb.update_data()"""
-        
+
+        # Now update fenics FE for population array (y_vec) and hs_length
         self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
         self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
-        
-        #self.circ.update_circulation(time_step, 
-        #                            initial_v = self.circ.data['v'])
+
+        # Update circulation and FE function for LV cavity volume
         self.circ.data['v'] = \
             self.circ.evolve_volume(time_step, self.circ.data['v'])
         self.mesh.model['functions']['LVCavityvol'].vol = \
             self.circ.data['v'][-1]
 
        
-    
         #Solve cardiac mechanics weak form
-        """print 'Before solving'
-        print 'cb stress is'
-        print self.cb_stress_list.mean()
-        print 'passive stress is'
-        print self.pass_stress_list.mean()"""
         #--------------------------------
         print 'solving weak form'
         Ftotal = self.mesh.model['Ftotal']
@@ -411,12 +373,16 @@ class LV_simulation():
 
         solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
 
-        # now update pressure
+        # Start updating variables after solving the weak form 
+
+        # First pressure in circulation
         for i in range(self.circ.model['no_of_compartments']-1):
             self.circ.data['p'][i] = (self.circ.data['v'][i] - self.circ.data['s'][i]) / \
                 self.circ.data['compliance'][i]
         self.circ.data['p'][-1] = self.mesh.model['uflforms'].LVcavitypressure()
 
+        # Then update FE function for cross-bridge stress, hs_length, and passive stress
+        # across the mesh
         self.cb_stress_list = project(self.mesh.model['functions']['cb_stress'],
                                 self.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
 
@@ -428,10 +394,7 @@ class LV_simulation():
 
         new_hs_length_list = \
             project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector()[:]
-        """new_hs_length_list = \
-            project(sqrt(dot(self.mesh.model['functions']["f0"], 
-            self.mesh.model['uflforms'].Cmat()*self.mesh.model['functions']["f0"]))*\
-                self.mesh.model['functions']["hsl0"], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]"""
+        
         self.delta_hs_length_list = new_hs_length_list - self.hs_length_list
         self.hs_length_list = new_hs_length_list
         
@@ -441,18 +404,10 @@ class LV_simulation():
 
         p_f = interpolate(temp_DG, self.mesh.model['function_spaces']["quadrature_space"])
         self.pass_stress_list = p_f.vector().get_local()[:]
-
-        self.pass_stress_list[self.pass_stress_list<0] = 0
-
-        for j in range(self.no_of_int_points):
-            self.hs_objs_list[j].myof.cb_stress = self.cb_stress_list[j]
-            self.hs_objs_list[j].myof.pas_stress = self.pass_stress_list[j]
-            self.hs_objs_list[j].data['delta_hsl'] = self.delta_hs_length_list[j]
-
-       
         
-        # Update LV pressure 
-
+        # Convert negative passive stress in half-sarcomeres to 0
+        self.pass_stress_list[self.pass_stress_list<0] = 0
+    
         # Update the t counter for the next step
         self.t_counter = self.t_counter + 1
 

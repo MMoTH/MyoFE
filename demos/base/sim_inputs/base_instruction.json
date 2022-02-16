@@ -112,7 +112,7 @@
                 },
                 {
                     "name": ["ventricle"],
-                    "resistance": [5],
+                    "resistance": [15],
                     "slack_volume": [0.06],
                     "wall_density": [1055]
                 }
