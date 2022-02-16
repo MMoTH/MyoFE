@@ -339,13 +339,13 @@ class LV_simulation():
         print 'Solving MyoSim ODEs accross the mesh'
         start = time.time()
         ## list comprehensive
-        """y_vec = \
+        y_vec = \
             [self.hs_objs_list[j].update_simulation(time_step,self.delta_hs_length_list[j], 
                                                 activation,
                                                 self.cb_stress_list[j],
                                                 self.pass_stress_list[j]) for j 
                                                 in range(self.no_of_int_points)]
-        [self.hs_objs_list[j].update_data() for j in range(self.no_of_int_points)]"""
+        [self.hs_objs_list[j].update_data() for j in range(self.no_of_int_points)]
 
 
         
@@ -353,11 +353,11 @@ class LV_simulation():
         # mapping
         """y_vec = list(map(methodcaller('update_simulation',time_step,
                                             activation),self.hs_objs_list))
-        map(methodcaller('update_data'),self.hs_objs_list)
+        map(methodcaller('update_data'),self.hs_objs_list)"""
 
-        self.y_vec = np.concatenate(y_vec)"""
+        self.y_vec = np.concatenate(y_vec)
         
-        for j in range(self.no_of_int_points):
+        """for j in range(self.no_of_int_points):
             
             
             self.hs_objs_list[j].update_simulation(time_step, 
@@ -373,7 +373,7 @@ class LV_simulation():
             #print 'y_vec'
             #print self.hs_objs_list[j].myof.y[:]
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
-                self.hs_objs_list[j].myof.y[:]
+                self.hs_objs_list[j].myof.y[:]"""
         end =time.time()
         print 'took time for solving myosim is:'
         t = end-start 
