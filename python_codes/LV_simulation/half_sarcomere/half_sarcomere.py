@@ -12,6 +12,7 @@ class half_sarcomere():
         # Create a dict to store data
         self.data = dict()
         self.data['hs_length'] = hs_struct['initial_hs_length'][0]
+        delta_hsl = 0
         self.data['slack_hs_length'] = 0
         self.data['cb_stress'] = 0
         self.data['pas_stress'] = 0
@@ -26,6 +27,8 @@ class half_sarcomere():
         self.myof = myof.myofilaments(myofil_struct, self)
 
     def update_simulation(self, time_step, delta_hsl, activation, cb_stress, pas_stress):
+        #def update_simulation(self, time_step, activation):
+        #def update_simulation(self, time_step, delta_hsl, activation, cb_stress, pas_stress):
 
         if (time_step > 0.0):
             # Need to do some kinetics stuff
@@ -47,14 +50,20 @@ class half_sarcomere():
         self.myof.cb_stress = cb_stress
         self.myof.pas_stress = pas_stress
         self.myof.total_stress = cb_stress + pas_stress
+        #self.myof.total_stress = self.myof.cb_stress + self.myof.pas_stress
         
         self.total_stress = self.myof.total_stress
+
+        return self.myof.y[:]
         
     def update_data(self):
         # First update own object data
-        f = self.myof.check_myofilament_stresses(0)
+        """f = self.myof.check_myofilament_stresses(0)
         for key in f.keys():
-            self.data[key] = f[key]
+            self.data[key] = f[key]"""
+        self.data['cb_stress'] = self.myof.cb_stress
+        self.data['pas_stress'] = self.myof.pas_stress
+        self.data['total_stress'] = self.myof.total_stress
         
         # Now update membrane and myofilaments
         self.memb.update_data()

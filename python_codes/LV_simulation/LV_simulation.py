@@ -83,12 +83,7 @@ class LV_simulation():
         circ_struct = instruction_data['model']['circulation']
         self.circ = circ(circ_struct,self.mesh)
 
-        # set the refernece volume from mesh as a slack volume to LV
-        self.circ.data['v'][-1] = \
-            self.mesh.model['uflforms'].LVcavityvol()
-        # also assign the pressure
-        self.circ.data['p'][-1] = \
-            self.mesh.model['uflforms'].LVcavitypressure()
+       
 
         # Now that you have set the LV vol, deform the mesh
        
@@ -210,13 +205,17 @@ class LV_simulation():
         # Manually deform ventricle to slack volume 
         LV_vol_1 = self.circ.data['v'][-1]
        # self.mesh.diastolic_filling(LV_vol_1,loading_steps=5)
-        """print('initial vol')
+        print('initial vol')
         print(self.mesh.model['functions']['LVCavityvol'].vol)
         print self.mesh.model['uflforms'].LVcavityvol()
 
         print 'initial pressure'
         print self.mesh.model['functions']['Press'].P
-        print self.mesh.model['uflforms'].LVcavitypressure()"""
+        print self.mesh.model['uflforms'].LVcavitypressure()
+
+        print 'circ pressure'
+        print self.circ.data['p'][-1]
+        print self.circ.data['pressure_ventricle']
 
         #self.mesh.model['functions'] = \
         #    self.mesh.diastolic_filling(LV_vol=LV_vol,loading_steps=n)
@@ -309,7 +308,7 @@ class LV_simulation():
 
         #system_values = self.return_system_values()
             vol, press, flow = self.return_system_values()
-            
+                
 
             print(json.dumps(vol, indent=4))
             print(json.dumps(press, indent=4))
@@ -335,41 +334,29 @@ class LV_simulation():
         (activation, new_beat) = \
             self.hr.implement_time_step(time_step)
         self.y_vec = self.mesh.model['functions']['y_vec'].vector().get_local()[:]
-        """print 'y-vec'
-        print self.y_vec[0:25]
-        print 'hs_old function'
-        print self.mesh.model['functions']['hsl_old'].vector().get_local()[:]
-        print 'delta hsl'
-        print np.mean(self.delta_hs_length_list)"""
+        
 
-        print 'Updating half-sarcomere objects'
-        #start = time.time()
-        """mc = operator.methodcaller('update_simulation',
-                                    time_step,
-                                    self.delta_hs_length_list,
-                                    activation,
-                                     self.cb_stress_list,
-                                     self.pass_stress_list)
-
-        map(mc,self.hs_objs_list)"""
-
-
+        print 'Solving MyoSim ODEs accross the mesh'
+        start = time.time()
         ## list comprehensive
-        """self.y_vec = \
+        """y_vec = \
             [self.hs_objs_list[j].update_simulation(time_step,self.delta_hs_length_list[j], 
                                                 activation,
                                                 self.cb_stress_list[j],
-                                                self.pass_stress_list[j]) for j in range(self.no_of_int_points)]
-        print '#########'
-        print self.y_vec[0]
-        print np.shape(self.y_vec)"""
+                                                self.pass_stress_list[j]) for j 
+                                                in range(self.no_of_int_points)]
+        [self.hs_objs_list[j].update_data() for j in range(self.no_of_int_points)]"""
+
+
+        
 
         # mapping
-        """self.y_vec = list(map(methodcaller('update_simulation',time_step, 
-                                                self.delta_hs_length_list, 
-                                                activation,
-                                                self.cb_stress_list,
-                                                self.pass_stress_list),self.hs_objs_list))"""
+        """y_vec = list(map(methodcaller('update_simulation',time_step,
+                                            activation),self.hs_objs_list))
+        map(methodcaller('update_data'),self.hs_objs_list)
+
+        self.y_vec = np.concatenate(y_vec)"""
+        
         for j in range(self.no_of_int_points):
             
             
@@ -380,17 +367,17 @@ class LV_simulation():
                                                 self.pass_stress_list[j])
             self.hs_objs_list[j].update_data()
             
-            if j%1000==0:
-                print '%.0f%% of integer points are updated' % (100*j/self.no_of_int_points)
+            #if j%1000==0:
+            #    print '%.0f%% of integer points are updated' % (100*j/self.no_of_int_points)
                 
             #print 'y_vec'
             #print self.hs_objs_list[j].myof.y[:]
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
                 self.hs_objs_list[j].myof.y[:]
-        #end =time.time()
-        #print 'took time for solving myosim is:'
-        #t = end-start 
-        #print t
+        end =time.time()
+        print 'took time for solving myosim is:'
+        t = end-start 
+        print t
         
         
         """self.hs.memb.implement_time_step(time_step,
@@ -447,7 +434,7 @@ class LV_simulation():
                 self.mesh.model['functions']["hsl0"], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]"""
         self.delta_hs_length_list = new_hs_length_list - self.hs_length_list
         self.hs_length_list = new_hs_length_list
-
+        
         temp_DG = project(self.mesh.model['functions']['Sff'], 
                     FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
                     form_compiler_parameters={"representation":"uflacs"})
@@ -455,9 +442,12 @@ class LV_simulation():
         p_f = interpolate(temp_DG, self.mesh.model['function_spaces']["quadrature_space"])
         self.pass_stress_list = p_f.vector().get_local()[:]
 
-        
-
         self.pass_stress_list[self.pass_stress_list<0] = 0
+
+        """for j in range(self.no_of_int_points):
+            self.hs_objs_list[j].myof.cb_stress = self.cb_stress_list[j]
+            self.hs_objs_list[j].myof.pas_stress = self.pass_stress_list[j]
+            self.hs_objs_list[j].data['delta_hsl'] = self.delta_hs_length_list[j]"""
 
        
         

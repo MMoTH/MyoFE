@@ -258,17 +258,8 @@
     {
         "output_data_path": ["../demos/base/sim_output/data.csv"],
         "output_mesh_file": ["../demos/base/sim_output/mesh_output/total_displacement.pvd"],
-        "spatial_data_fileds":
-        [
-            {
-                "level": "myofilaments",
-                "fields":[]
-            },
-            {
-                "level": "membranes",
-                "fields":[]
-            }
-        ]
+        "dumping_spatial_in_average":[true]
+        
     }
     
 }

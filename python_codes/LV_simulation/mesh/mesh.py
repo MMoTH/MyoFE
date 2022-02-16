@@ -441,6 +441,9 @@ class MeshClass():
         LV_vol_0 = self.model['functions']['LVCavityvol']
         LV_vol_0.vol = self.model['uflforms'].LVcavityvol()
 
+        print 'diastolic filling to'
+        print LV_vol
+
         total_volume_to_load = LV_vol - LV_vol_0.vol
         volume_increment = total_volume_to_load/loading_steps
 
@@ -460,6 +463,8 @@ class MeshClass():
             solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
 
             #self.model['functions']['w'] = w
+            print 'pressure for diastolic filling is'
+            print self.model['uflforms'].LVcavitypressure()
 
         return self.model['functions']
 

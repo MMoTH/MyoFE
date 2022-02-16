@@ -42,7 +42,8 @@ class myofilaments():
 
        # Initialise stresses
         self.cb_stress = 0.0
-        self.set_myofilament_stresses()
+        self.pas_stress = 0.0
+        #self.set_myofilament_stresses()
     
     def set_up_3_state_with_SRX(self):
         # Set up data fields and variables

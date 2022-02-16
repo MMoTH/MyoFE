@@ -76,17 +76,25 @@ class Circulation():
         self.data['s'][-1] = self.mesh.model['uflforms'].LVcavityvol()
         self.data['total_slack_volume'] = sum(self.data['s'])
 
-
+         # set the refernece volume from mesh as a slack volume to LV
+        self.data['v'][-1] = \
+            self.mesh.model['uflforms'].LVcavityvol()
+        
         
         # Excess blood goes in veins
         self.data['v'][-2] = self.data['v'][-2] + \
             (self.data['blood_volume'] - self.data['total_slack_volume'])
         
+        #self.mesh.diastolic_filling(0.14,loading_steps=10)
         # Initilize pressure 
         self.data['p'] = np.zeros(self.model['no_of_compartments'])
         for i in np.arange(0, self.model['no_of_compartments']-1):
             self.data['p'][i] = (self.data['v'][i] - self.data['s'][i]) / \
                 self.data['compliance'][i]
+
+        # also assign the pressure
+        self.data['p'][-1] = \
+            self.mesh.model['uflforms'].LVcavitypressure()
         
         
     
@@ -149,10 +157,11 @@ class Circulation():
             dv = np.zeros(self.model['no_of_compartments'])
             flows = self.return_flows(v, time_step)
             for i in np.arange(self.model['no_of_compartments']):
-                if (i == (self.model['no_of_compartments']-1)):
+                dv[i] = flows[i] - flows[i+1]
+                """if (i == (self.model['no_of_compartments']-1)):
                     dv[i] = flows[i] - flows[0] + flows[-1]
                 else:
-                    dv[i] = flows[i] - flows[i+1]
+                    dv[i] = flows[i] - flows[i+1]"""
             return dv
 
         sol = solve_ivp(derivs, [0, time_step], initial_v)
