@@ -12,7 +12,7 @@ class half_sarcomere():
         # Create a dict to store data
         self.data = dict()
         self.data['hs_length'] = hs_struct['initial_hs_length'][0]
-        delta_hsl = 0
+        self.data['delta_hsl'] = 0
         self.data['slack_hs_length'] = 0
         self.data['cb_stress'] = 0
         self.data['pas_stress'] = 0
@@ -26,9 +26,9 @@ class half_sarcomere():
         myofil_struct = hs_struct["myofilaments"]
         self.myof = myof.myofilaments(myofil_struct, self)
 
-    def update_simulation(self, time_step, delta_hsl, activation, cb_stress, pas_stress):
-        #def update_simulation(self, time_step, activation):
-        #def update_simulation(self, time_step, delta_hsl, activation, cb_stress, pas_stress):
+    #def update_simulation(self, time_step, self.data['delta_hsl'], activation, cb_stress, pas_stress):
+    def update_simulation(self, time_step, activation):
+        #def update_simulation(self, time_step, self.data['delta_hsl'], activation, cb_stress, pas_stress):
 
         if (time_step > 0.0):
             # Need to do some kinetics stuff
@@ -41,16 +41,16 @@ class half_sarcomere():
             self.myof.evolve_kinetics(time_step,
                                       self.memb.data['Ca_cytosol'])
 
-        if (np.abs(delta_hsl) > 0.0):
+        if (np.abs(self.data['delta_hsl']) > 0.0):
             # Need to move some things
-            self.myof.move_cb_distributions(delta_hsl)
-            self.data['hs_length'] = self.data['hs_length'] + delta_hsl
+            self.myof.move_cb_distributions(self.data['delta_hsl'])
+            self.data['hs_length'] = self.data['hs_length'] + self.data['delta_hsl']
 
         # Update forces
-        self.myof.cb_stress = cb_stress
-        self.myof.pas_stress = pas_stress
-        self.myof.total_stress = cb_stress + pas_stress
-        #self.myof.total_stress = self.myof.cb_stress + self.myof.pas_stress
+        #self.myof.cb_stress = cb_stress
+        #self.myof.pas_stress = pas_stress
+        #self.myof.total_stress = cb_stress + pas_stress
+        self.myof.total_stress = self.myof.cb_stress + self.myof.pas_stress
         
         self.total_stress = self.myof.total_stress
 

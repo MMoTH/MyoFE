@@ -339,21 +339,21 @@ class LV_simulation():
         print 'Solving MyoSim ODEs accross the mesh'
         start = time.time()
         ## list comprehensive
-        y_vec = \
+        """y_vec = \
             [self.hs_objs_list[j].update_simulation(time_step,self.delta_hs_length_list[j], 
                                                 activation,
                                                 self.cb_stress_list[j],
                                                 self.pass_stress_list[j]) for j 
                                                 in range(self.no_of_int_points)]
-        [self.hs_objs_list[j].update_data() for j in range(self.no_of_int_points)]
+        [self.hs_objs_list[j].update_data() for j in range(self.no_of_int_points)]"""
 
 
         
 
         # mapping
-        """y_vec = list(map(methodcaller('update_simulation',time_step,
+        y_vec = list(map(methodcaller('update_simulation',time_step,
                                             activation),self.hs_objs_list))
-        map(methodcaller('update_data'),self.hs_objs_list)"""
+        map(methodcaller('update_data'),self.hs_objs_list)
 
         self.y_vec = np.concatenate(y_vec)
         
@@ -444,10 +444,10 @@ class LV_simulation():
 
         self.pass_stress_list[self.pass_stress_list<0] = 0
 
-        """for j in range(self.no_of_int_points):
+        for j in range(self.no_of_int_points):
             self.hs_objs_list[j].myof.cb_stress = self.cb_stress_list[j]
             self.hs_objs_list[j].myof.pas_stress = self.pass_stress_list[j]
-            self.hs_objs_list[j].data['delta_hsl'] = self.delta_hs_length_list[j]"""
+            self.hs_objs_list[j].data['delta_hsl'] = self.delta_hs_length_list[j]
 
        
         
