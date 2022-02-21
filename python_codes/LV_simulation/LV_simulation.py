@@ -302,6 +302,7 @@ class LV_simulation():
         self.data['time'] = self.data['time'] + time_step
         print '******** NEW TIME STEP ********'
         print (self.data['time'])
+        
         if (self.t_counter % 100 == 0):
             print('Sim time (s): %.0f  %.0f%% complete' %
                   (self.data['time'],

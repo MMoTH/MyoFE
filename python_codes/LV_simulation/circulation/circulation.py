@@ -74,11 +74,8 @@ class Circulation():
         # change the slack volume for LV according 
         # to reference volume from mesh
         self.data['s'][-1] = self.mesh.model['uflforms'].LVcavityvol()
+        self.data['v'][-1] = self.data['s'][-1]
         self.data['total_slack_volume'] = sum(self.data['s'])
-
-         # set the refernece volume from mesh as a slack volume to LV
-        self.data['v'][-1] = \
-            self.mesh.model['uflforms'].LVcavityvol()
         
         
         # Excess blood goes in veins
@@ -158,10 +155,10 @@ class Circulation():
             flows = self.return_flows(v, time_step)
             for i in np.arange(self.model['no_of_compartments']):
                 dv[i] = flows[i] - flows[i+1]
-                """if (i == (self.model['no_of_compartments']-1)):
+                if (i == (self.model['no_of_compartments']-1)):
                     dv[i] = flows[i] - flows[0] + flows[-1]
                 else:
-                    dv[i] = flows[i] - flows[i+1]"""
+                    dv[i] = flows[i] - flows[i+1]
             return dv
 
         sol = solve_ivp(derivs, [0, time_step], initial_v)
