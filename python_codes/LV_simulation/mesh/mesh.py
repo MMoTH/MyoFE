@@ -31,6 +31,8 @@ class MeshClass():
         # communicator to run in parallel
         self.comm = self.model['mesh'].mpi_comm()
         print 'comminicator is defined'
+        print self.comm.Get_rank()
+        print self.comm.Get_size()
 
         self.model['function_spaces'] = self.initialize_function_spaces(mesh_struct)
         print 'function spaces are defined'
