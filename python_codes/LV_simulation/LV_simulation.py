@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 from dolfin import *
 import time
+from scipy.integrate import solve_ivp
 
 from protocol import protocol as prot
 
@@ -25,11 +26,15 @@ from .output_handler.output_handler import output_handler as oh
 from .baroreflex import baroreflex as br
 from .half_sarcomere import half_sarcomere as hs 
 
+from mpi4py import MPI
+
+
 
 class LV_simulation():
     """Class for running a LV simulation using FEniCS"""
 
-    def __init__(self,instruction_data):
+    def __init__(self,comm, instruction_data):
+
 
         # Check for model input first
         if not "model" in  instruction_data:
@@ -40,7 +45,7 @@ class LV_simulation():
         # And a data dict for things that might
         self.data = dict()
 
-
+        self.comm = comm
         # Define half_sarcomere class to be used in initilizing 
         # function spaces, functions, and week form
         hs_struct = \
@@ -52,6 +57,8 @@ class LV_simulation():
         # Initialize and define mesh objects (finite elements, function spaces, functions)
         mesh_struct = instruction_data['mesh']
         self.mesh = MeshClass(self)
+
+        
         self.y_vec = self.mesh.model['functions']['y_vec'].vector().get_local()[:]
 
          # Create a data structure for holding 
@@ -75,15 +82,36 @@ class LV_simulation():
 
         self.hs_params_list = [hs_struct] * self.no_of_int_points
         
-        
-        print 'no of integer points'
-        print self.no_of_int_points
+        rank_id = self.comm.Get_rank()
+        print '%0.0f integer points have been assigned to core %0.0f'\
+             %(self.no_of_int_points,rank_id)
+
 
 
         # Start handling the circulatory system
         circ_struct = instruction_data['model']['circulation']
         self.circ = circ(circ_struct,self.mesh)
 
+        """rank_id = comm.Get_rank()
+
+        size = comm.Get_size()
+        print('Rank %0.0f is called'%rank_id)
+
+        if rank_id == 0:
+            d={'a':[2]}
+            self.a = pd.DataFrame(d)
+            
+            for i in range(1,size):
+                comm.send(self.a,dest=i)
+
+                print('Rank 0 has sent a to rank %0.0f'%i)
+                
+        else:
+            self.a = comm.recv(source = 0)
+            print('Rank %0.0f has recived a from rank 0'%rank_id)
+            print self.a"""
+
+       
        
 
         # Now that you have set the LV vol, deform the mesh
@@ -203,9 +231,9 @@ class LV_simulation():
 
         self.prot = prot.protocol(protocol_struct)
 
-        # Manually deform ventricle to slack volume 
+        """# Manually deform ventricle to slack volume 
         LV_vol_1 = self.circ.data['v'][-1]
-       # self.mesh.diastolic_filling(LV_vol_1,loading_steps=5)
+        #self.mesh.diastolic_filling(LV_vol_1,loading_steps=5)
         print('initial vol')
         print(self.mesh.model['functions']['LVCavityvol'].vol)
         print self.mesh.model['uflforms'].LVcavityvol()
@@ -219,7 +247,9 @@ class LV_simulation():
         print self.circ.data['pressure_ventricle']
 
         #self.mesh.model['functions'] = \
-        #    self.mesh.diastolic_filling(LV_vol=LV_vol,loading_steps=n)
+        #    self.mesh.diastolic_filling(LV_vol=LV_vol,loading_steps=n)"""
+
+        # first calculate total number of integer points
 
         self.sim_data = \
                 self.create_data_structure(self.prot.data['no_of_time_steps'])
@@ -300,20 +330,21 @@ class LV_simulation():
     def implement_time_step(self, time_step):
         """ Implements time step """
         self.data['time'] = self.data['time'] + time_step
-        print '******** NEW TIME STEP ********'
-        print (self.data['time'])
-        
-        if (self.t_counter % 100 == 0):
-            print('Sim time (s): %.0f  %.0f%% complete' %
-                  (self.data['time'],
-                   100*self.t_counter/self.prot.data['no_of_time_steps']))
+        if self.comm.Get_rank() == 0:
+            print '******** NEW TIME STEP ********'
+            print (self.data['time'])
 
-            vol, press, flow = self.return_system_values()
+            if (self.t_counter % 100 == 0):
+                print('Sim time (s): %.0f  %.0f%% complete' %
+                    (self.data['time'],
+                    100*self.t_counter/self.prot.data['no_of_time_steps']))
+
+                vol, press, flow = self.return_system_values()
                 
 
-            print(json.dumps(vol, indent=4))
-            print(json.dumps(press, indent=4))
-            print(json.dumps(flow, indent=4))
+                print(json.dumps(vol, indent=4))
+                print(json.dumps(press, indent=4))
+                print(json.dumps(flow, indent=4))
 
         # Check for baroreflex and implement
         if (self.br):
@@ -331,8 +362,9 @@ class LV_simulation():
         (activation, new_beat) = \
             self.hr.implement_time_step(time_step)
 
-        # Solve MyoSim ODEs across the mesh
-        print 'Solving MyoSim ODEs across the mesh'
+        if self.comm.Get_rank() == 0:
+            # Solve MyoSim ODEs across the mesh
+            print 'Solving MyoSim ODEs across the mesh'
         start = time.time()
         for j in range(self.no_of_int_points):
 
@@ -343,15 +375,16 @@ class LV_simulation():
                                                 self.pass_stress_list[j])
             self.hs_objs_list[j].update_data()
             
-            if j%1000==0:
+            if j%1000==0 and self.comm.Get_rank() == 0:
                 print '%.0f%% of integer points are updated' % (100*j/self.no_of_int_points)
 
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
                 self.hs_objs_list[j].myof.y[:]
         end =time.time()
-        print 'Required time for solving myosim was'
-        t = end-start 
-        print t
+        if self.comm.Get_rank() == 0:
+            print 'Required time for solving myosim was'
+            t = end-start 
+            print t
 
         # Now update fenics FE for population array (y_vec) and hs_length
         self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
@@ -359,14 +392,17 @@ class LV_simulation():
 
         # Update circulation and FE function for LV cavity volume
         self.circ.data['v'] = \
-            self.circ.evolve_volume(time_step, self.circ.data['v'])
+                self.evolve_volume(time_step, self.circ.data['v'])
+
+        # Update LV cavity volume fenics function        
         self.mesh.model['functions']['LVCavityvol'].vol = \
             self.circ.data['v'][-1]
 
        
         #Solve cardiac mechanics weak form
         #--------------------------------
-        print 'solving weak form'
+        if self.comm.Get_rank() == 0:
+            print 'solving weak form'
         Ftotal = self.mesh.model['Ftotal']
         w = self.mesh.model['functions']['w']
         bcs = self.mesh.model['boundary_conditions']
@@ -379,8 +415,10 @@ class LV_simulation():
         # First pressure in circulation
         for i in range(self.circ.model['no_of_compartments']-1):
             self.circ.data['p'][i] = (self.circ.data['v'][i] - self.circ.data['s'][i]) / \
-                self.circ.data['compliance'][i]
-        self.circ.data['p'][-1] = self.mesh.model['uflforms'].LVcavitypressure()
+                    self.circ.data['compliance'][i]
+
+        self.circ.data['p'][-1] = \
+                self.mesh.model['uflforms'].LVcavitypressure()
 
         # Then update FE function for cross-bridge stress, hs_length, and passive stress
         # across the mesh
@@ -388,14 +426,14 @@ class LV_simulation():
                                 self.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
 
         self.mesh.model['functions']['hsl_old'].vector()[:] = \
-            project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector()[:]
+            project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
         self.mesh.model['functions']['pseudo_old'].vector()[:] = \
-            project(self.mesh.model['functions']['pseudo_alpha'], self.mesh.model['function_spaces']["quadrature_space"]).vector()[:]
+            project(self.mesh.model['functions']['pseudo_alpha'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
         new_hs_length_list = \
-            project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector()[:]
-        
+            project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+
         self.delta_hs_length_list = new_hs_length_list - self.hs_length_list
         self.hs_length_list = new_hs_length_list
         
@@ -412,9 +450,9 @@ class LV_simulation():
         # Update the t counter for the next step
         self.t_counter = self.t_counter + 1
 
-        self.update_data(time_step)
+        #self.update_data(time_step)
 
-        self.write_complete_data_to_sim_data()
+        #self.write_complete_data_to_sim_data()
 
 
     def update_data(self, time_step):
@@ -556,4 +594,57 @@ class LV_simulation():
         if not os.path.isdir(output_dir):
             print('Making output dir')
             os.makedirs(output_dir)
+
+    def evolve_volume(self,time_step,initial_v):
+        
+        def derivs(t, v):
+            dv = np.zeros(self.circ.model['no_of_compartments'])
+            flows = self.return_flows(v, time_step)
+            for i in np.arange(self.circ.model['no_of_compartments']):
+                dv[i] = flows[i] - flows[i+1]
+                if (i == (self.circ.model['no_of_compartments']-1)):
+                    dv[i] = flows[i] - flows[0] + flows[-1]
+                else:
+                    dv[i] = flows[i] - flows[i+1]
+            return dv
+
+        sol = solve_ivp(derivs, [0, time_step], initial_v)
+
+        # Tidy up negative values
+        y = sol.y[:, -1]
+
+        return y 
+
+    def return_flows(self,v,time_step):
+        """ return flows between compartments """
+
+        # Calculate pressure in each compartment
+        p = np.zeros(self.circ.model['no_of_compartments'])
+        for i in np.arange(len(p)-1):
+            p[i] = (v[i]-self.circ.data['s'][i]) / self.circ.data['compliance'][i]
+        p[-1] = self.mesh.model['uflforms'].LVcavitypressure()
+
+        # Add 1 for VAD
+        f = np.zeros(self.circ.model['no_of_compartments']+1)
+        r = self.circ.data['resistance']
+    
+        for i in np.arange(len(p)):
+            f[i] = (1.0 / r[i] * (p[i-1] - p[i]))
+
+        # Check for VAD
+        if (self.circ.va):
+            f[-1] = self.va.data['max_flow'] +\
+                (p[-1] - p[0]) * self.va.data['pump_slope']
+
+        # Add in the valves
+        # Aortic
+        if (p[-1] <= p[0]):
+            f[0] = (p[-1] - p[0]) * \
+                self.circ.data['aortic_insufficiency_conductance']
+        # Mitral
+        if (p[-1] >= p[-2]):
+            f[-2] = (p[-2]-p[-1]) * \
+                self.circ.data['mitral_insufficiency_conductance']
+
+        return f
         
