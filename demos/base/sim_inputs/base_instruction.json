@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [920],
+        "no_of_time_steps": [10],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -139,15 +139,15 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [5],
-                "k_force": [5e-4],
-                "k_2": [200],
-                "k_3": [100],
-                "k_4_0": [40],
+                "k_1": [8],
+                "k_force": [1e-3],
+                "k_2": [100],
+                "k_3": [170],
+                "k_4_0": [80],
                 "k_4_1": [1],
                 "k_cb": [0.001],
                 "x_ps": [5],
-                "k_on": [2e8],
+                "k_on": [1e7],
                 "k_off": [200],
                 "k_coop": [5],
                 "int_passive_exp_sigma": [100],
