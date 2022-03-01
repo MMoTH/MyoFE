@@ -177,9 +177,6 @@ class MeshClass():
         # close f
         self.f.close()
 
-        print 'len hsl0 function %0.0f'%len(hsl0.vector()[:])
-        #print 'len fcn spaces %0.0f'% len(self.model['function_spaces']['quadrature_space'].vector[:])
-
         y_vec   = Function(self.model['function_spaces']['quad_vectorized_space'])
 
         # define functions for the weak form
@@ -339,7 +336,6 @@ class MeshClass():
         self.model['functions']["delta_hsl"] = \
             self.model['functions']["hsl"] - self.model['functions']["hsl_old"]
 
-        print 'len hsl function %0.0f'%len(self.model['functions']["hsl_old"].vector()[:])
         self.y_split = np.array(split(self.model['functions']['y_vec']))
         
 

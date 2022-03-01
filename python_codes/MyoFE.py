@@ -53,7 +53,7 @@ def MyoFE():
             instruct_file = sys.argv[2]
             execute_MyoFE(instruct_file,comm)
 
-    MPI.Finalize
+    MPI.Finalize()
 
     stop = TIME.time()
     print 'Batch run time'
