@@ -71,7 +71,7 @@ class LV_simulation():
         self.hs_params_mesh = dict()
         self.local_n_of_int_points = \
             4 * np.shape(self.mesh.model['mesh'].cells())[0]
-
+        
         # Calculate the total no of integration points
         # First on the root core
         self.global_n_of_int_points = \
@@ -79,6 +79,22 @@ class LV_simulation():
         # Then broadcast to all other cores
         self.global_n_of_int_points = \
             self.comm.bcast(self.global_n_of_int_points)
+
+        # Now generate a list (with len = total num of cores) 
+        # that holds the num of integer points for each core
+        self.int_points_per_core = \
+                np.zeros(self.comm.Get_size())
+        # Send local num of integer points to root core (i.e. 0)
+        if self.comm.Get_rank() != 0:
+            self.comm.send(self.local_n_of_int_points,dest = 0, tag = 1)
+        else: # Root core recieves local num of int points from other cores
+            self.int_points_per_core[0] = self.local_n_of_int_points
+            for i in range(1,self.comm.Get_size()):
+                self.int_points_per_core[i] = \
+                    self.comm.recv(source = i, tag = 1)
+        # Now broadcast the list to all cores
+        self.int_points_per_core = \
+            self.comm.bcast(self.int_points_per_core)
 
         if self.comm.Get_rank() == 1:
             print 'Total no if int points is %0.0f'\
@@ -173,22 +189,25 @@ class LV_simulation():
 
         return sim_data
 
-    def create_data_structure_for_spatial_variables(self,no_of_data_points, local_n_of_int_points, spatial_data_struct = []):
+    def create_data_structure_for_spatial_variables(self,no_of_data_points, 
+                                                    num_of_int_points, 
+                                                    spatial_data_fields = [],
+                                                    in_average = False):
         """ return a data structure for each spatial variables, specially for MyoSim parameters"""
 
         print 'creating spatial sim data'
         
         
         i = np.zeros(no_of_data_points)
-        c = np.arange(local_n_of_int_points)+1
+        c = np.arange(num_of_int_points)
 
         data_field = []
         self.spatial_myof_data_fields = []
         self.spatial_memb_data_fields = []
         self.spatial_hs_data_fields = []
-        if spatial_data_struct:
+        if spatial_data_fields:
             # create data fileds based on what user has asked
-            for sd in spatial_data_struct:
+            for sd in spatial_data_fields:
                 if sd['level'][0] == 'myofilaments':
                     for f in sd['fields']:
                         self.spatial_myof_data_fields.append(f)
@@ -199,14 +218,15 @@ class LV_simulation():
 
         else:
             # create default data fields
+            self.spatial_hs_data_fields = list(self.hs.data.keys())
             self.spatial_myof_data_fields = ['M_SRX','M_DRX','M_FG','n_off','n_on','n_overlap',
                                                 'n_bound']
             self.spatial_memb_data_fields = ['Ca_cytosol','Ca_SR']
 
-        data_field = list(self.hs.data.keys()) +\
+        data_field = self.spatial_hs_data_fields +\
                         self.spatial_myof_data_fields+\
                             self.spatial_memb_data_fields
-        if self.spatial_data_to_mean:
+        if in_average:
             spatial_data = pd.DataFrame()
             data_field += 'time'
             for f in data_field:
@@ -218,7 +238,7 @@ class LV_simulation():
             for f in data_field:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
                 #spatial_data[f]['time'] = pd.Series()
-        print 'spatial sim data is created'
+        print 'spatial simulation data is created'
         
         return spatial_data
 
@@ -246,42 +266,56 @@ class LV_simulation():
 
         # first calculate total number of integer points
 
-        # Define data holders only on root core
+        # Define simulation data holders for storing 1-D results (pressure, volume, etc.)
         if self.comm.Get_rank() == 0:
             self.sim_data = \
                     self.create_data_structure(self.prot.data['no_of_time_steps'])
 
-        spatial_data_struct = []
+        # Now define data holder for spatial variables.
+        # If multiple cores are being used: 
+        #   1) Create a local data holders for each core
+
+        spatial_data_fields = []
         self.spatial_data_to_mean = False
         if output_struct:
             if 'spatial_data_fileds' in output_struct:
-                spatial_data_struct = output_struct['spatial_data_fileds']
+                spatial_data_fields = output_struct['spatial_data_fileds']
             if 'dumping_spatial_in_average' in output_struct:
                 if output_struct['dumping_spatial_in_average'][0] == True:
                     self.spatial_data_to_mean = True
 
-        self.spatial_sim_data = \
+        self.local_spatial_sim_data = \
             self.create_data_structure_for_spatial_variables(self.prot.data['no_of_time_steps'],
                                                                 self.local_n_of_int_points,
-                                                                spatial_data_struct = spatial_data_struct)
+                                                                spatial_data_fields = spatial_data_fields,
+                                                                in_average = self.spatial_data_to_mean)
+        # Create a global data holder for spatial variables on root core (i.e. 0)
+        if self.comm.Get_rank() == 0:
+            self.spatial_sim_data = \
+                self.create_data_structure_for_spatial_variables(self.prot.data['no_of_time_steps'],
+                                                                self.global_n_of_int_points,
+                                                                spatial_data_fields = spatial_data_fields,
+                                                                in_average = self.spatial_data_to_mean)
         # Step through the simulation
         self.t_counter = 0
         self.write_counter = 0
         self.envelope_counter = 0
 
-        # Initilize the output files if any
+        # Initilize the output mesh files if any
         self.total_file_disp = [] 
         self.output_data_str = [] 
         if output_struct:
             if 'output_mesh_file' in output_struct:
                 print 'initializing '
                 output_mesh_str = output_struct['output_mesh_file'][0]
-                self.check_output_directory_folder(path = output_mesh_str)
+                if self.comm.Get_rank() == 0:
+                    self.check_output_directory_folder(path = output_mesh_str)
                 self.total_file_disp = XDMFFile(mpi_comm_world(),output_mesh_str)
 
             if 'output_data_path' in output_struct:
                 self.output_data_str = output_struct['output_data_path'][0]
-                self.check_output_directory_folder(path = self.output_data_str)
+                if self.comm.Get_rank() == 0: 
+                    self.check_output_directory_folder(path = self.output_data_str)
 
 
 
@@ -315,6 +349,34 @@ class LV_simulation():
 
                 return"""
 
+        # Now build up global data holders for 
+        # spatial variables if multiple cores have been used
+        
+        if self.comm.Get_size() > 1:
+            # first send all local spatial data to root core (i.e. 0)
+            if self.comm.Get_rank() != 0 :
+                self.comm.send(self.local_spatial_sim_data,dest = 0,tag = 2)
+
+           # let root core recieve them
+            if self.comm.Get_rank() == 0:
+                temp_data_holders = []
+                temp_data_holders.append(self.local_spatial_sim_data)
+                # recieve local data from others 
+                for i in range(1,self.comm.Get_size()):
+                    temp_data_holders.append(self.comm.recv(source = i, tag = 2))
+                # now dump them to global data holders
+                print 'Spatial variables are being gathered from multiple computing cores'
+                for j,f in enumerate(list(self.spatial_sim_data.keys())):
+                    print '%.0f%% complete' %(100*j/len(list(self.spatial_sim_data.keys())))
+                    for id in range(0,self.comm.Get_size()):
+                        i_0 = np.sum(self.int_points_per_core[0:id])
+                        i_1 = i_0 + self.int_points_per_core[id]
+                        cols = np.arange(i_0,i_1)
+                        self.spatial_sim_data[f][cols] = \
+                            temp_data_holders[id][f]
+
+        else:
+            self.spatial_sim_data = self.local_spatial_sim_data
         # Now save output data
         # Things to improve: 1) Different data format (e.g. csv, hdf5, etc)
         # 2) Store data at a specified resolution (e.g. every 100 time steps)
@@ -462,12 +524,16 @@ class LV_simulation():
         self.t_counter = self.t_counter + 1
 
         self.comm.Barrier()
+        # Update sim data for non-spatial variables on root core (i.e. 0)
         if self.comm.Get_rank() == 0:
             print 'Dumping data ...'
             self.update_data(time_step)
             self.write_complete_data_to_sim_data()
 
+        # Now update local spatial data for each core
+        self.write_complete_data_to_spatial_sim_data(self.comm.Get_rank())
 
+        self.write_counter = self.write_counter + 1
     def update_data(self, time_step):
         """ Update data after a time step """
 
@@ -546,6 +612,8 @@ class LV_simulation():
     
         self.sim_data['write_mode'] = 1
         
+        
+
         # This works but is very slow
         """if (True):
             for f in list(self.data.keys()):
@@ -594,31 +662,54 @@ class LV_simulation():
             else:
                 
                 self.write_complete_data_to_spatial_sim_data()"""
-        self.write_counter = self.write_counter + 1
+        
 
-    def write_complete_data_to_spatial_sim_data(self):
+    def write_complete_data_to_spatial_sim_data(self,rank):
 
-        print 'writing to spatial sim data'
+        print 'Writing spatial variables on core id: %0.0f' %rank
+
+        """if self.spatial_data_to_mean:
+            self.spatial_sim_data.at[self.write_counter,'time'] = \
+                self.data['time']
+            for f in list(self.hs.data.keys()):
+                data_field = []
+                for h in self.hs_objs_list:
+                    data_field.append(h.data[f]) 
+                self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+
+            for f in list(self.hs.myof.data.keys()):
+                data_field = []
+                for h in self.hs_objs_list:
+                    data_field.append(h.myof.data[f]) 
+                self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+
+            for f in list(self.hs.memb.data.keys()):
+                data_field = []
+                for h in self.hs_objs_list:
+                    data_field.append(h.memb.data[f]) 
+                self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+        else:"""
+        
        
-        for f in list(self.hs.data.keys()):
+        for f in self.spatial_hs_data_fields:
             data_field = []
             for h in self.hs_objs_list:
                 data_field.append(h.data[f])
-            self.spatial_sim_data[f].iloc[self.write_counter] = data_field
+            self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
 
         for f in self.spatial_myof_data_fields:
             data_field = []
             for h in (self.hs_objs_list):
                 data_field.append(h.myof.data[f])
-            self.spatial_sim_data[f].iloc[self.write_counter] = data_field
+            self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
         
         for f in self.spatial_memb_data_fields:
             data_field = []
             for h in (self.hs_objs_list):
                 data_field.append(h.memb.data[f])
-            self.spatial_sim_data[f].iloc[self.write_counter] = data_field
+            self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
 
     def check_output_directory_folder(self, path=""):
@@ -681,4 +772,18 @@ class LV_simulation():
                 self.circ.data['mitral_insufficiency_conductance']
 
         return f
+
+    def gather_data(self,rank, local_n_of_int_points,field):
+        data_array = np.zeros(self.global_n_of_int_points)
+
+    def bcast_spatial_data(self,rank,local_n_of_int_points):
+        if rank != 0:
+            return
+            # send data to core 0 
+        if rank == 0:
+            return
+            # recive data 
+
+            #then write data 
+
         
