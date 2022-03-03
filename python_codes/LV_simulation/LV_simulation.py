@@ -149,7 +149,7 @@ class LV_simulation():
         self.va = []
 
         
-    def create_data_structure(self,no_of_data_points):
+    def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 
         # First build up the field data
@@ -177,13 +177,14 @@ class LV_simulation():
             data_fields = data_fields + list(self.va.data.keys())
 
         # Now start define the data holder
+        rows = int(no_of_data_points/frequency) + 1 # 1 for time zero
         #sim_data = pd.DataFrame()
         #z = np.zeros(no_of_data_points)
 
         sim_data = dict()
         for f in data_fields:
             #print f
-            sim_data[f] = np.zeros(no_of_data_points)
+            sim_data[f] = np.zeros(rows)
             #s = pd.Series(data=z, name=f)
             #sim_data = pd.concat([sim_data, s], axis=1)
 
@@ -192,13 +193,14 @@ class LV_simulation():
     def create_data_structure_for_spatial_variables(self,no_of_data_points, 
                                                     num_of_int_points, 
                                                     spatial_data_fields = [],
-                                                    in_average = False):
+                                                    in_average = False,
+                                                    frequency = 1):
         """ return a data structure for each spatial variables, specially for MyoSim parameters"""
 
         print 'creating spatial sim data'
         
-        
-        i = np.zeros(no_of_data_points)
+        rows = int(no_of_data_points/frequency) +1 # 1 for time zero
+        i = np.zeros(rows)
         c = np.arange(num_of_int_points)
 
         data_field = []
@@ -229,7 +231,7 @@ class LV_simulation():
             data_field.append('time')
 
             for f in data_field:
-                s = pd.Series(data=np.zeros(no_of_data_points), name=f)
+                s = pd.Series(data=np.zeros(rows), name=f)
                 spatial_data = pd.concat([spatial_data, s], axis=1)
                 #spatial_data[f]['time'] = pd.Series()
         else:
@@ -263,38 +265,45 @@ class LV_simulation():
         #self.mesh.model['functions'] = \
         #    self.mesh.diastolic_filling(LV_vol=LV_vol,loading_steps=n)"""
 
-        # first calculate total number of integer points
-
-        # Define simulation data holders for storing 1-D results (pressure, volume, etc.)
-        if self.comm.Get_rank() == 0:
-            self.sim_data = \
-                    self.create_data_structure(self.prot.data['no_of_time_steps'])
-
-        # Now define data holder for spatial variables.
-        # If multiple cores are being used: 
-        #   1) Create a local data holders for each core
-
+        # First setup the protocol for creating output data holders
         spatial_data_fields = []
         self.spatial_data_to_mean = False
+        self.dumping_data_frequency = 1
         if output_struct:
             if 'spatial_data_fileds' in output_struct:
                 spatial_data_fields = output_struct['spatial_data_fileds']
             if 'dumping_spatial_in_average' in output_struct:
                 if output_struct['dumping_spatial_in_average'][0] == True:
                     self.spatial_data_to_mean = True
+            if 'frequency_n' in output_struct:
+                self.dumping_data_frequency = \
+                    output_struct['frequency_n'][0]
+
+
+        # Define simulation data holders for storing 
+        # 1-D variables (pressure, volume, etc.)
+        if self.comm.Get_rank() == 0:
+            self.sim_data = \
+                    self.create_data_structure(self.prot.data['no_of_time_steps'],
+                                                frequency = self.dumping_data_frequency )
+
+        # Now define data holder for spatial variables.
         # Create local data holders for spatial varibles on each core
         self.local_spatial_sim_data = \
             self.create_data_structure_for_spatial_variables(self.prot.data['no_of_time_steps'],
                                                                 self.local_n_of_int_points,
                                                                 spatial_data_fields = spatial_data_fields,
-                                                                in_average = self.spatial_data_to_mean)
-        # Create a global data holder for spatial variables on root core (i.e. 0)
+                                                                in_average = self.spatial_data_to_mean,
+                                                                frequency = self.dumping_data_frequency)
+        # Create a global data holder for spatial variables 
+        # on root core (i.e. 0)
         if self.comm.Get_rank() == 0:
             self.spatial_sim_data = \
                 self.create_data_structure_for_spatial_variables(self.prot.data['no_of_time_steps'],
                                                                 self.global_n_of_int_points,
                                                                 spatial_data_fields = spatial_data_fields,
-                                                                in_average = self.spatial_data_to_mean)
+                                                                in_average = self.spatial_data_to_mean,
+                                                                frequency = self.dumping_data_frequency)
         # Step through the simulation
         self.t_counter = 0
         self.write_counter = 0
@@ -367,7 +376,6 @@ class LV_simulation():
                 print 'Spatial variables are being gathered from multiple computing cores'
                 if self.spatial_data_to_mean:
                     for c in self.spatial_sim_data.columns:
-                        print c
                         self.spatial_sim_data[c] = \
                             sum([temp_data_holders[i][c]*self.int_points_per_core[i] for i \
                                 in range(len(self.int_points_per_core))])/np.sum(self.int_points_per_core)
@@ -405,7 +413,7 @@ class LV_simulation():
 
     def implement_time_step(self, time_step):
         """ Implements time step """
-        self.data['time'] = self.data['time'] + time_step
+        
         if self.comm.Get_rank() == 0:
             print '******** NEW TIME STEP ********'
             print (self.data['time'])
@@ -524,20 +532,25 @@ class LV_simulation():
         # Convert negative passive stress in half-sarcomeres to 0
         self.pass_stress_list[self.pass_stress_list<0] = 0
     
-        # Update the t counter for the next step
-        self.t_counter = self.t_counter + 1
-
         self.comm.Barrier()
         # Update sim data for non-spatial variables on root core (i.e. 0)
-        if self.comm.Get_rank() == 0:
+
+        if self.t_counter%self.dumping_data_frequency == 0:
             print 'Dumping data ...'
-            self.update_data(time_step)
-            self.write_complete_data_to_sim_data()
+            if self.comm.Get_rank() == 0:
+                
+                self.update_data(time_step)
+                self.write_complete_data_to_sim_data()
 
-        # Now update local spatial data for each core
-        self.write_complete_data_to_spatial_sim_data(self.comm.Get_rank())
+            # Now update local spatial data for each core
+            self.write_complete_data_to_spatial_sim_data(self.comm.Get_rank())
 
-        self.write_counter = self.write_counter + 1
+            self.write_counter = self.write_counter + 1
+        
+        # Update the t counter for the next step
+        self.t_counter = self.t_counter + 1
+        self.data['time'] = self.data['time'] + time_step
+   
     def update_data(self, time_step):
         """ Update data after a time step """
 
