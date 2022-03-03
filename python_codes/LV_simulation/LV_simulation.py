@@ -214,8 +214,6 @@ class LV_simulation():
                 if sd['level'][0] == 'membranes':
                     for f in sd['fields']:
                         self.spatial_memb_data_fields.append(f)
-
-
         else:
             # create default data fields
             self.spatial_hs_data_fields = list(self.hs.data.keys())
@@ -228,7 +226,8 @@ class LV_simulation():
                             self.spatial_memb_data_fields
         if in_average:
             spatial_data = pd.DataFrame()
-            data_field += 'time'
+            data_field.append('time')
+
             for f in data_field:
                 s = pd.Series(data=np.zeros(no_of_data_points), name=f)
                 spatial_data = pd.concat([spatial_data, s], axis=1)
@@ -283,7 +282,7 @@ class LV_simulation():
             if 'dumping_spatial_in_average' in output_struct:
                 if output_struct['dumping_spatial_in_average'][0] == True:
                     self.spatial_data_to_mean = True
-
+        # Create local data holders for spatial varibles on each core
         self.local_spatial_sim_data = \
             self.create_data_structure_for_spatial_variables(self.prot.data['no_of_time_steps'],
                                                                 self.local_n_of_int_points,
@@ -366,14 +365,21 @@ class LV_simulation():
                     temp_data_holders.append(self.comm.recv(source = i, tag = 2))
                 # now dump them to global data holders
                 print 'Spatial variables are being gathered from multiple computing cores'
-                for j,f in enumerate(list(self.spatial_sim_data.keys())):
-                    print '%.0f%% complete' %(100*j/len(list(self.spatial_sim_data.keys())))
-                    for id in range(0,self.comm.Get_size()):
-                        i_0 = np.sum(self.int_points_per_core[0:id])
-                        i_1 = i_0 + self.int_points_per_core[id]
-                        cols = np.arange(i_0,i_1)
-                        self.spatial_sim_data[f][cols] = \
-                            temp_data_holders[id][f]
+                if self.spatial_data_to_mean:
+                    for c in self.spatial_sim_data.columns:
+                        print c
+                        self.spatial_sim_data[c] = \
+                            sum([temp_data_holders[i][c]*self.int_points_per_core[i] for i \
+                                in range(len(self.int_points_per_core))])/np.sum(self.int_points_per_core)
+                else:
+                    for j,f in enumerate(list(self.spatial_sim_data.keys())):
+                        print '%.0f%% complete' %(100*j/len(list(self.spatial_sim_data.keys())))
+                        for id in range(0,self.comm.Get_size()):
+                            i_0 = np.sum(self.int_points_per_core[0:id])
+                            i_1 = i_0 + self.int_points_per_core[id]
+                            cols = np.arange(i_0,i_1)
+                            self.spatial_sim_data[f][cols] = \
+                                temp_data_holders[id][f]
 
         else:
             self.spatial_sim_data = self.local_spatial_sim_data
@@ -382,8 +388,6 @@ class LV_simulation():
         # 2) Store data at a specified resolution (e.g. every 100 time steps)
         if output_struct and self.comm.Get_rank() == 0:
             if self.output_data_str:
-                
-                
                 output_sim_data = pd.DataFrame(data = self.sim_data)
                 output_sim_data.to_csv(self.output_data_str)
                 #self.sim_data.to_csv(self.output_data_str)
@@ -612,105 +616,52 @@ class LV_simulation():
     
         self.sim_data['write_mode'] = 1
         
-        
-
-        # This works but is very slow
-        """if (True):
-            for f in list(self.data.keys()):
-
-                if f not in ['hs_length_list','delta_hs_length_list']:
-                    self.sim_data.at[self.write_counter, f] = self.data[f]
-            for f in list(self.circ.data.keys()):
-                if (f not in ['p', 'v', 's', 'compliance', 'resistance',
-                            'inertance', 'f']):
-                    self.sim_data.at[self.write_counter, f] = self.circ.data[f]
-            for f in list(self.hr.data.keys()):
-                self.sim_data.at[self.write_counter, f] = self.hr.data[f]
-
-            #for f in list(self.hs.memb.data.keys()):
-            #   self.sim_data.at[self.write_counter, f] = self.hs.memb.data[f]
-            
-
-            if (self.br):
-                for f in list(self.br.data.keys()):
-                    self.sim_data.at[self.write_counter, f] = self.br.data[f]
-            if (self.gr):
-                for f in list(self.gr.data.keys()):
-                    self.sim_data.at[self.write_counter, f] = self.gr.data[f]
-            self.sim_data.at[self.write_counter, 'write_mode'] = 1
-
-            if self.spatial_data_to_mean:
-                self.spatial_sim_data.at[self.write_counter,'time'] = \
-                    self.data['time']
-                for f in list(self.hs.data.keys()):
-                    data_field = []
-                    for h in self.hs_objs_list:
-                        data_field.append(h.data[f]) 
-                    self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
-
-                for f in list(self.hs.myof.data.keys()):
-                    data_field = []
-                    for h in self.hs_objs_list:
-                        data_field.append(h.myof.data[f]) 
-                    self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
-
-                for f in list(self.hs.memb.data.keys()):
-                    data_field = []
-                    for h in self.hs_objs_list:
-                        data_field.append(h.memb.data[f]) 
-                    self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
-            else:
-                
-                self.write_complete_data_to_spatial_sim_data()"""
-        
 
     def write_complete_data_to_spatial_sim_data(self,rank):
 
         print 'Writing spatial variables on core id: %0.0f' %rank
 
-        """if self.spatial_data_to_mean:
-            self.spatial_sim_data.at[self.write_counter,'time'] = \
+        if self.spatial_data_to_mean:
+            self.local_spatial_sim_data.at[self.write_counter,'time'] = \
                 self.data['time']
-            for f in list(self.hs.data.keys()):
+            for f in list(self.spatial_hs_data_fields):
                 data_field = []
                 for h in self.hs_objs_list:
                     data_field.append(h.data[f]) 
-                self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+                self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
-            for f in list(self.hs.myof.data.keys()):
+            for f in list( self.spatial_myof_data_fields):
                 data_field = []
                 for h in self.hs_objs_list:
                     data_field.append(h.myof.data[f]) 
-                self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+                self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
-            for f in list(self.hs.memb.data.keys()):
+            for f in list(self.spatial_memb_data_fields):
                 data_field = []
                 for h in self.hs_objs_list:
                     data_field.append(h.memb.data[f]) 
-                self.spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
-        else:"""
-        
-       
-        for f in self.spatial_hs_data_fields:
-            data_field = []
-            for h in self.hs_objs_list:
-                data_field.append(h.data[f])
-            self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-            #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
+                self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+        else:
+            for f in self.spatial_hs_data_fields:
+                data_field = []
+                for h in self.hs_objs_list:
+                    data_field.append(h.data[f])
+                self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
 
-        for f in self.spatial_myof_data_fields:
-            data_field = []
-            for h in (self.hs_objs_list):
-                data_field.append(h.myof.data[f])
-            self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-            #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
-        
-        for f in self.spatial_memb_data_fields:
-            data_field = []
-            for h in (self.hs_objs_list):
-                data_field.append(h.memb.data[f])
-            self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-            #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
+            for f in self.spatial_myof_data_fields:
+                data_field = []
+                for h in (self.hs_objs_list):
+                    data_field.append(h.myof.data[f])
+                self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
+            
+            for f in self.spatial_memb_data_fields:
+                data_field = []
+                for h in (self.hs_objs_list):
+                    data_field.append(h.memb.data[f])
+                self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
 
     def check_output_directory_folder(self, path=""):
         """ Check output folder"""
