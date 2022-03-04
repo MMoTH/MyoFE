@@ -27,6 +27,8 @@ from .output_handler.output_handler import output_handler as oh
 from .baroreflex import baroreflex as br
 from .half_sarcomere import half_sarcomere as hs 
 
+import matplotlib.pyplot as plt
+
 
 from mpi4py import MPI
 
@@ -319,7 +321,7 @@ class LV_simulation():
                 if self.comm.Get_rank() == 0:
                     self.check_output_directory_folder(path = output_mesh_str)
                 self.total_file_disp = XDMFFile(mpi_comm_world(),output_mesh_str)
-
+                self.total_file_disp.write(self.mesh.model['functions']['w'].sub(0),0)
             if 'output_data_path' in output_struct:
                 self.output_data_str = output_struct['output_data_path'][0]
                 if self.comm.Get_rank() == 0: 
@@ -331,7 +333,7 @@ class LV_simulation():
             if self.total_file_disp:
                 #with XDMFFile(mpi_comm_world(),self.total_file_disp,'w') as out:
                 #    out.write_function(self.mesh.model['functions']['w'].sub(0))
-                self.total_file_disp.write(self.mesh.model['functions']['w'].sub(0))
+                self.total_file_disp.write(self.mesh.model['functions']['w'].sub(0),self.data['time'])
                 #self.total_file_disp << self.mesh.model['functions']['w'].sub(0)
 
             self.implement_time_step(self.prot.data['time_step'])
