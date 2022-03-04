@@ -329,87 +329,24 @@ class LV_simulation():
 
 
 
-        for i in np.arange(self.prot.data['no_of_time_steps']):
-            if self.total_file_disp:
-                #with XDMFFile(mpi_comm_world(),self.total_file_disp,'w') as out:
-                #    out.write_function(self.mesh.model['functions']['w'].sub(0))
-                self.total_file_disp.write(self.mesh.model['functions']['w'].sub(0),self.data['time'])
-                #self.total_file_disp << self.mesh.model['functions']['w'].sub(0)
-
-            self.implement_time_step(self.prot.data['time_step'])
-            """try:
+        for i in np.arange(self.prot.data['no_of_time_steps']+1):
+           
+            try:
                 if self.total_file_disp:
-                    self.total_file_disp << self.mesh.model['functions']['w'].sub(0)
+                    #self.total_file_disp << self.mesh.model['functions']['w'].sub(0)
+                    self.total_file_disp.write(self.mesh.model['functions']['w'].sub(0),self.data['time'])
 
                 self.implement_time_step(self.prot.data['time_step'])
             except RuntimeError: 
                 print "RuntimeError happend"
-                if output_struct:
-                    if self.output_data_str:
-                        self.sim_data.to_csv(self.output_data_str)
+                self.handle_output(output_struct)
 
-                        output_dir = os.path.dirname(self.output_data_str)
-                        if self.spatial_data_to_mean:
-                            out_path = output_dir + '/' + 'spatial_data.csv'
-                            self.spatial_sim_data.to_csv(out_path)
-                        else:
-                            for f in list(self.spatial_sim_data.keys()):
-                                out_path = output_dir + '/' + f + '_data.csv'
-                                self.spatial_sim_data[f].to_csv(out_path)
-
-                return"""
+                return
 
         # Now build up global data holders for 
         # spatial variables if multiple cores have been used
-        
-        if self.comm.Get_size() > 1:
-            # first send all local spatial data to root core (i.e. 0)
-            if self.comm.Get_rank() != 0 :
-                self.comm.send(self.local_spatial_sim_data,dest = 0,tag = 2)
-
-           # let root core recieve them
-            if self.comm.Get_rank() == 0:
-                temp_data_holders = []
-                temp_data_holders.append(self.local_spatial_sim_data)
-                # recieve local data from others 
-                for i in range(1,self.comm.Get_size()):
-                    temp_data_holders.append(self.comm.recv(source = i, tag = 2))
-                # now dump them to global data holders
-                print 'Spatial variables are being gathered from multiple computing cores'
-                if self.spatial_data_to_mean:
-                    for c in self.spatial_sim_data.columns:
-                        self.spatial_sim_data[c] = \
-                            sum([temp_data_holders[i][c]*self.int_points_per_core[i] for i \
-                                in range(len(self.int_points_per_core))])/np.sum(self.int_points_per_core)
-                else:
-                    for j,f in enumerate(list(self.spatial_sim_data.keys())):
-                        print '%.0f%% complete' %(100*j/len(list(self.spatial_sim_data.keys())))
-                        for id in range(0,self.comm.Get_size()):
-                            i_0 = np.sum(self.int_points_per_core[0:id])
-                            i_1 = i_0 + self.int_points_per_core[id]
-                            cols = np.arange(i_0,i_1)
-                            self.spatial_sim_data[f][cols] = \
-                                temp_data_holders[id][f]
-
-        else:
-            self.spatial_sim_data = self.local_spatial_sim_data
-        # Now save output data
-        # Things to improve: 1) Different data format (e.g. csv, hdf5, etc)
-        # 2) Store data at a specified resolution (e.g. every 100 time steps)
-        if output_struct and self.comm.Get_rank() == 0:
-            if self.output_data_str:
-                output_sim_data = pd.DataFrame(data = self.sim_data)
-                output_sim_data.to_csv(self.output_data_str)
-                #self.sim_data.to_csv(self.output_data_str)
-
-                output_dir = os.path.dirname(self.output_data_str)
-                if self.spatial_data_to_mean:
-                    out_path = output_dir + '/' + 'spatial_data.csv'
-                    self.spatial_sim_data.to_csv(out_path)
-                else:
-                    for f in list(self.spatial_sim_data.keys()):
-                        out_path = output_dir + '/' + f + '_data.csv'
-                        self.spatial_sim_data[f].to_csv(out_path)
+        self.handle_output(output_struct)
+       
             
 
 
@@ -686,70 +623,57 @@ class LV_simulation():
             print('Making output dir')
             os.makedirs(output_dir)
 
-    def evolve_volume(self,time_step,initial_v):
-        
-        def derivs(t, v):
-            dv = np.zeros(self.circ.model['no_of_compartments'])
-            flows = self.return_flows(v, time_step)
-            for i in np.arange(self.circ.model['no_of_compartments']):
-                dv[i] = flows[i] - flows[i+1]
-                if (i == (self.circ.model['no_of_compartments']-1)):
-                    dv[i] = flows[i] - flows[0] + flows[-1]
+    def handle_output(self, output_struct):
+        """ Handle output data"""
+        if self.comm.Get_size() > 1:
+            # first send all local spatial data to root core (i.e. 0)
+            if self.comm.Get_rank() != 0 :
+                self.comm.send(self.local_spatial_sim_data,dest = 0,tag = 2)
+
+           # let root core recieve them
+            if self.comm.Get_rank() == 0:
+                temp_data_holders = []
+                temp_data_holders.append(self.local_spatial_sim_data)
+                # recieve local data from others 
+                for i in range(1,self.comm.Get_size()):
+                    temp_data_holders.append(self.comm.recv(source = i, tag = 2))
+                # now dump them to global data holders
+                print 'Spatial variables are being gathered from multiple computing cores'
+                if self.spatial_data_to_mean:
+                    for c in self.spatial_sim_data.columns:
+                        self.spatial_sim_data[c] = \
+                            sum([temp_data_holders[i][c]*self.int_points_per_core[i] for i \
+                                in range(len(self.int_points_per_core))])/np.sum(self.int_points_per_core)
                 else:
-                    dv[i] = flows[i] - flows[i+1]
-            return dv
+                    for j,f in enumerate(list(self.spatial_sim_data.keys())):
+                        print '%.0f%% complete' %(100*j/len(list(self.spatial_sim_data.keys())))
+                        for id in range(0,self.comm.Get_size()):
+                            i_0 = np.sum(self.int_points_per_core[0:id])
+                            i_1 = i_0 + self.int_points_per_core[id]
+                            cols = np.arange(i_0,i_1)
+                            self.spatial_sim_data[f][cols] = \
+                                temp_data_holders[id][f]
 
-        sol = solve_ivp(derivs, [0, time_step], initial_v)
+        else:
+            self.spatial_sim_data = self.local_spatial_sim_data
+        # Now save output data
+        # Things to improve: 1) Different data format (e.g. csv, hdf5, etc)
+        # 2) Store data at a specified resolution (e.g. every 100 time steps)
+        if output_struct and self.comm.Get_rank() == 0:
+            if self.output_data_str:
+                output_sim_data = pd.DataFrame(data = self.sim_data)
+                output_sim_data.to_csv(self.output_data_str)
+                #self.sim_data.to_csv(self.output_data_str)
 
-        # Tidy up negative values
-        y = sol.y[:, -1]
+                output_dir = os.path.dirname(self.output_data_str)
+                if self.spatial_data_to_mean:
+                    out_path = output_dir + '/' + 'spatial_data.csv'
+                    self.spatial_sim_data.to_csv(out_path)
+                else:
+                    for f in list(self.spatial_sim_data.keys()):
+                        out_path = output_dir + '/' + f + '_data.csv'
+                        self.spatial_sim_data[f].to_csv(out_path)
 
-        return y 
-
-    def return_flows(self,v,time_step):
-        """ return flows between compartments """
-
-        # Calculate pressure in each compartment
-        p = np.zeros(self.circ.model['no_of_compartments'])
-        for i in np.arange(len(p)-1):
-            p[i] = (v[i]-self.circ.data['s'][i]) / self.circ.data['compliance'][i]
-        p[-1] = self.mesh.model['uflforms'].LVcavitypressure()
-
-        # Add 1 for VAD
-        f = np.zeros(self.circ.model['no_of_compartments']+1)
-        r = self.circ.data['resistance']
-    
-        for i in np.arange(len(p)):
-            f[i] = (1.0 / r[i] * (p[i-1] - p[i]))
-
-        # Check for VAD
-        if (self.circ.va):
-            f[-1] = self.va.data['max_flow'] +\
-                (p[-1] - p[0]) * self.va.data['pump_slope']
-
-        # Add in the valves
-        # Aortic
-        if (p[-1] <= p[0]):
-            f[0] = (p[-1] - p[0]) * \
-                self.circ.data['aortic_insufficiency_conductance']
-        # Mitral
-        if (p[-1] >= p[-2]):
-            f[-2] = (p[-2]-p[-1]) * \
-                self.circ.data['mitral_insufficiency_conductance']
-
-        return f
-
-    def gather_data(self,rank, local_n_of_int_points,field):
-        data_array = np.zeros(self.global_n_of_int_points)
-
-    def bcast_spatial_data(self,rank,local_n_of_int_points):
-        if rank != 0:
-            return
-            # send data to core 0 
-        if rank == 0:
-            return
-            # recive data 
-
-            #then write data 
+        return 
 
         
