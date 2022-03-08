@@ -325,54 +325,28 @@ class LV_simulation():
                     self.check_output_directory_folder(path = mesh_out_path)
                 
                 if "mesh_object_to_save" in output_struct:
-                    mesh_obj_to_save = output_struct['mesh_object_to_save']
-                    # start creating file for mesh objects 
-                    for m in mesh_obj_to_save:
-                        file_name = m +'.xdmf'
-                        file_path = os.path.join(mesh_out_path,file_name)
-                        self.mesh_files[m] = XDMFFile(mpi_comm_world(),file_path)
-                        if m == 'displacement':
-                            self.mesh_files[m].write(self.mesh.model['functions']['w'].sub(0),0)
-                        
-                        if m == 'hs_length':
-                            temp_hsl = project(self.mesh.model['functions']['hsl'], 
-                                                self.mesh.model['function_spaces']["scaler"])
-                                                
-                            self.mesh_files[m].write(temp_hsl,0)
-
-                        if m == 'active':
-                            temp_cb = project(inner(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['functions']['Pactive']*
-                                        self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scaler"])
-                            self.mesh_files[m].write(temp_cb,0)
-
-
-
-            """if 'output_mesh_file' in output_struct:
-                print 'initializing '
-                output_mesh_str = output_struct['output_mesh_file'][0]
-                if self.comm.Get_rank() == 0:
-                    self.check_output_directory_folder(path = output_mesh_str)
+                    self.mesh_obj_to_save = output_struct['mesh_object_to_save']
+                    # start creating file for mesh objects
+                    file_path = os.path.join(mesh_out_path,'solution.xdmf') 
+                    self.solution_mesh = XDMFFile(mpi_comm_world(),file_path)
+                    self.solution_mesh.parameters.update({"functions_share_mesh": True,
+                                            "rewrite_function_mesh": False})
                 
-                output_dir_path = os.path.dirname(output_mesh_str)
-      
-                self.total_disp_file = XDMFFile(mpi_comm_world(),output_mesh_str)
-                self.total_disp_file.write(self.mesh.model['functions']['w'].sub(0),0)
-
-                hsl_str = output_dir_path + '/hsl.xdmf'
-                self.total_file_hsl = XDMFFile(mpi_comm_world(),hsl_str)
-                temp_hsl = project(self.mesh.model['functions']['hsl'], 
-                            self.mesh.model['function_spaces']["scaler"])
-                self.total_file_hsl.write(temp_hsl,0)
-
-                cb_stress_str = output_dir_path + '/cb_stress.xdmf'
-                self.total_file_cb = XDMFFile(mpi_comm_world(),cb_stress_str)
-                temp_cb = project(inner(self.mesh.model['functions']['f0'],
+                    for m in self.mesh_obj_to_save:
+                        
+                        if m == 'displacement':
+                            temp_obj = self.mesh.model['functions']['w'].sub(0)
+                        if m == 'hs_length':
+                            temp_obj = project(self.mesh.model['functions']['hsl'], 
+                                                self.mesh.model['function_spaces']["scaler"])
+                        if m == 'active_stress':
+                            temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scaler"])
-                self.total_file_cb.write(temp_cb,0)"""
+
+                        temp_obj.rename(m,'')
+                        self.solution_mesh.write(temp_obj,0)
 
             if 'output_data_path' in output_struct:
                 self.output_data_str = output_struct['output_data_path'][0]
@@ -537,38 +511,24 @@ class LV_simulation():
             self.write_counter = self.write_counter + 1
 
             # save data on mesh
-            if len(self.mesh_files.keys()) != 0:
-                for m in list(self.mesh_files.keys()):
+            if len(self.mesh_obj_to_save) != 0:
+                print 'saving to 3d mesh'
+
+                for m in self.mesh_obj_to_save:
+                        
                     if m == 'displacement':
-                        self.mesh_files[m].write(self.mesh.model['functions']['w'].sub(0),self.data['time'])
-
+                        temp_obj = self.mesh.model['functions']['w'].sub(0)
                     if m == 'hs_length':
-                        temp_hsl = project(self.mesh.model['functions']['hsl'], 
-                            self.mesh.model['function_spaces']["scaler"])
-                        self.mesh_files[m].write(temp_hsl,self.data['time'])
-                    
+                        temp_obj = project(self.mesh.model['functions']['hsl'], 
+                                                self.mesh.model['function_spaces']["scaler"])
                     if m == 'active_stress':
-                        temp_cb = project(inner(self.mesh.model['functions']['f0'],
+                        temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scaler"])
-                        self.mesh_files[m].write(temp_cb,self.data['time'])
 
-            """if self.total_disp_file:
-                    #self.total_disp_file << self.mesh.model['functions']['w'].sub(0)
-                # save solution (displacement)
-                self.total_disp_file.write(self.mesh.model['functions']['w'].sub(0),self.data['time'])
-                #hsl
-                temp_hsl = project(self.mesh.model['functions']['hsl'], 
-                            self.mesh.model['function_spaces']["scaler"])
-                self.total_file_hsl.write(temp_hsl,self.data['time'])
-
-                temp_cb = project(inner(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['functions']['Pactive']*
-                                        self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scaler"])
-                self.total_file_cb.write(temp_cb,self.data['time'])"""
-
+                    temp_obj.rename(m,'')
+                    self.solution_mesh.write(temp_obj,self.data['time'])
 
         
         # Update the t counter for the next step

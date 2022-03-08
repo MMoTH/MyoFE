@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [10],
+        "no_of_time_steps": [30],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -264,7 +264,6 @@
     {
         "output_data_path": ["../demos/base/sim_output/data.csv"],
         "mesh_output_path": ["../demos/base/sim_output/mesh_output"],
-        "output_mesh_file": ["../demos/base/sim_output/mesh_output/total_displacement.xdmf"],
         "mesh_object_to_save":
         [
             "displacement",
