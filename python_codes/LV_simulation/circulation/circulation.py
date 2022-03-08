@@ -152,7 +152,7 @@ class Circulation():
 
         def derivs(t, v):
             dv = np.zeros(self.model['no_of_compartments'])
-            flows = self.return_flows(v, time_step)
+            flows = self.return_flows(v)
             for i in np.arange(self.model['no_of_compartments']):
                 dv[i] = flows[i] - flows[i+1]
                 if (i == (self.model['no_of_compartments']-1)):
@@ -168,7 +168,7 @@ class Circulation():
 
         return y 
 
-    def return_flows(self,v,time_step):
+    def return_flows(self,v):
         """ return flows between compartments """
 
         # Calculate pressure in each compartment
@@ -203,9 +203,9 @@ class Circulation():
 
     def updata_data(self,time_step):
 
-        self.data['f'] = self.return_flows(self.data['v'], time_step)
-        for i, f in enumerate(self.model['flow_list']):
-            self.data[f] = self.data['f'][i]
+        #self.data['f'] = self.return_flows(self.data['v'])
+        # for i, f in enumerate(self.model['flow_list']):
+        #     self.data[f] = self.data['f'][i]
 
         for i, v in enumerate(self.model['compartment_list']):
             self.data['pressure_%s' % v] = self.data['p'][i]

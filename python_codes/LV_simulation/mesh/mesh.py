@@ -18,6 +18,9 @@ class MeshClass():
         self.hs = self.parent_parameters.hs
         mesh_struct = parent_parameters.instruction_data['mesh']
 
+        if self.parent_parameters.comm.Get_size()>1:
+            parameters['mesh_partitioner'] = 'SCOTCH'
+
         self.model = dict()
 
         mesh_str = os.path.join(os.getcwd(),mesh_struct['mesh_path'][0])
@@ -30,12 +33,13 @@ class MeshClass():
 
         # communicator to run in parallel
         self.comm = self.model['mesh'].mpi_comm()
-        print 'comminicator is defined'
-        print self.comm.Get_rank()
-        print self.comm.Get_size()
+        #print 'comminicator is defined'
+        #print self.comm.Get_rank()
+        #print self.comm.Get_size()
 
         self.model['function_spaces'] = self.initialize_function_spaces(mesh_struct)
-        print 'function spaces are defined'
+        if MPI.rank(self.comm) == 0:
+            print 'function spaces are defined'
 
         self.model['functions'] = self.initialize_functions(mesh_struct)
 
@@ -46,7 +50,8 @@ class MeshClass():
 
     def initialize_function_spaces(self,mesh_struct):
 
-        print "creating necessary function spaces"
+        if MPI.rank(self.comm) == 0:
+            print "creating necessary function spaces"
         deg = 2
         parameters["form_compiler"]["quadrature_degree"]=deg
         parameters["form_compiler"]["representation"] = "quadrature"
@@ -225,8 +230,9 @@ class MeshClass():
         return boundary_conditions
 
     def create_weak_form(self):
-
-        print 'creating weak form'
+        
+        if MPI.rank(self.comm) == 0:     
+            print 'creating weak form'
 
         mesh = self.model['mesh']
         m,k = indices(2)
@@ -301,8 +307,9 @@ class MeshClass():
         hsl = alpha_f*hsl0
         self.model['functions']["hsl"] = hsl
 
-        print "hsl initial"
-        print project(hsl,self.model['function_spaces']["quadrature_space"]).vector().get_local()
+        if MPI.rank(self.comm) == 0:
+            print "hsl initial"
+            #print project(hsl,self.model['function_spaces']["quadrature_space"]).vector().get_local()
         
         #----------------------------------
 
@@ -360,8 +367,7 @@ class MeshClass():
                 project(self.model['functions']['cb_stress'],
                 self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
 
-        print 'cb stress in weak form'
-        print self.cb_stress_list.mean()
+        
         self.hs_length_list = \
                 project(self.model['functions']['hsl'],
                     self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
@@ -425,10 +431,12 @@ class MeshClass():
 
 
     def append_initialized_function(self, temp_dict,key,fcn_space):
-        print "appending fcn"
+        #if MPI.rank(self.comm) == 0:
+        #    print "appending fcn"
         if isinstance(temp_dict[key][0],str):
             #do nothing
-            print "string, not creating function"
+            if MPI.rank(self.comm) == 0:
+                print "string, not creating function"
         else:
             temp_fcn = Function(fcn_space)
             #print "key",key,"value", temp_dict[key][0]
@@ -439,12 +447,14 @@ class MeshClass():
 
     def diastolic_filling(self,LV_vol,loading_steps=10):
         
-        print('start to diastolic filling')
+        if MPI.rank(self.comm) == 0:
+            print('start to diastolic filling')
         LV_vol_0 = self.model['functions']['LVCavityvol']
         LV_vol_0.vol = self.model['uflforms'].LVcavityvol()
 
-        print 'diastolic filling to'
-        print LV_vol
+        if MPI.rank(self.comm) == 0:
+            print 'diastolic filling to'
+            print LV_vol
 
         total_volume_to_load = LV_vol - LV_vol_0.vol
         volume_increment = total_volume_to_load/loading_steps
@@ -455,23 +465,25 @@ class MeshClass():
         Jac = self.model['Jac']
 
         for i in range (0,loading_steps):
-            print 'diastolic filling step is:'
-            print(i)
-            print 'LV vol is:' 
-            print LV_vol_0.vol
+            if MPI.rank(self.comm) == 0:
+                print 'diastolic filling step is:'
+                print(i)
+                print 'LV vol is:' 
+                print LV_vol_0.vol
 
             LV_vol_0.vol += volume_increment
 
             solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
 
             #self.model['functions']['w'] = w
-            print 'pressure for diastolic filling is'
-            print self.model['uflforms'].LVcavitypressure()
+            if MPI.rank(self.comm) == 0:
+                print 'pressure for diastolic filling is'
+                print self.model['uflforms'].LVcavitypressure()
 
         return self.model['functions']
 
     def return_cb_stress(self, delta_hsl):
-        print self.hs.myof.implementation['kinetic_scheme']
+    
         if (self.hs.myof.implementation['kinetic_scheme'] == '3_state_with_SRX') or \
             (self.hs.myof.implementation['kinetic_scheme'] == '3_state_with_SRX_and_exp_detach'):
             

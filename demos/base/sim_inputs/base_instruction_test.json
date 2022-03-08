@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [10],
+        "no_of_time_steps": [30],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -27,6 +27,12 @@
         [
             {
                 "name":["stimulusFS"],
+                "type":["scaler"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["scaler"],
                 "type":["scaler"],
                 "element_type":["DG"],
                 "degree": [1]
@@ -257,8 +263,16 @@
     "output_handler":
     {
         "output_data_path": ["../demos/base/sim_output/data.csv"],
-        "output_mesh_file": ["../demos/base/sim_output/mesh_output/total_displacement.pvd"],
-        "dumping_spatial_in_average":[true]
+        "mesh_output_path": ["../demos/base/sim_output/mesh_output"],
+        "mesh_object_to_save":
+        [
+            "displacement",
+            "active_stress",
+            "hs_length"
+        ],
+        "dumping_spatial_in_average":[true],
+        "frequency_n": [3]
+        
         
     }
     
