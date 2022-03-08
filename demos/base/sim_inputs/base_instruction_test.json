@@ -271,7 +271,7 @@
             "hs_length"
         ],
         "dumping_spatial_in_average":[true],
-        "frequency_n": [3]
+        "frequency_n": [10]
         
         
     }

@@ -251,25 +251,7 @@ class LV_simulation():
     def run_simulation(self,protocol_struct,output_struct=[]):
 
         self.prot = prot.protocol(protocol_struct)
-
-        """# Manually deform ventricle to slack volume 
-        LV_vol_1 = self.circ.data['v'][-1]
-        #self.mesh.diastolic_filling(LV_vol_1,loading_steps=5)
-        print('initial vol')
-        print(self.mesh.model['functions']['LVCavityvol'].vol)
-        print self.mesh.model['uflforms'].LVcavityvol()
-
-        print 'initial pressure'
-        print self.mesh.model['functions']['Press'].P
-        print self.mesh.model['uflforms'].LVcavitypressure()
-
-        print 'circ pressure'
-        print self.circ.data['p'][-1]
-        print self.circ.data['pressure_ventricle']
-
-        #self.mesh.model['functions'] = \
-        #    self.mesh.diastolic_filling(LV_vol=LV_vol,loading_steps=n)"""
-
+        
         # First setup the protocol for creating output data holders
         spatial_data_fields = []
         self.spatial_data_to_mean = False
@@ -317,6 +299,7 @@ class LV_simulation():
         # Initilize the output mesh files if any
         self.total_disp_file = [] 
         self.output_data_str = [] 
+        self.mesh_obj_to_save = []
         if output_struct:
             if 'mesh_output_path' in output_struct:
                 mesh_out_path = output_struct['mesh_output_path'][0]
@@ -325,6 +308,7 @@ class LV_simulation():
                     self.check_output_directory_folder(path = mesh_out_path)
                 
                 if "mesh_object_to_save" in output_struct:
+                    print 'mesh obj is defined'
                     self.mesh_obj_to_save = output_struct['mesh_object_to_save']
                     # start creating file for mesh objects
                     file_path = os.path.join(mesh_out_path,'solution.xdmf') 
@@ -511,11 +495,9 @@ class LV_simulation():
             self.write_counter = self.write_counter + 1
 
             # save data on mesh
-            if len(self.mesh_obj_to_save) != 0:
-                print 'saving to 3d mesh'
-
+            if self.mesh_obj_to_save:
+                print 'Saving to 3d mesh'
                 for m in self.mesh_obj_to_save:
-                        
                     if m == 'displacement':
                         temp_obj = self.mesh.model['functions']['w'].sub(0)
                     if m == 'hs_length':
@@ -530,7 +512,6 @@ class LV_simulation():
                     temp_obj.rename(m,'')
                     self.solution_mesh.write(temp_obj,self.data['time'])
 
-        
         # Update the t counter for the next step
         self.t_counter = self.t_counter + 1
         self.data['time'] = self.data['time'] + time_step

@@ -32,6 +32,12 @@
                 "degree": [1]
             },
             {
+                "name":["scaler"],
+                "type":["scaler"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
                 "name":["growth_tensor_space"],
                 "type":["tensor"],
                 "element_type":["DG"],
@@ -257,9 +263,16 @@
     "output_handler":
     {
         "output_data_path": ["../demos/base/sim_output/data.csv"],
-        "output_mesh_file": ["../demos/base/sim_output/mesh_output/total_displacement.pvd"],
-        "dumping_spatial_in_average":[true]
+        "mesh_output_path": ["../demos/base/sim_output/mesh_output"],
+        "mesh_object_to_save":
+        [
+            "displacement",
+            "active_stress",
+            "hs_length"
+        ],
+        "dumping_spatial_in_average":[true],
+        "frequency_n": [10]
+        
         
     }
-    
 }
