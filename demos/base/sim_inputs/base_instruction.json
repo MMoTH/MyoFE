@@ -17,7 +17,7 @@
     "heart_rate": {
         "t_active_period": [0.003],
         "t_quiescent_period": [0.854],
-        "t_first_activation": [0.05]
+        "t_first_activation": [0.1]
     },
     "mesh":
     {
@@ -118,7 +118,7 @@
                 },
                 {
                     "name": ["ventricle"],
-                    "resistance": [15],
+                    "resistance": [5],
                     "slack_volume": [0.06],
                     "wall_density": [1055],
                     "initial_ed_volume":[0.15]

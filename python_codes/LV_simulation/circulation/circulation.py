@@ -95,8 +95,9 @@ class Circulation():
                 self.data['compliance'][i]
 
         # also assign the pressure
+        # 0.0075 is for converting to mm Hg
         self.data['p'][-1] = \
-            self.mesh.model['uflforms'].LVcavitypressure()
+            0.0075*self.mesh.model['uflforms'].LVcavitypressure()
         
         
     

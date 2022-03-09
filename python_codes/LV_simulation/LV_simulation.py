@@ -428,7 +428,7 @@ class LV_simulation():
         if self.comm.Get_rank() == 0:
             print '******** NEW TIME STEP ********'
             print (self.data['time'])
-
+            
             if (self.t_counter % 10 == 0):
                 print('Sim time (s): %.0f  %.0f%% complete' %
                     (self.data['time'],
@@ -506,16 +506,16 @@ class LV_simulation():
 
         solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
 
-        #self.mesh.model['functions']['w'] = w
+        self.mesh.model['functions']['w'] = w
         # Start updating variables after solving the weak form 
 
         # First pressure in circulation
         for i in range(self.circ.model['no_of_compartments']-1):
             self.circ.data['p'][i] = (self.circ.data['v'][i] - self.circ.data['s'][i]) / \
                     self.circ.data['compliance'][i]
-
+        # 0.0075 is for converting to mm Hg
         self.circ.data['p'][-1] = \
-                self.mesh.model['uflforms'].LVcavitypressure()
+                0.0075*self.mesh.model['uflforms'].LVcavitypressure()
 
         # Then update FE function for cross-bridge stress, hs_length, and passive stress
         # across the mesh
