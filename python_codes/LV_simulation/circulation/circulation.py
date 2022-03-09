@@ -37,6 +37,7 @@ class Circulation():
                 self.data['ventricle_resistance'] = comp['resistance'][0]
                 self.data['ventricle_slack_volume'] = comp['slack_volume'][0]
                 self.model['ventricle_wall_density'] = comp['wall_density'][0]
+                self.model['ventricle_initial_edv'] = comp['initial_ed_volume'][0]
 
         if self.model['model_scheme'] == 'LV_with_4_compartments':
             vessels_list = ['aorta','arteries','capillaries','veins']
@@ -77,12 +78,16 @@ class Circulation():
         self.data['v'][-1] = self.data['s'][-1]
         self.data['total_slack_volume'] = sum(self.data['s'])
         
-        
+        # Now diastolic filling LV to initial EDV
+        #self.mesh.diastolic_filling(self.model['ventricle_initial_edv'],loading_steps=10)
+        #self.data['v'][-1] = self.model['ventricle_initial_edv']
+
         # Excess blood goes in veins
         self.data['v'][-2] = self.data['v'][-2] + \
-            (self.data['blood_volume'] - self.data['total_slack_volume'])
+            (self.data['blood_volume'] - self.data['total_slack_volume'])\
+                #- (self.model['ventricle_initial_edv']- self.data['s'][-1])
         
-        #self.mesh.diastolic_filling(0.14,loading_steps=10)
+        
         # Initilize pressure 
         self.data['p'] = np.zeros(self.model['no_of_compartments'])
         for i in np.arange(0, self.model['no_of_compartments']-1):

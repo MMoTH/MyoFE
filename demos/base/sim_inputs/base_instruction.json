@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [10],
+        "no_of_time_steps": [300],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -120,7 +120,8 @@
                     "name": ["ventricle"],
                     "resistance": [15],
                     "slack_volume": [0.06],
-                    "wall_density": [1055]
+                    "wall_density": [1055],
+                    "initial_ed_volume":[0.15]
                 }
             ]
         },
@@ -271,7 +272,7 @@
             "hs_length"
         ],
         "dumping_spatial_in_average":[true],
-        "frequency_n": [10]
+        "frequency_n": [5]
         
         
     }
