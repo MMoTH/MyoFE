@@ -128,8 +128,8 @@ class LV_simulation():
         circ_struct = instruction_data['model']['circulation']
         self.circ = circ(circ_struct,self.mesh)
 
-        # now diastolic filling LV to initial EDV
-        """LV_vol_0 = self.mesh.model['uflforms'].LVcavityvol()
+        """# now diastolic filling LV to initial EDV
+        LV_vol_0 = self.mesh.model['uflforms'].LVcavityvol()
         LV_vol_1 = self.circ.model['ventricle_initial_edv']
         total_dv = LV_vol_1 - LV_vol_0
         n_loading_steps = 10
@@ -187,7 +187,7 @@ class LV_simulation():
         
             self.comm.Barrier()
         
-        self.circ.data['p'][-1] = self.mesh.model['uflforms'].LVcavitypressure()"""
+        self.circ.data['p'][-1] = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()"""
 
         if self.comm.Get_rank() == 0:
             print self.circ.data['v']

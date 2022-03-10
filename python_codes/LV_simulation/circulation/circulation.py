@@ -80,7 +80,7 @@ class Circulation():
         
         # Now diastolic filling LV to initial EDV
         #self.mesh.diastolic_filling(self.model['ventricle_initial_edv'],loading_steps=10)
-        #self.data['v'][-1] = self.model['ventricle_initial_edv']
+        self.data['v'][-1] = self.model['ventricle_initial_edv']
 
         # Excess blood goes in veins
         self.data['v'][-2] = self.data['v'][-2] + \
@@ -159,6 +159,7 @@ class Circulation():
         def derivs(t, v):
             dv = np.zeros(self.model['no_of_compartments'])
             flows = self.return_flows(v)
+            self.data['f'] = flows
             for i in np.arange(self.model['no_of_compartments']):
                 dv[i] = flows[i] - flows[i+1]
                 if (i == (self.model['no_of_compartments']-1)):
@@ -181,7 +182,7 @@ class Circulation():
         p = np.zeros(self.model['no_of_compartments'])
         for i in np.arange(len(p)-1):
             p[i] = (v[i]-self.data['s'][i]) / self.data['compliance'][i]
-        p[-1] = self.mesh.model['uflforms'].LVcavitypressure()
+        p[-1] = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
 
         # Add 1 for VAD
         f = np.zeros(self.model['no_of_compartments']+1)
@@ -216,3 +217,5 @@ class Circulation():
         for i, v in enumerate(self.model['compartment_list']):
             self.data['pressure_%s' % v] = self.data['p'][i]
             self.data['volume_%s' % v] = self.data['v'][i]
+        for i, f in enumerate(self.model['flow_list']):
+            self.data[f] = self.data['f'][i]
