@@ -128,67 +128,6 @@ class LV_simulation():
         circ_struct = instruction_data['model']['circulation']
         self.circ = circ(circ_struct,self.mesh)
 
-        """# now diastolic filling LV to initial EDV
-        LV_vol_0 = self.mesh.model['uflforms'].LVcavityvol()
-        LV_vol_1 = self.circ.model['ventricle_initial_edv']
-        total_dv = LV_vol_1 - LV_vol_0
-        n_loading_steps = 10
-        dv = total_dv/n_loading_steps
-
-        
-
-        for i in range(0,n_loading_steps):
-            temp_v = \
-                self.mesh.model['uflforms'].LVcavityvol() + \
-                    dv
-            if self.comm.Get_rank() == 0:
-                print 'diastolic filling step is:'
-                print(i)
-                print 'LV vol is:' 
-                print temp_v
-            
-            self.mesh.model['functions']['LVCavityvol'].vol = \
-                temp_v
-            w = self.mesh.model['functions']['w']
-            Ftotal = self.mesh.model['Ftotal']
-            bcs = self.mesh.model['boundary_conditions']
-            Jac = self.mesh.model['Jac']
-
-            solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
-
-            
-
-            self.mesh.model['functions']['w'] = w
-            # update hs-length and passive 
-            #if self.comm.Get_rank() == 0:
-            print 'pressure for diastolic filling is'
-            print self.mesh.model['uflforms'].LVcavitypressure()
-            self.mesh.model['functions']['hsl_old'].vector()[:] = \
-            project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
-
-            self.mesh.model['functions']['pseudo_old'].vector()[:] = \
-                project(self.mesh.model['functions']['pseudo_alpha'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
-
-            new_hs_length_list = \
-                project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
-
-            self.delta_hs_length_list = new_hs_length_list - self.hs_length_list
-            self.hs_length_list = new_hs_length_list
-            
-            temp_DG = project(self.mesh.model['functions']['Sff'], 
-                        FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
-                        form_compiler_parameters={"representation":"uflacs"})
-
-            p_f = interpolate(temp_DG, self.mesh.model['function_spaces']["quadrature_space"])
-            self.pass_stress_list = p_f.vector().get_local()[:]
-            
-            # Convert negative passive stress in half-sarcomeres to 0
-            self.pass_stress_list[self.pass_stress_list<0] = 0
-        
-            self.comm.Barrier()
-        
-        self.circ.data['p'][-1] = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()"""
-
         if self.comm.Get_rank() == 0:
             print self.circ.data['v']
 

@@ -79,8 +79,7 @@ class Circulation():
         self.data['total_slack_volume'] = sum(self.data['s'])
         
         # Now diastolic filling LV to initial EDV
-        #self.mesh.diastolic_filling(self.model['ventricle_initial_edv'],loading_steps=10)
-        self.data['v'][-1] = self.model['ventricle_initial_edv']
+        
 
         # Excess blood goes in veins
         self.data['v'][-2] = self.data['v'][-2] + \
