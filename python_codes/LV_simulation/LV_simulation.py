@@ -246,7 +246,7 @@ class LV_simulation():
             spatial_data = dict()
             for f in data_field:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
-                #spatial_data[f]['time'] = pd.Series()
+                #spatial_data[f]['time'] = pd.Series(0)
         print 'spatial simulation data is created'
         
         return spatial_data
@@ -629,21 +629,21 @@ class LV_simulation():
                 for h in self.hs_objs_list:
                     data_field.append(h.data[f])
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
+                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
 
             for f in self.spatial_myof_data_fields:
                 data_field = []
                 for h in (self.hs_objs_list):
                     data_field.append(h.myof.data[f])
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
+                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
             
             for f in self.spatial_memb_data_fields:
                 data_field = []
                 for h in (self.hs_objs_list):
                     data_field.append(h.memb.data[f])
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                #self.spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
+                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
 
     def check_output_directory_folder(self, path=""):
         """ Check output folder"""
@@ -683,6 +683,8 @@ class LV_simulation():
                             cols = np.arange(i_0,i_1)
                             self.spatial_sim_data[f][cols] = \
                                 temp_data_holders[id][f]
+                        
+                        self.spatial_sim_data[f]['time'] = self.sim_data['time']
 
         else:
             self.spatial_sim_data = self.local_spatial_sim_data
