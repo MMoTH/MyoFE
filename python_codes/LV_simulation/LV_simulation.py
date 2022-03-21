@@ -368,7 +368,6 @@ class LV_simulation():
 
                 vol, press, flow = self.return_system_values()
                 
-
                 print(json.dumps(vol, indent=4))
                 print(json.dumps(press, indent=4))
                 print(json.dumps(flow, indent=4))
@@ -385,6 +384,17 @@ class LV_simulation():
                                         time_step,
                                         reflex_active=
                                         self.data['baroreflex_active'])
+
+        # check for any perturbation
+        for p in self.prot.perturbations:
+            if (self.t_counter >= p.data['t_start_ind'] and 
+                self.t_counter < p.data['t_stop_ind']):
+                if p.data['level'] == 'circulation':
+                    self.circ.data[p.data['variable']] += \
+                        p.data['increment']
+                elif p.data['level'] == 'baroreflex':
+                    self.br.data[p.data['variable']] += \
+                        p.data['increment']
         # Proceed time
         (activation, new_beat) = \
             self.hr.implement_time_step(time_step)

@@ -37,15 +37,15 @@ class perturbation():
     
     def __init__(self, perturbation_struct, time_step):
         self.data = dict()
-        self.data['level'] = perturbation_struct['level']
-        self.data['variable'] = perturbation_struct['variable']
-        self.data['t_start_s'] = perturbation_struct['t_start_s']
+        self.data['level'] = perturbation_struct['level'][0]
+        self.data['variable'] = perturbation_struct['variable'][0]
+        self.data['t_start_s'] = perturbation_struct['t_start_s'][0]
         self.data['t_start_ind'] = int(self.data['t_start_s'] / time_step)
         if ('new_value' in perturbation_struct):
-            self.data['new_value'] = perturbation_struct['new_value']
+            self.data['new_value'] = perturbation_struct['new_value'][0]
         else:
-            self.data['t_stop_s'] = perturbation_struct['t_stop_s']
-            self.data['total_change'] = perturbation_struct['total_change']
+            self.data['t_stop_s'] = perturbation_struct['t_stop_s'][0]
+            self.data['total_change'] = perturbation_struct['total_change'][0]
             n_steps = (self.data['t_stop_s'] - self.data['t_start_s']) / time_step
             self.data['t_stop_ind'] = int(self.data['t_stop_s'] / time_step)
             self.data['increment'] = self.data['total_change'] / n_steps

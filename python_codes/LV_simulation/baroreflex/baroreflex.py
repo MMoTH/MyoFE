@@ -70,10 +70,10 @@ class baroreflex():
                      self.parent_circulation.hr.data['t_quiescent_period'])):
                     self.parent_circulation.hr.data[bc.data['variable']] = y
 
-            """if (bc.data['level'] == 'membranes'):
+            if (bc.data['level'] == 'membranes'):
                 self.parent_circulation.hs.memb.data[bc.data['variable']] = y
             if (bc.data['level'] == 'myofilaments'):
-                self.parent_circulation.hs.myof.data[bc.data['variable']] = y"""
+                self.parent_circulation.hs.myof.data[bc.data['variable']] = y
             if (bc.data['level'] == 'circulation'):
                 self.parent_circulation.data[bc.data['variable']] = y
             
