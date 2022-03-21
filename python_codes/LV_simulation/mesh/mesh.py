@@ -64,7 +64,7 @@ class MeshClass():
         Velem = VectorElement("CG", self.model['mesh'].ufl_cell(), 2, quad_scheme="default")
         Velem._quad_scheme = 'default'
 
-        # Quadrature element for hydrostatic pressure
+        # Quadrature element for hydrostatic pressure , dof must be lower by 1 from displacement
         Qelem = FiniteElement("CG", self.model['mesh'].ufl_cell(), 1, quad_scheme="default")
         Qelem._quad_scheme = 'default'
 
