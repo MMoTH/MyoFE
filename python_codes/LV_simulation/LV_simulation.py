@@ -340,26 +340,19 @@ class LV_simulation():
                 if self.comm.Get_rank() == 0: 
                     self.check_output_directory_folder(path = self.output_data_str)
 
-
-
         for i in np.arange(self.prot.data['no_of_time_steps']+1):
            
             try:
-                
-
                 self.implement_time_step(self.prot.data['time_step'])
             except RuntimeError: 
                 print "RuntimeError happend"
                 self.handle_output(output_struct)
-
                 return
 
         # Now build up global data holders for 
         # spatial variables if multiple cores have been used
         self.handle_output(output_struct)
        
-            
-
 
     def implement_time_step(self, time_step):
         """ Implements time step """
