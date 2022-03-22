@@ -76,6 +76,14 @@ class LV_simulation():
         self.local_n_of_int_points = \
             4 * np.shape(self.mesh.model['mesh'].cells())[0]
         
+        print 'MESH TESTSSS'
+        print self.mesh.model['mesh'].geometry()
+        d = self.local_n_of_int_points#self.mesh.model['function_spaces']['quadrature_space'].dim()
+        print d
+        n = self.mesh.model['mesh'].geometry().dim()
+        print n
+        coor = self.mesh.model['function_spaces']['quadrature_space'].tabulate_dof_coordinates().reshape(d,n)
+        print coor
         # Calculate the total no of integration points
         # First on the root core
         self.global_n_of_int_points = \
