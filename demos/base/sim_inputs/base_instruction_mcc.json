@@ -1,7 +1,11 @@
 {
     "protocol":
     {
+<<<<<<< HEAD
         "no_of_time_steps": [30],
+=======
+        "no_of_time_steps": [10000],
+>>>>>>> 7c6c725f67974a1f9474240c9d96397937edd410
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -272,7 +276,7 @@
             "hs_length"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [3]
+        "frequency_n": [10]
         
         
     }
