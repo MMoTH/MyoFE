@@ -75,7 +75,7 @@ class baroreflex():
             if (bc.data['level'] == 'myofilaments'):
                 self.parent_circulation.hs.myof.data[bc.data['variable']] = y
             if (bc.data['level'] == 'circulation'):
-                self.parent_circulation.data[bc.data['variable']] = y
+                self.parent_circulation.circ.data[bc.data['variable']] = y
             
             # Add in data field
             k = bc.data['level']+'_'+bc.data['variable']+'_rc'
