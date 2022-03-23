@@ -403,6 +403,11 @@ class LV_simulation():
                 elif p.data['level'] == 'baroreflex':
                     self.br.data[p.data['variable']] += \
                         p.data['increment']
+                elif p.data['level'] == 'myofilaments':
+                    for j in range(self.local_n_of_int_points):
+                        self.hs_objs_list[j].myof.data[p.data['variable']] +=\
+                            p.data['increment']
+                
         # Proceed time
         (activation, new_beat) = \
             self.hr.implement_time_step(time_step)
