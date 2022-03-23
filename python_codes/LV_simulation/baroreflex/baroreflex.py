@@ -71,9 +71,13 @@ class baroreflex():
                     self.parent_circulation.hr.data[bc.data['variable']] = y
 
             if (bc.data['level'] == 'membranes'):
-                self.parent_circulation.hs.memb.data[bc.data['variable']] = y
+                for i ,h in enumerate(self.parent_circulation.hs_objs_list):
+                    h.memb.data[bc.data['variable']] = y
+                #self.parent_circulation.hs.memb.data[bc.data['variable']] = y
             if (bc.data['level'] == 'myofilaments'):
-                self.parent_circulation.hs.myof.data[bc.data['variable']] = y
+                for i ,h in enumerate(self.parent_circulation.hs_objs_list):
+                    h.myof.data[bc.data['variable']] = y
+                #self.parent_circulation.hs.myof.data[bc.data['variable']] = y
             if (bc.data['level'] == 'circulation'):
                 self.parent_circulation.circ.data[bc.data['variable']] = y
             
