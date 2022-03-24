@@ -29,7 +29,7 @@ class MeshClass():
         
          # Read the mesh into the mesh object
         self.f = HDF5File(mpi_comm_world(), mesh_str, 'r')
-        self.f.read(self.model['mesh'],"ellipsoid_scaled",False)
+        self.f.read(self.model['mesh'],"ellipsoidal",False)
 
         # communicator to run in parallel
         self.comm = self.model['mesh'].mpi_comm()
@@ -144,9 +144,6 @@ class MeshClass():
         self.f.read(s0,"ellipsoidal/eS")
         self.f.read(n0,"ellipsoidal/eN")
 
-        # close f
-        self.f.close()
-
         # Initializing passive parameters as functions, in the case of introducing
         # heterogeneity later
         dolfin_functions = {}
@@ -169,9 +166,7 @@ class MeshClass():
 
         try:
             self.f.read(hsl0, "ellipsoidal" + "/" + "hsl0")
-
         except:
-            
             hsl0.vector()[:] = self.parent_parameters.hs.data["hs_length"]
         
         # close f
