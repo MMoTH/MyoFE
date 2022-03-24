@@ -29,7 +29,7 @@ class MeshClass():
         
          # Read the mesh into the mesh object
         self.f = HDF5File(mpi_comm_world(), mesh_str, 'r')
-        self.f.read(self.model['mesh'],"ellipsoidal",False)
+        self.f.read(self.model['mesh'],"ellipsoid_scaled",False)
 
         # communicator to run in parallel
         self.comm = self.model['mesh'].mpi_comm()
