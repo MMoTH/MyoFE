@@ -1,11 +1,7 @@
 {
     "protocol":
     {
-<<<<<<< HEAD
         "no_of_time_steps": [30],
-=======
-        "no_of_time_steps": [10000],
->>>>>>> 7c6c725f67974a1f9474240c9d96397937edd410
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -26,7 +22,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/base/sim_inputs/ellipsoidal_degree_2_new.hdf5"],
+        "mesh_path":["../demos/base/sim_inputs/ellipsoidal.hdf5"],
         "function_spaces":
         [
             {
@@ -275,7 +271,7 @@
             "active_stress",
             "hs_length"
         ],
-        "dumping_spatial_in_average":[false],
+        "dumping_spatial_in_average":[true],
         "frequency_n": [10]
         
         
