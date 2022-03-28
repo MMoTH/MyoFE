@@ -22,7 +22,7 @@ from mpi4py import MPI as pyMPI
 
 def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
                         quad_deg = 2, endo_angle = 60, epi_angle = -60,
-                        hsl_epi = 900, hsl_endo=1000):
+                        endo_hsl = 900, epi_hsl=1000):
 
     casename = 'ellipsoidal'
 	#meshfilename =  vtk_file_str
@@ -71,7 +71,7 @@ def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
     hsl,ef, es, en, eC, eL, eR = \
         addLVfiber(mesh, fiberFS, hslFS, "lv", 
                     endo_angle, epi_angle, 
-                    hsl_epi,hsl_endo,
+                    endo_hsl,epi_hsl,
                     casedir,isepiflip, 
                     isendoflip, isapexflip=False)
 
@@ -124,7 +124,7 @@ if __name__ == '__main__':
              iswritemesh=True, verbose=False)
 
     # Set the path to save the mesh
-    output_folder = 'output_files/hsl_900_1100/'
+    output_folder = 'output_files/hsl_900/'
 
     check_output_directory_folder(path = output_folder)
     vtk_file_str = 'input_files/' + '/' + \
@@ -133,5 +133,5 @@ if __name__ == '__main__':
     EllipsoidalLVMEsh(vtk_file_str = vtk_file_str,
                         output_file_str = output_folder,
                         quad_deg = 2, endo_angle = 60, epi_angle = -60,
-                        hsl_epi = 900, hsl_endo=1100)
+                        endo_hsl = 900, epi_hsl=900)
 

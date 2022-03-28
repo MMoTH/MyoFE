@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [100],
+        "no_of_time_steps": [30],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -36,7 +36,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/base/sim_inputs/ellipsoidal.hdf5"],
+        "mesh_path":["../demos/base/sim_inputs/ellipsoidal_hsl_900_1100.hdf5"],
         "function_spaces":
         [
             {
