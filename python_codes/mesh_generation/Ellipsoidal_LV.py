@@ -124,7 +124,7 @@ if __name__ == '__main__':
              iswritemesh=True, verbose=False)
 
     # Set the path to save the mesh
-    output_folder = 'output_files/rapex_0.1_scale_1.2_msize_0.08/'
+    output_folder = 'output_files/hsl_900_1100/'
 
     check_output_directory_folder(path = output_folder)
     vtk_file_str = 'input_files/' + '/' + \
@@ -133,5 +133,5 @@ if __name__ == '__main__':
     EllipsoidalLVMEsh(vtk_file_str = vtk_file_str,
                         output_file_str = output_folder,
                         quad_deg = 2, endo_angle = 60, epi_angle = -60,
-                        hsl_epi = 900, hsl_endo=1000)
+                        hsl_epi = 900, hsl_endo=1100)
 
