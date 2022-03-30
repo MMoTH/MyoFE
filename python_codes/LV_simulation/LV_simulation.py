@@ -69,19 +69,15 @@ class LV_simulation():
         self.y_vec = \
             self.mesh.model['functions']['y_vec'].vector().get_local()[:]
 
-        #####
-        mesh = self.mesh.model['mesh']
-        quad_space = self.mesh.model['function_spaces']['quadrature_space']
-        gdim = mesh.geometry().dim()
-        # Lets handle dof mapping 
-        self.dofmap = self.mesh.model['function_spaces']['quadrature_space'].dofmap().dofs()
-        self.dofmap_list = []
-            #np.zeros(self.comm.Get_size())
         
-        # Send dof mapping to root core (i.e. 0)
+        """Lets handle dof mapping for quadrature points """
+        self.dofmap_list = []
+        self.dofmap = self.mesh.model['function_spaces']['quadrature_space'].dofmap().dofs()
+        
+        # Send dof mapping and list of coords to root core (i.e. 0)
         if self.comm.Get_rank() != 0:
             self.comm.send(self.dofmap,dest = 0, tag = 0)
-        else: # Root core recieves dof mapping from other cores
+        else: # Root core recieves  from other cores
             self.dofmap_list.append(self.dofmap)
             for i in range(1,self.comm.Get_size()):
                 self.dofmap_list.append(self.comm.recv(source = i, tag = 0))
@@ -89,14 +85,14 @@ class LV_simulation():
         self.dofmap_list = \
             self.comm.bcast(self.dofmap_list)
 
-        # Create a data structure for holding 
+        """ Create a data structure for holding """
         # half_sarcomere parameters spatially 
         # 4 comes from using degree 2
         self.hs_params_mesh = dict()
         self.local_n_of_int_points = \
             4 * np.shape(self.mesh.model['mesh'].cells())[0]
         
-        # Calculate the total no of integration points
+        """ Calculate the total no of integration points"""
         # First on the root core
         self.global_n_of_int_points = \
             self.comm.reduce(self.local_n_of_int_points)
@@ -104,7 +100,7 @@ class LV_simulation():
         self.global_n_of_int_points = \
             self.comm.bcast(self.global_n_of_int_points)
 
-        # Now generate a list (with len = total num of cores) 
+        """ Now generate a list (with len = total num of cores) """
         # that holds the num of integer points for each core
         self.int_points_per_core = \
                 np.zeros(self.comm.Get_size())
@@ -124,16 +120,41 @@ class LV_simulation():
             print 'Total no if int points is %0.0f'\
                 %self.global_n_of_int_points
 
+        """ Handle the coordinates of quadrature (integer) points"""
+        gdim = self.mesh.model['mesh'].geometry().dim()
+
+        self.coord = self.mesh.model['function_spaces']['quadrature_space'].\
+                tabulate_dof_coordinates().reshape((-1, gdim))
+        if self.comm.Get_rank()!=0:
+                self.comm.send(self.coord,dest=0,tag = 3)
+        else:
+            for i in range(1,self.comm.Get_size()):
+                self.coord = \
+                        np.append(self.coord,
+                            self.comm.recv(source = i, tag = 3),axis = 0)
+        
+        self.coord = self.comm.bcast(self.coord)
+    
+        """Handle the coordinates """
+        x_coord = []
+        y_coord = []
+        z_coord = []
+        for i, c in enumerate(self.coord):
+            self.x_coord = np.array(x_coord.append(c[0]))
+            self.y_coord = np.array(y_coord.append(c[1]))
+            self.z_coord = np.array(z_coord.append(c[2]))
+        
+
         rank_id = self.comm.Get_rank()
         print '%0.0f integer points have been assigned to core %0.0f'\
              %(self.local_n_of_int_points,rank_id)
 
-        # Generating half-sarcomere object list
+        """ Generating half-sarcomere object list"""
         self.hs_objs_list = []
         for i in np.arange(self.local_n_of_int_points):
             self.hs_objs_list.append(hs.half_sarcomere(hs_struct))
 
-        # Generating arrays for holding half-sarcomere data
+        """ Generating arrays for holding half-sarcomere data"""
         # accross the mesh
         # Start with half-saromere length
         self.hs_length_list = self.mesh.hs_length_list
@@ -144,24 +165,24 @@ class LV_simulation():
         # Passive stress in half-sarcomeres
         self.pass_stress_list = self.mesh.pass_stress_list
 
-        # Create a circulatory system object
+        """ Create a circulatory system object"""
         circ_struct = instruction_data['model']['circulation']
         self.circ = circ(circ_struct,self.mesh)
 
         if self.comm.Get_rank() == 0:
             print self.circ.data['v']
 
-        # Create a heart-rate object
+        """ Create a heart-rate object"""
         hr_struct = instruction_data['heart_rate']
         self.hr = hr(hr_struct)
         self.data['heart_rate'] = \
             self.hr.return_heart_rate()
         
-        # Initialize simulation time and counter
+        """ Initialize simulation time and counter"""
         self.data['time'] = 0
         self.t_counter = 0
 
-        # If requried, create the baroreceptor
+        """ If requried, create the baroreceptor"""
         self.data['baroreflex_active'] = 0
         self.data['baroreflex_setpoint'] = 0
         if ('baroreflex' in instruction_data['model']):
