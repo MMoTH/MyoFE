@@ -69,6 +69,26 @@ class LV_simulation():
         self.y_vec = \
             self.mesh.model['functions']['y_vec'].vector().get_local()[:]
 
+        #####
+        mesh = self.mesh.model['mesh']
+        quad_space = self.mesh.model['function_spaces']['quadrature_space']
+        gdim = mesh.geometry().dim()
+        # Lets handle dof mapping 
+        self.dofmap = self.mesh.model['function_spaces']['quadrature_space'].dofmap().dofs()
+        self.dofmap_list = []
+            #np.zeros(self.comm.Get_size())
+        
+        # Send dof mapping to root core (i.e. 0)
+        if self.comm.Get_rank() != 0:
+            self.comm.send(self.dofmap,dest = 0, tag = 0)
+        else: # Root core recieves dof mapping from other cores
+            self.dofmap_list.append(self.dofmap)
+            for i in range(1,self.comm.Get_size()):
+                self.dofmap_list.append(self.comm.recv(source = i, tag = 0))
+        # Now broadcast the list to all cores
+        self.dofmap_list = \
+            self.comm.bcast(self.dofmap_list)
+
         # Create a data structure for holding 
         # half_sarcomere parameters spatially 
         # 4 comes from using degree 2
@@ -689,9 +709,10 @@ class LV_simulation():
                     for j,f in enumerate(list(self.spatial_sim_data.keys())):
                         print '%.0f%% complete' %(100*j/len(list(self.spatial_sim_data.keys())))
                         for id in range(0,self.comm.Get_size()):
-                            i_0 = np.sum(self.int_points_per_core[0:id])
-                            i_1 = i_0 + self.int_points_per_core[id]
-                            cols = np.arange(i_0,i_1)
+                            #i_0 = np.sum(self.int_points_per_core[0:id])
+                            #i_1 = i_0 + self.int_points_per_core[id]
+                            #cols = np.arange(i_0,i_1)
+                            cols = self.dofmap_list[id]
                             self.spatial_sim_data[f][cols] = \
                                 temp_data_holders[id][f]
                         
