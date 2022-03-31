@@ -140,11 +140,14 @@ class LV_simulation():
         y_coord = []
         z_coord = []
         for i, c in enumerate(self.coord):
-            self.x_coord = np.array(x_coord.append(c[0]))
-            self.y_coord = np.array(y_coord.append(c[1]))
-            self.z_coord = np.array(z_coord.append(c[2]))
-        
+            x_coord.append(c[0])
+            y_coord.append(c[1])
+            z_coord.append(c[2])
 
+        self.x_coord = np.array(x_coord)
+        self.y_coord = np.array(y_coord)
+        self.z_coord = np.array(z_coord)
+        
         rank_id = self.comm.Get_rank()
         print '%0.0f integer points have been assigned to core %0.0f'\
              %(self.local_n_of_int_points,rank_id)
