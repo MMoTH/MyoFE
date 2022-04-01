@@ -120,6 +120,11 @@ class LV_simulation():
             print 'Total no if int points is %0.0f'\
                 %self.global_n_of_int_points
 
+        """ Generating half-sarcomere object list"""
+        self.hs_objs_list = []
+        for i in np.arange(self.local_n_of_int_points):
+            self.hs_objs_list.append(hs.half_sarcomere(hs_struct))
+
         """ Handle the coordinates of quadrature (integer) points"""
         gdim = self.mesh.model['mesh'].geometry().dim()
 
@@ -147,15 +152,21 @@ class LV_simulation():
         self.x_coord = np.array(x_coord)
         self.y_coord = np.array(y_coord)
         self.z_coord = np.array(z_coord)
-        
+        if self.comm.Get_rank() == 0:
+            i = np.where(self.z_coord/self.z_coord.max()>0.5)
+            ind_to_change = np.isin(self.dofmap,i)
+            hs_list = np.array(self.hs_objs_list)
+            #for i,j  in enumerate(hs_list[ind_to_change]):
+            #   j.myof.data['k_1'] = 10
+            #   print self.hs_objs_list[i].myof.data['k_1']
+
+
+
         rank_id = self.comm.Get_rank()
         print '%0.0f integer points have been assigned to core %0.0f'\
              %(self.local_n_of_int_points,rank_id)
 
-        """ Generating half-sarcomere object list"""
-        self.hs_objs_list = []
-        for i in np.arange(self.local_n_of_int_points):
-            self.hs_objs_list.append(hs.half_sarcomere(hs_struct))
+        
 
         """ Generating arrays for holding half-sarcomere data"""
         # accross the mesh
