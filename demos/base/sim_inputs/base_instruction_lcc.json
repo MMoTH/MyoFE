@@ -1,14 +1,14 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [10000],
+        "no_of_time_steps": [50000],
         "time_step": [0.001],
         "baroreflex": 
         {
             "activations": [
                 {
-                    "t_start_s": [4],
-                    "t_stop_s": [40]
+                    "t_start_s": [10],
+                    "t_stop_s": [400]
                 }
             ]
         },
@@ -19,8 +19,8 @@
                 {
                     "level": ["circulation"],
                     "variable": ["aorta_resistance"],
-                    "t_start_s": [30],
-                    "t_stop_s": [40],
+                    "t_start_s": [300],
+                    "t_stop_s": [400],
                     "total_change": [20]
                 }
             ]
@@ -31,12 +31,12 @@
     "heart_rate": {
         "t_active_period": [0.003],
         "t_quiescent_period": [0.854],
-        "t_first_activation": [0.3]
+        "t_first_activation": [0.2]
     },
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/base/sim_inputs/ellipsoidal_degree_2_new.hdf5"],
+        "mesh_path":["../demos/base/sim_inputs/new_mesh/ellipsoidal.hdf5"],
         "function_spaces":
         [
             {
@@ -163,12 +163,12 @@
                 "k_1": [7],
                 "k_force": [1e-3],
                 "k_2": [200],
-                "k_3": [400],
+                "k_3": [70],
                 "k_4_0": [80],
                 "k_4_1": [1],
                 "k_cb": [0.001],
                 "x_ps": [5],
-                "k_on": [4.5e7],
+                "k_on": [2.1e8],
                 "k_off": [200],
                 "k_coop": [5],
                 "int_passive_exp_sigma": [100],
@@ -199,7 +199,7 @@
         },
         "baroreflex":
         {
-            "b_setpoint": [110],
+            "b_setpoint": [90],
             "b_slope": [0.02],
             "k_drive": [20],
             "k_recov": [0.1],
@@ -211,7 +211,7 @@
                         "level": ["heart_rate"],
                         "variable": ["t_quiescent_period"],
                         "k_drive": [0.1],
-                        "k_recov": [0.1],
+                        "k_recov": [0.05],
                         "para_factor": [1.753497],
                         "symp_factor": [0.386]
                     },
@@ -219,7 +219,7 @@
                         "level": ["circulation"],
                         "variable": ["arterioles_resistance"],
                         "k_drive": [0.1],
-                        "k_recov": [0.1],
+                        "k_recov": [0.05],
                         "para_factor": [0.333],
                         "symp_factor": [3]
                     },
@@ -227,7 +227,7 @@
                         "level": ["circulation"],
                         "variable": ["veins_compliance"],
                         "k_drive": [0.1],
-                        "k_recov": [0.1],
+                        "k_recov": [0.05],
                         "para_factor": [3],
                         "symp_factor": [0.333]
                     }
@@ -237,8 +237,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/base/sim_output/baro_pert/data.csv"],
-        "mesh_output_path": ["../demos/base/sim_output/baro_pert/mesh_output"],
+        "output_data_path": ["../demos/base/sim_output/final_mesh/data.csv"],
+        "mesh_output_path": ["../demos/base/sim_output/final_mesh/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
