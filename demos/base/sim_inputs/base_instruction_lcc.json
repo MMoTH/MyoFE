@@ -211,15 +211,55 @@
                         "level": ["heart_rate"],
                         "variable": ["t_quiescent_period"],
                         "k_drive": [0.1],
-                        "k_recov": [0.05],
+                        "k_recov": [0.03],
                         "para_factor": [1.753497],
                         "symp_factor": [0.386]
+                    },
+                    {
+                        "level": ["membranes"],
+                        "variable": ["k_act"],
+                        "k_drive": [0.03],
+                        "k_recov": [0],
+                        "para_factor": [0.333],
+                        "symp_factor": [3.0]
+                    },
+                    {
+                        "level": ["membranes"],
+                        "variable": ["k_serca"],
+                        "k_drive": [0.03],
+                        "k_recov": [0],
+                        "para_factor": [0.333],
+                        "symp_factor": [3]
+                    },
+                    {
+                        "level": ["myofilaments"],
+                        "variable": ["k_1"],
+                        "k_drive": [0.03],
+                        "k_recov": [0],
+                        "para_factor": [0.333],
+                        "symp_factor": [3]
+                    },
+                    {
+                        "level": ["myofilaments"],
+                        "variable": ["k_3"],
+                        "k_drive": [0.03],
+                        "k_recov": [0],
+                        "para_factor": [0.333],
+                        "symp_factor": [3]
+                    },
+                    {
+                        "level": ["myofilaments"],
+                        "variable": ["k_on"],
+                        "k_drive": [0.03],
+                        "k_recov": [0],
+                        "para_factor": [3],
+                        "symp_factor": [0.333]
                     },
                     {
                         "level": ["circulation"],
                         "variable": ["arterioles_resistance"],
                         "k_drive": [0.1],
-                        "k_recov": [0.05],
+                        "k_recov": [0.03],
                         "para_factor": [0.333],
                         "symp_factor": [3]
                     },
@@ -227,7 +267,7 @@
                         "level": ["circulation"],
                         "variable": ["veins_compliance"],
                         "k_drive": [0.1],
-                        "k_recov": [0.05],
+                        "k_recov": [0.03],
                         "para_factor": [3],
                         "symp_factor": [0.333]
                     }
