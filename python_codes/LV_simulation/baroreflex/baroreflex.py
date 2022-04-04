@@ -128,12 +128,12 @@ class reflex_control():
         if (self.data['level']=='heart_rate'):
             self.data['basal_value'] = \
                 parent_circulation.hr.data[self.data['variable']]
-        """if (self.data['level']=='membranes'):
+        if (self.data['level']=='membranes'):
             self.data['basal_value'] = \
-                parent_circulation.hs.memb.data[self.data['variable']]
+                parent_circulation.hs_objs_list[0].memb.data[self.data['variable']]
         if (self.data['level']=='myofilaments'):
             self.data['basal_value'] = \
-                parent_circulation.hs.myof.data[self.data['variable']]"""
+                parent_circulation.hs_objs_list[0].myof.data[self.data['variable']]
         if (self.data['level']=='circulation'):
             self.data['basal_value'] = \
                 parent_circulation.circ.data[self.data['variable']]
