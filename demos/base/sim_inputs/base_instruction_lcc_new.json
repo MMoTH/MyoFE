@@ -215,21 +215,45 @@
                         "para_factor": [1.753497],
                         "symp_factor": [0.386]
                     },
-		    {
+                    {
                         "level": ["membranes"],
                         "variable": ["k_act"],
+                        "k_drive": [0.03],
+                        "k_recov": [0.1],
+                        "para_factor": [0.333],
+                        "symp_factor": [3.0]
+                    },
+                    {
+                        "level": ["membranes"],
+                        "variable": ["k_serca"],
                         "k_drive": [0.03],
                         "k_recov": [0.1],
                         "para_factor": [0.333],
                         "symp_factor": [3]
                     },
-	     	{	
-                        "level": ["membranes"],
-                        "variable": ["k_act"],
+                    {
+                        "level": ["myofilaments"],
+                        "variable": ["k_1"],
                         "k_drive": [0.03],
                         "k_recov": [0.1],
                         "para_factor": [0.333],
                         "symp_factor": [3]
+                    },
+                    {
+                        "level": ["myofilaments"],
+                        "variable": ["k_3"],
+                        "k_drive": [0.03],
+                        "k_recov": [0.1],
+                        "para_factor": [0.333],
+                        "symp_factor": [3]
+                    },
+                    {
+                        "level": ["myofilaments"],
+                        "variable": ["k_on"],
+                        "k_drive": [0.03],
+                        "k_recov": [0.1],
+                        "para_factor": [3],
+                        "symp_factor": [0.333]
                     },
                     {
                         "level": ["circulation"],
