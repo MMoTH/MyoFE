@@ -282,9 +282,9 @@ class LV_simulation():
         else:
             # create default data fields
             self.spatial_hs_data_fields = list(self.hs.data.keys())
-            self.spatial_myof_data_fields = ['M_SRX','M_DRX','M_FG','n_off','n_on','n_overlap',
-                                                'n_bound']
-            self.spatial_memb_data_fields = ['Ca_cytosol','Ca_SR']
+            self.spatial_myof_data_fields = list(self.hs.myof.data.keys())#['M_SRX','M_DRX','M_FG','n_off','n_on','n_overlap',
+                                                #'n_bound']
+            self.spatial_memb_data_fields = list(self.hs.memb.data.keys())#['Ca_cytosol','Ca_SR']
 
         data_field = self.spatial_hs_data_fields +\
                         self.spatial_myof_data_fields+\
