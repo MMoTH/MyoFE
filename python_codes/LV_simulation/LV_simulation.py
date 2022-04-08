@@ -471,7 +471,7 @@ class LV_simulation():
             print 'Solving MyoSim ODEs across the mesh'
         start = time.time()
         for j in range(self.local_n_of_int_points):
-            print self.hs_objs_list[j].data['hs_length']
+        
             self.hs_objs_list[j].update_simulation(time_step, 
                                                 self.delta_hs_length_list[j], 
                                                 activation,
