@@ -1,13 +1,13 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [5000],
-        "time_step": [0.001],
+        "no_of_time_steps": [40000],
+        "time_step": [0.0005],
         "baroreflex": 
         {
             "activations": [
                 {
-                    "t_start_s": [50],
+                    "t_start_s": [10],
                     "t_stop_s": [400]
                 }
             ]
@@ -168,7 +168,7 @@
                 "k_4_1": [1],
                 "k_cb": [0.001],
                 "x_ps": [5],
-                "k_on": [2.1e8],
+                "k_on": [2e8],
                 "k_off": [200],
                 "k_coop": [5],
                 "int_passive_exp_sigma": [100],
