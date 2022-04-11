@@ -1,8 +1,8 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [40000],
-        "time_step": [0.0005],
+        "no_of_time_steps": [10000],
+        "time_step": [0.001],
         "baroreflex": 
         {
             "activations": [
@@ -74,7 +74,7 @@
         {
             "passive_law_parameters": {
               "passive_law": ["semi_structural"],
-              "c": [200],
+              "c": [300],
               "c2": [250],
               "c3": [15.0],
               "bf": [8.0],
@@ -107,7 +107,7 @@
                 },
                 {
                     "name": ["arterioles"],
-                    "resistance": [700],
+                    "resistance": [800],
                     "compliance": [1e-3],
                     "slack_volume": [0.1]
                 },
@@ -160,14 +160,14 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [7],
+                "k_1": [3],
                 "k_force": [1e-3],
                 "k_2": [200],
-                "k_3": [70],
-                "k_4_0": [80],
+                "k_3": [100],
+                "k_4_0": [60],
                 "k_4_1": [1],
                 "k_cb": [0.001],
-                "x_ps": [5],
+                "x_ps": [5.5],
                 "k_on": [2e8],
                 "k_off": [200],
                 "k_coop": [5],
@@ -277,8 +277,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/base/sim_output/final_mesh/data.csv"],
-        "mesh_output_path": ["../demos/base/sim_output/final_mesh/mesh_output"],
+        "output_data_path": ["../demos/base/sim_output/debugged/data.csv"],
+        "mesh_output_path": ["../demos/base/sim_output/debugged/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
