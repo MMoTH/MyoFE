@@ -2,7 +2,7 @@ from dolfin import *
 import vtk as vtk
 from vtk_py import *
 
-def addLVfiber(mesh, V, F, casename, endo_angle, epi_angle, hsl0_endo, hsl0_epi, casedir, isepiflip, isendoflip, isapexflip=False):
+def addLVfiber(mesh, V, F, casename, endo_angle, epi_angle, hsl0_endo, hsl0_epi, casedir, isepiflip, isendoflip, isapexflip=False, fiber_str = 'fiber.vtu'):
 
 
 	print "hsl0 at epi",hsl0_epi
@@ -135,6 +135,6 @@ def addLVfiber(mesh, V, F, casename, endo_angle, epi_angle, hsl0_endo, hsl0_epi,
 		hs.vector()[cnt] = hsl_array_assignment[0]
 		cnt += 1
 
-	writeXMLUGrid(ugrid, "fiber.vtu")
+	writeXMLUGrid(ugrid, fiber_str)
 	
 	return hs, fiberV, sheetV, sheetnormV, cV, lV, rV
