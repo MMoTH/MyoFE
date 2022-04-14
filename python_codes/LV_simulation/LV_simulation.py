@@ -179,10 +179,6 @@ class LV_simulation():
         print '%0.0f integer points have been assigned to core %0.0f'\
              %(self.local_n_of_int_points,rank_id)
 
-        
-
-        
-
         """ Create a circulatory system object"""
         circ_struct = instruction_data['model']['circulation']
         self.circ = circ(circ_struct,self.mesh)
@@ -390,6 +386,9 @@ class LV_simulation():
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scaler"])
+                        if m == 'fiber_direction':
+                            temp_obj = project(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['function_spaces']['vector_f'])
 
                         temp_obj.rename(m,'')
                         self.solution_mesh.write(temp_obj,0)
@@ -400,13 +399,14 @@ class LV_simulation():
                     self.check_output_directory_folder(path = self.output_data_str)
 
         for i in np.arange(self.prot.data['no_of_time_steps']+1):
+            self.implement_time_step(self.prot.data['time_step'])
            
-            try:
+            """try:
                 self.implement_time_step(self.prot.data['time_step'])
             except RuntimeError: 
                 print "RuntimeError happend"
                 self.handle_output(output_struct)
-                return
+                return"""
 
         # Now build up global data holders for 
         # spatial variables if multiple cores have been used
@@ -582,6 +582,9 @@ class LV_simulation():
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scaler"])
+                    if m == 'fiber_direction':
+                            temp_obj = project(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['function_spaces']['vector_f'])
 
                     temp_obj.rename(m,'')
                     self.solution_mesh.write(temp_obj,self.data['time'])
