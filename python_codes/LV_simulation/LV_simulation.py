@@ -694,6 +694,8 @@ class LV_simulation():
                 data_field = []
                 for h in self.hs_objs_list:
                     data_field.append(h.myof.data[f]) 
+                if f == 'k_1':
+                    print data_field
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
             for f in list(self.spatial_memb_data_fields):
