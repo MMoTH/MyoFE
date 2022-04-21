@@ -530,7 +530,7 @@ class LV_simulation():
         self.mesh.model['functions']['LVCavityvol'].vol = \
             self.circ.data['v'][-1]
 
-       if self.comm.Get_rank() == 0:
+        if self.comm.Get_rank() == 0:
             print 'line 534'
             temp_dict = dict()
             temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
