@@ -6,6 +6,7 @@ Created on Thu Jan 18 19:40:50 2022
 """
 
 import numpy as np
+import json
 
 from scipy.integrate import odeint
 
@@ -55,12 +56,44 @@ class baroreflex():
                      args=((reflex_active,)))
         self.data['baro_c'] = sol[-1].item()
 
+        if self.parent_circulation.comm.Get_rank() == 0:
+            temp_dict = dict()
+            temp_dict['rank'] = self.parent_circulation.comm.Get_rank()
+            temp_dict['pressure'] = pressure
+            temp_dict['setpoint'] = self.data['baro_b_setpoint']
+            temp_dict['baro_b'] = self.data['baro_b']
+            temp_dict['baro_c'] = self.data['baro_c']
+            print(json.dumps(temp_dict, indent=4))
+        if self.parent_circulation.comm.Get_rank() == 1:
+            temp_dict = dict()
+            temp_dict['rank'] = self.parent_circulation.comm.Get_rank()
+            temp_dict['pressure'] = pressure
+            temp_dict['setpoint'] = self.data['baro_b_setpoint']
+            temp_dict['baro_b'] = self.data['baro_b']
+            temp_dict['baro_c'] = self.data['baro_c']
+            print(json.dumps(temp_dict, indent=4))
+
         # Now cycle through the controls and update the variables
         for bc in self.controls:
 
             bc.implement_time_step(time_step, self.data['baro_c'],
                                    reflex_active)
             y = bc.return_output()
+
+            if self.parent_circulation.comm.Get_rank() == 0:
+                temp_dict = dict()
+                temp_dict['rank'] = self.parent_circulation.comm.Get_rank()
+                temp_dict['rc'] = self.parent_circulation.comm.Get_rank()
+                temp_dict[bc.data['variable']] = y
+                print(json.dumps(temp_dict, indent=8))
+                
+
+            if self.parent_circulation.comm.Get_rank() == 1:
+                temp_dict = dict()
+                temp_dict['rank'] = self.parent_circulation.comm.Get_rank()
+                temp_dict['rc'] = self.parent_circulation.comm.Get_rank()
+                temp_dict[bc.data['variable']] = y
+                print(json.dumps(temp_dict, indent=8))
 
             # Now implement the change
             if (bc.data['level'] == 'heart_rate'):
@@ -77,20 +110,7 @@ class baroreflex():
                 #self.parent_circulation.hs.memb.data[bc.data['variable']] = y
             if (bc.data['level'] == 'myofilaments'):
                 #for i ,h in enumerate(self.parent_circulation.hs_objs_list):
-                if self.parent_circulation.comm.Get_rank() == 0:
-                    print 'baroreflex rank'
-                    print self.parent_circulation.comm.Get_rank()
-                    print 'rc for myofilaments is'
-                    print bc.data['rc']
-                    print 'value is'
-                    print y
-                if self.parent_circulation.comm.Get_rank() == 1:
-                    print 'baroreflex rank'
-                    print self.parent_circulation.comm.Get_rank()
-                    print 'rc for myofilaments is'
-                    print bc.data['rc']
-                    print 'value is'
-                    print y
+                
                 for h in self.parent_circulation.hs_objs_list:
                     h.myof.data[bc.data['variable']] = y
                 #self.parent_circulation.hs.myof.data[bc.data['variable']] = y
