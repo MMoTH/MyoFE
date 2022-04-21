@@ -78,6 +78,15 @@ class baroreflex():
             if (bc.data['level'] == 'myofilaments'):
                 #for i ,h in enumerate(self.parent_circulation.hs_objs_list):
                 if self.parent_circulation.comm.Get_rank() == 0:
+                    print 'baroreflex rank'
+                    print self.parent_circulation.comm.Get_rank()
+                    print 'rc for myofilaments is'
+                    print bc.data['rc']
+                    print 'value is'
+                    print y
+                if self.parent_circulation.comm.Get_rank() == 1:
+                    print 'baroreflex rank'
+                    print self.parent_circulation.comm.Get_rank()
                     print 'rc for myofilaments is'
                     print bc.data['rc']
                     print 'value is'

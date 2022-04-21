@@ -455,6 +455,13 @@ class LV_simulation():
             temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
             temp_dict['k_on']= self.hs_objs_list[0].myof.data['k_on']
             print(json.dumps(temp_dict, indent=4))
+        if self.comm.Get_rank() == 1:
+            print 'line 459'
+            temp_dict = dict()
+            temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
+            temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
+            temp_dict['k_on']= self.hs_objs_list[0].myof.data['k_on']
+            print(json.dumps(temp_dict, indent=4))
         # check for any perturbation
         for p in self.prot.perturbations:
             if (self.t_counter >= p.data['t_start_ind'] and 
@@ -475,7 +482,7 @@ class LV_simulation():
                             p.data['increment']
         
         if self.comm.Get_rank() == 0:
-            print 'line 478'
+            print 'line 485'
             temp_dict = dict()
             temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
             temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
@@ -531,7 +538,7 @@ class LV_simulation():
             self.circ.data['v'][-1]
 
         if self.comm.Get_rank() == 0:
-            print 'line 534'
+            print 'line 541'
             temp_dict = dict()
             temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
             temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
@@ -591,7 +598,7 @@ class LV_simulation():
         # Update sim data for non-spatial variables on root core (i.e. 0)
 
         if self.comm.Get_rank() == 0:
-            print 'line 594'
+            print 'line 601'
             temp_dict = dict()
             temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
             temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
