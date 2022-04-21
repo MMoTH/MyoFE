@@ -417,7 +417,14 @@ class LV_simulation():
         if self.comm.Get_rank() == 0:
             print '******** NEW TIME STEP ********'
             print (self.data['time'])
-            
+
+            print 'line 421'
+            temp_dict = dict()
+            temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
+            temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
+            temp_dict['k_on']= self.hs_objs_list[0].myof.data['k_on']
+            print(json.dumps(temp_dict, indent=4))
+
             if (self.t_counter % 10 == 0):
                 print('Sim time (s): %.0f  %.0f%% complete' %
                     (self.data['time'],
@@ -441,7 +448,13 @@ class LV_simulation():
                                         time_step,
                                         reflex_active=
                                         self.data['baroreflex_active'])
-
+        if self.comm.Get_rank() == 0:
+            print 'line 452'
+            temp_dict = dict()
+            temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
+            temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
+            temp_dict['k_on']= self.hs_objs_list[0].myof.data['k_on']
+            print(json.dumps(temp_dict, indent=4))
         # check for any perturbation
         for p in self.prot.perturbations:
             if (self.t_counter >= p.data['t_start_ind'] and 
@@ -460,6 +473,15 @@ class LV_simulation():
                     for j in range(self.local_n_of_int_points):
                         self.hs_objs_list[j].memb.data[p.data['variable']] +=\
                             p.data['increment']
+        
+        if self.comm.Get_rank() == 0:
+            print 'line 478'
+            temp_dict = dict()
+            temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
+            temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
+            temp_dict['k_on']= self.hs_objs_list[0].myof.data['k_on']
+            print(json.dumps(temp_dict, indent=4))
+
         # Proceed time
         (activation, new_beat) = \
             self.hr.implement_time_step(time_step)
@@ -508,7 +530,14 @@ class LV_simulation():
         self.mesh.model['functions']['LVCavityvol'].vol = \
             self.circ.data['v'][-1]
 
-       
+       if self.comm.Get_rank() == 0:
+            print 'line 534'
+            temp_dict = dict()
+            temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
+            temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
+            temp_dict['k_on']= self.hs_objs_list[0].myof.data['k_on']
+            print(json.dumps(temp_dict, indent=4))
+
         #Solve cardiac mechanics weak form
         #--------------------------------
         if self.comm.Get_rank() == 0:
@@ -560,6 +589,14 @@ class LV_simulation():
     
         self.comm.Barrier()
         # Update sim data for non-spatial variables on root core (i.e. 0)
+
+        if self.comm.Get_rank() == 0:
+            print 'line 594'
+            temp_dict = dict()
+            temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
+            temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
+            temp_dict['k_on']= self.hs_objs_list[0].myof.data['k_on']
+            print(json.dumps(temp_dict, indent=4))
 
         if self.t_counter%self.dumping_data_frequency == 0:
             print 'Dumping data ...'
