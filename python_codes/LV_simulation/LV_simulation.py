@@ -441,20 +441,6 @@ class LV_simulation():
                                         time_step,
                                         reflex_active=
                                         self.data['baroreflex_active'])
-        if self.comm.Get_rank() == 0:
-            print 'line 452'
-            temp_dict = dict()
-            temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
-            temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
-            temp_dict['k_on']= self.hs_objs_list[0].myof.data['k_on']
-            print(json.dumps(temp_dict, indent=4))
-        if self.comm.Get_rank() == 1:
-            print 'line 459'
-            temp_dict = dict()
-            temp_dict['k_1']= self.hs_objs_list[0].myof.data['k_1']
-            temp_dict['k_3']= self.hs_objs_list[0].myof.data['k_3']
-            temp_dict['k_on']= self.hs_objs_list[0].myof.data['k_on']
-            print(json.dumps(temp_dict, indent=4))
         # check for any perturbation
         for p in self.prot.perturbations:
             if (self.t_counter >= p.data['t_start_ind'] and 
@@ -482,8 +468,6 @@ class LV_simulation():
             # Solve MyoSim ODEs across the mesh
             print 'Solving MyoSim ODEs across the mesh'
         start = time.time()
-        temp_dict = dict()
-
         for j in range(self.local_n_of_int_points):
         
             self.hs_objs_list[j].update_simulation(time_step, 
@@ -497,10 +481,6 @@ class LV_simulation():
             
             if j%1000==0 and self.comm.Get_rank() == 0:
                 print '%.0f%% of integer points are updated' % (100*j/self.local_n_of_int_points)
-                temp_dict['k_1']= self.hs_objs_list[j].myof.data['k_1']
-                temp_dict['k_3']= self.hs_objs_list[j].myof.data['k_3']
-                temp_dict['k_on']= self.hs_objs_list[j].myof.data['k_on']
-                print(json.dumps(temp_dict, indent=4))
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
                 self.hs_objs_list[j].myof.y[:]
         end =time.time()
