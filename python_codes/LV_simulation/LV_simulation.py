@@ -549,7 +549,7 @@ class LV_simulation():
         self.pass_stress_list = p_f.vector().get_local()[:]
         
         # Convert negative passive stress in half-sarcomeres to 0
-        #self.pass_stress_list[self.pass_stress_list<0] = 0
+        self.pass_stress_list[self.pass_stress_list<0] = 0
     
         self.comm.Barrier()
         # Update sim data for non-spatial variables on root core (i.e. 0)
