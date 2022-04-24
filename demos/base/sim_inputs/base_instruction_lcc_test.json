@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [100000],
+        "no_of_time_steps": [20000],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -22,6 +22,13 @@
                     "t_start_s": [30],
                     "t_stop_s": [60],
                     "total_change": [40]
+                },
+                {
+                    "level": ["baroreflex"],
+                    "variable": ["baro_b_setpoint"],
+                    "t_start_s": [5],
+                    "t_stop_s": [10],
+                    "total_change": [-30]
                 }
             ]
 
