@@ -72,7 +72,7 @@ def execute_MyoFE(instruction_file,comm):
     output_struct = []
     if 'output_handler' in instruction_data:
         output_struct = instruction_data['output_handler']
-    print 'before creating obj' 
+  
     LV_sim_object = lvs(comm,instruction_data = instruction_data)
     LV_sim_object.run_simulation(protocol_struct = prot_struct,
                                     output_struct = output_struct)
