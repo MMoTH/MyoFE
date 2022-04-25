@@ -38,6 +38,7 @@ class MeshClass():
         #print self.comm.Get_size()
 
         self.model['function_spaces'] = self.initialize_function_spaces(mesh_struct)
+        
         if MPI.rank(self.comm) == 0:
             print 'function spaces are defined'
 
@@ -114,11 +115,9 @@ class MeshClass():
                     fcn_spaces[fs['name'][0]] = \
                         TensorFunctionSpace(self.model['mesh'], fs['element_type'][0],
                                         degree = fs['degree'][0])
-                
+                # now define function spaces over defined finite elements
                 if not fs['type'][0] == 'tensor':
                     fcn_spaces[fs['name'][0]] = FunctionSpace(self.model['mesh'],finite_element)
-                # now define function spaces over defined finite elements
-                #fcn_spaces[fs['name'][0]] = FunctionSpace(self.model['mesh'],finite_element)
 
         return fcn_spaces
 
@@ -174,6 +173,9 @@ class MeshClass():
 
         y_vec   = Function(self.model['function_spaces']['quad_vectorized_space'])
 
+        k1 = Function(self.model['function_spaces']['quadrature_space'])
+        self.k1_list = project(k1,self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
+        
         # define functions for the weak form
         w = Function(self.model['function_spaces']['solution_space'])
         dw = TrialFunction(self.model['function_spaces']['solution_space'])
@@ -207,6 +209,8 @@ class MeshClass():
         functions["pseudo_alpha"] = pseudo_alpha
         functions["pseudo_old"] = pseudo_old
         functions["y_vec"] = y_vec
+        functions["k1"] = k1
+
 
         return functions
 
@@ -366,14 +370,12 @@ class MeshClass():
         self.hs_length_list = \
                 project(self.model['functions']['hsl'],
                     self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
-
+        
         total_passive_PK2, self.model['functions']["Sff"] = \
             uflforms.stress(self.model['functions']["hsl"])
         temp_DG = project(self.model['functions']["Sff"], FunctionSpace(mesh, "DG", 1), form_compiler_parameters={"representation":"uflacs"})
         p_f = interpolate(temp_DG, self.model['function_spaces']['quadrature_space'])
         self.pass_stress_list = p_f.vector().get_local()[:]
-
-
 
         F2 = inner(Fmat*Pactive, grad(v))*dx
 

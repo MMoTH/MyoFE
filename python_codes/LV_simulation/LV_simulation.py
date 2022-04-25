@@ -59,15 +59,11 @@ class LV_simulation():
 
         # Initialize and define mesh objects (finite elements, 
         # function spaces, functions)
-        mesh_struct = instruction_data['mesh']
         self.mesh = MeshClass(self)
-
-        self.mesh_files = dict()
 
         self.y_vec = \
             self.mesh.model['functions']['y_vec'].vector().get_local()[:]
 
-        
         """Lets handle dof mapping for quadrature points """
         self.dofmap_list = []
         self.dofmap = self.mesh.model['function_spaces']['quadrature_space'].dofmap().dofs()
@@ -152,7 +148,7 @@ class LV_simulation():
                             self.comm.recv(source = i, tag = 3),axis = 0)
         
         self.coord = self.comm.bcast(self.coord)
-    
+
         """Handle the coordinates """
         x_coord = []
         y_coord = []
@@ -165,14 +161,21 @@ class LV_simulation():
         self.x_coord = np.array(x_coord)
         self.y_coord = np.array(y_coord)
         self.z_coord = np.array(z_coord)
-        if self.comm.Get_rank() == 0:
-            i = np.where(self.z_coord/self.z_coord.max()>0.5)
-            ind_to_change = np.isin(self.dofmap,i)
-            hs_list = np.array(self.hs_objs_list)
-            #for i,j  in enumerate(hs_list[ind_to_change]):
-            #   j.myof.data['k_1'] = 10
-            #   print self.hs_objs_list[i].myof.data['k_1']
+        #print self.z_coord.min()
 
+        # Reduce the contractility in 10% of mesh near apex
+        indicies = np.where(self.z_coord/self.z_coord.min()>0.9)
+        mask = np.isin(self.dofmap,indicies)
+        hs_list = np.array(self.hs_objs_list)
+        
+        for i,j  in enumerate(hs_list[mask]):
+           j.myof.data['k_1'] *= 0.5
+
+        k1_vlues = self.mesh.k1_list
+        for i, h in enumerate(self.hs_objs_list):
+            k1_vlues[i] = h.myof.data['k_1']
+        
+        self.mesh.model['functions']['k1'].vector()[:] = k1_vlues
 
 
         rank_id = self.comm.Get_rank()
@@ -381,6 +384,9 @@ class LV_simulation():
                         if m == 'hs_length':
                             temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scaler"])
+                        if m == 'k_1':
+                            temp_obj = project(self.mesh.model['functions']['k1'], 
+                                                self.mesh.model['function_spaces']["scaler"])
                         if m == 'active_stress':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
@@ -573,6 +579,10 @@ class LV_simulation():
                         temp_obj = self.mesh.model['functions']['w'].sub(0)
                     if m == 'hs_length':
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
+                                                self.mesh.model['function_spaces']["scaler"])
+                    
+                    if m == 'k_1':
+                        temp_obj = project(self.mesh.model['functions']['k1'], 
                                                 self.mesh.model['function_spaces']["scaler"])
                     if m == 'active_stress':
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
