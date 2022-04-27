@@ -4,6 +4,7 @@ Created on Mon Jan 10 11:15:59 2022
 
 @author: Hossein
 """
+from pyclbr import Function
 import numpy as np
 import json
 from dolfin import *
@@ -22,6 +23,7 @@ class MeshClass():
             parameters['mesh_partitioner'] = 'SCOTCH'
 
         self.model = dict()
+        self.data = dict()
 
         mesh_str = os.path.join(os.getcwd(),mesh_struct['mesh_path'][0])
       
@@ -173,8 +175,14 @@ class MeshClass():
 
         y_vec   = Function(self.model['function_spaces']['quad_vectorized_space'])
 
-        k1 = Function(self.model['function_spaces']['quadrature_space'])
-        self.k1_list = project(k1,self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
+        # Create function for myosim params that baroreflex regulates
+        for p in ['k_1','k_3','k_on','k_act','k_serca']:
+            functions[p] = Function(self.model['function_spaces']['quadrature_space'])
+            
+            self.data[p] = project(functions[p],self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
+            
+        """k_1 = Function(self.model['function_spaces']['quadrature_space'])
+        self.k1_list = project(k1,self.model['function_spaces']['quadrature_space']).vector().get_local()[:]"""
         
         # define functions for the weak form
         w = Function(self.model['function_spaces']['solution_space'])
@@ -209,7 +217,7 @@ class MeshClass():
         functions["pseudo_alpha"] = pseudo_alpha
         functions["pseudo_old"] = pseudo_old
         functions["y_vec"] = y_vec
-        functions["k1"] = k1
+        #functions["k_1"] = k_1
 
 
         return functions

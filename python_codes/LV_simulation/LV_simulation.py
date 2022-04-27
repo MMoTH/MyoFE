@@ -162,21 +162,43 @@ class LV_simulation():
         self.y_coord = np.array(y_coord)
         self.z_coord = np.array(z_coord)
         #print self.z_coord.min()
-
+   
         # Reduce the contractility in 10% of mesh near apex
         indicies = np.where(self.z_coord/self.z_coord.min()>0.9)
         mask = np.isin(self.dofmap,indicies)
         hs_list = np.array(self.hs_objs_list)
         
         for i,j  in enumerate(hs_list[mask]):
-           j.myof.data['k_1'] *= 0.5
+           j.myof.data['k_1'] *= 0.33
 
-        k1_vlues = self.mesh.k1_list
+        """k1_vlues = self.mesh.data['k_1_list']
         for i, h in enumerate(self.hs_objs_list):
             k1_vlues[i] = h.myof.data['k_1']
         
-        self.mesh.model['functions']['k1'].vector()[:] = k1_vlues
+        self.mesh.model['functions']['k_1'].vector()[:] = k1_vlues"""
 
+        # assign the values from the half-sarcomere isntances
+        # to spatial variables that baroreflex can regulate
+        # (for visualizaton purpose)
+        for p in ['k_1','k_3','k_on'] :
+            for i, h in enumerate(self.hs_objs_list):
+                self.mesh.data[p][i] = h.myof.data[p]
+            self.mesh.model['functions'][p].vector()[:] = \
+                  self.mesh.data[p]
+        for p in ['k_act','k_serca']:
+            for i, h in enumerate(self.hs_objs_list):
+                self.mesh.data[p][i] = h.memb.data[p]
+            self.mesh.model['functions'][p].vector()[:] = \
+                  self.mesh.data[p]
+
+        """for i, h in enumerate(self.hs_objs_list):
+            for p in ['k_1','k_3','k_on'] :
+                self.mesh.model['functions'][p].vector()[i] = \
+                    h.myof.data[p]
+            for p in ['k_act','k_serca']:
+                self.mesh.model['functions'][p].vector()[i] = \
+                    h.memb.data[p]"""
+                
 
         rank_id = self.comm.Get_rank()
         print '%0.0f integer points have been assigned to core %0.0f'\
@@ -384,8 +406,9 @@ class LV_simulation():
                         if m == 'hs_length':
                             temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scaler"])
-                        if m == 'k_1':
-                            temp_obj = project(self.mesh.model['functions']['k1'], 
+
+                        if m in ['k_1','k_3','k_on','k_act','k_serca']:
+                            temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scaler"])
                         if m == 'active_stress':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
@@ -447,6 +470,11 @@ class LV_simulation():
                                         time_step,
                                         reflex_active=
                                         self.data['baroreflex_active'])
+        
+            #now update the function for spatial controlled parameters  
+            for p in ['k_1','k_3','k_on','k_act','k_serca']:
+                self.mesh.model['functions'][p].vector()[:] = \
+                  self.mesh.data[p]
         # check for any perturbation
         for p in self.prot.perturbations:
             if (self.t_counter >= p.data['t_start_ind'] and 
@@ -581,8 +609,8 @@ class LV_simulation():
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scaler"])
                     
-                    if m == 'k_1':
-                        temp_obj = project(self.mesh.model['functions']['k1'], 
+                    if m in ['k_1','k_3','k_on','k_act','k_serca']:
+                            temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scaler"])
                     if m == 'active_stress':
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
@@ -709,21 +737,24 @@ class LV_simulation():
                 for h in self.hs_objs_list:
                     data_field.append(h.data[f])
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
+                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
+                #    self.data['time']
 
             for f in self.spatial_myof_data_fields:
                 data_field = []
                 for h in (self.hs_objs_list):
                     data_field.append(h.myof.data[f])
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
+                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
+                #    self.data['time']
             
             for f in self.spatial_memb_data_fields:
                 data_field = []
-                for h in (self.hs_objs_list):
+                for h in list(self.hs_objs_list):
                     data_field.append(h.memb.data[f])
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = self.data['time']
+                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
+                #    self.data['time']
 
     def check_output_directory_folder(self, path=""):
         """ Check output folder"""

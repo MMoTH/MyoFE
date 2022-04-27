@@ -37,12 +37,23 @@ class baroreflex():
         if ('controls' in baro_structure):
             baro_cont = baro_structure['controls']['control']
             for bc in baro_cont:
-                self.controls.append(
-                        reflex_control(bc,
-                                       self.parent_circulation))
+                if bc['level'][0] in ['myofilaments', 'membranes']:
+                    for i,h in enumerate(self.parent_circulation.hs_objs_list):
+                        self.controls.append(
+                            reflex_control(bc,self.parent_circulation,
+                                            index=i))
+                else:
+                    self.controls.append(
+                            reflex_control(bc,
+                                        self.parent_circulation))
+        
+        print 'len baro controls:', len(self.controls)
         # Add in data field
         for bc in self.controls:
-            k = bc.data['level']+'_'+bc.data['variable']+'_rc'
+            if bc.data['level'] in ['myofilaments', 'membranes']:
+                k = bc.data['level']+'_'+bc.data['variable']+'_rc_' + str(bc.data['index'])
+            else:
+                k = bc.data['level']+'_'+bc.data['variable']+'_rc'
             self.data[k] = bc.data['rc']
 
     def implement_time_step(self, pressure, time_step,
@@ -72,18 +83,34 @@ class baroreflex():
                     self.parent_circulation.hr.data[bc.data['variable']] = y
 
             if (bc.data['level'] == 'membranes'):
-                for h in self.parent_circulation.hs_objs_list:
+                h = self.parent_circulation.hs_objs_list[bc.data['index']]
+                h.memb.data[bc.data['variable']] = y
+                self.parent_circulation.mesh.data[bc.data['variable']][bc.data['index']] = y 
+                """for i, h in enumerate(self.parent_circulation.hs_objs_list):
                     h.memb.data[bc.data['variable']] = y
+                    self.parent_circulation.mesh.data[bc.data['variable']][i] = y """
                 #self.parent_circulation.hs.memb.data[bc.data['variable']] = y
             if (bc.data['level'] == 'myofilaments'):
-                for h in self.parent_circulation.hs_objs_list:
+                h = self.parent_circulation.hs_objs_list[bc.data['index']]
+                h.myof.data[bc.data['variable']] = y
+                self.parent_circulation.mesh.data[bc.data['variable']][bc.data['index']] = y
+                """for i, h in enumerate(self.parent_circulation.hs_objs_list):
                     h.myof.data[bc.data['variable']] = y
+                    self.parent_circulation.mesh.data[bc.data['variable']][i] = y"""
                 #self.parent_circulation.hs.myof.data[bc.data['variable']] = y
             if (bc.data['level'] == 'circulation'):
                 self.parent_circulation.circ.data[bc.data['variable']] = y
+
+
             # Add in data field
-            k = bc.data['level']+'_'+bc.data['variable']+'_rc'
+            if bc.data['level'] in ['myofilaments', 'membranes']:
+                k = bc.data['level']+'_'+bc.data['variable']+'_rc_' + str(bc.data['index'])
+            else:
+                k = bc.data['level']+'_'+bc.data['variable']+'_rc'
             self.data[k] = bc.data['rc']
+
+            """k = bc.data['level']+'_'+bc.data['variable']+'_rc'
+            self.data[k] = bc.data['rc']"""
 
 
     def return_b(self, pressure):
@@ -114,7 +141,7 @@ class baroreflex():
 class reflex_control():
     """ Class for a reflex control """
 
-    def __init__(self, control_struct, parent_circulation):
+    def __init__(self, control_struct, parent_circulation,index=0):
         self.data = dict()
         for k in list(control_struct.keys()):
             self.data[k] = control_struct[k][0]
@@ -128,11 +155,13 @@ class reflex_control():
             self.data['basal_value'] = \
                 parent_circulation.hr.data[self.data['variable']]
         if (self.data['level']=='membranes'):
+            self.data['index'] = index
             self.data['basal_value'] = \
-                parent_circulation.hs_objs_list[0].memb.data[self.data['variable']]
+                parent_circulation.hs_objs_list[index].memb.data[self.data['variable']]
         if (self.data['level']=='myofilaments'):
+            self.data['index'] = index
             self.data['basal_value'] = \
-                parent_circulation.hs_objs_list[0].myof.data[self.data['variable']]
+                parent_circulation.hs_objs_list[index].myof.data[self.data['variable']]
         if (self.data['level']=='circulation'):
             self.data['basal_value'] = \
                 parent_circulation.circ.data[self.data['variable']]
