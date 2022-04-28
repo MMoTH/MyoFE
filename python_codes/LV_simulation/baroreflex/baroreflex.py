@@ -47,7 +47,6 @@ class baroreflex():
                             reflex_control(bc,
                                         self.parent_circulation))
         
-        print 'len baro controls:', len(self.controls)
         # Add in data field
         for bc in self.controls:
             if bc.data['level'] in ['myofilaments', 'membranes']:

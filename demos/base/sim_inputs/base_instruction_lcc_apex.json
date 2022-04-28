@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [20000],
+        "no_of_time_steps": [20],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -90,7 +90,26 @@
               "phi_m": [1.0],
               "phi_g": [1.0]
             }
-          }
+          },
+        "apex_contractility":
+        {
+            "components":
+            [
+                {
+                    "z_axis_ratio": [0.83],
+                    "level": ["myofilaments"],
+                    "variable": ["k_1"],
+                    "factor": [0.3]
+                },
+                {
+                    "z_axis_ratio": [0.9],
+                    "level": ["myofilaments"],
+                    "variable": ["k_on"],
+                    "factor": [0.3]
+                }
+            ]
+            
+        }  
     },
     "model":
     {
@@ -298,7 +317,7 @@
 	    "k_serca"
         ],
         "dumping_spatial_in_average":[true],
-        "frequency_n": [10]
+        "frequency_n": [1]
         
         
     }

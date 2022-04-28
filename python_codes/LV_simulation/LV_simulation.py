@@ -164,12 +164,35 @@ class LV_simulation():
         #print self.z_coord.min()
    
         # Reduce the contractility in 10% of mesh near apex
-        indicies = np.where(self.z_coord/self.z_coord.min()>0.9)
+        if 'apex_contractility' in instruction_data['mesh']:
+            apex_components = []
+            # first read what components you want to change in apex
+            for ci,comp in enumerate(instruction_data['mesh']['apex_contractility']['components']):
+                apex_components.append(dict())
+                for k in comp.keys():
+                    apex_components[ci][k] = comp[k][0]
+            
+                # then apply
+                print apex_components[ci]
+                indicies = np.where(self.z_coord/self.z_coord.min()>\
+                    apex_components[ci]['z_axis_ratio'])
+                mask = np.isin(self.dofmap,indicies)
+                hs_list = np.array(self.hs_objs_list)
+                for i,j  in enumerate(hs_list[mask]):
+                    if apex_components[ci]['level']=='myofilaments':
+                        j.myof.data[apex_components[ci]['variable']] *= \
+                            apex_components[ci]['factor']
+                    elif apex_components[ci]['level']=='memberanes':
+                        j.memb.data[apex_components[ci]['variable']] *= \
+                            apex_components[ci]['factor']
+                    
+
+        """indicies = np.where(self.z_coord/self.z_coord.min()>0.9)
         mask = np.isin(self.dofmap,indicies)
         hs_list = np.array(self.hs_objs_list)
         
         for i,j  in enumerate(hs_list[mask]):
-           j.myof.data['k_1'] *= 0.33
+           j.myof.data['k_1'] *= 0.33"""
 
         """k1_vlues = self.mesh.data['k_1_list']
         for i, h in enumerate(self.hs_objs_list):
