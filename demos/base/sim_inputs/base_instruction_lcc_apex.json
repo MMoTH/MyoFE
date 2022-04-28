@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [20],
+        "no_of_time_steps": [2],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -96,16 +96,16 @@
             "components":
             [
                 {
-                    "z_axis_ratio": [0.83],
+                    "radius_ratio": [0.2],
                     "level": ["myofilaments"],
                     "variable": ["k_1"],
                     "factor": [0.3]
                 },
                 {
-                    "z_axis_ratio": [0.9],
+                    "radius_ratio": [0.2],
                     "level": ["myofilaments"],
                     "variable": ["k_on"],
-                    "factor": [0.3]
+                    "factor": [1]
                 }
             ]
             

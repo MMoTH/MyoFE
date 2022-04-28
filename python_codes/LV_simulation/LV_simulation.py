@@ -161,21 +161,32 @@ class LV_simulation():
         self.x_coord = np.array(x_coord)
         self.y_coord = np.array(y_coord)
         self.z_coord = np.array(z_coord)
-        #print self.z_coord.min()
-   
-        # Reduce the contractility in 10% of mesh near apex
+
+        """ Reduce the contractility of gaussian points near apex"""
+        # First assume the corrdinates of apex
+        xc = 0.0
+        yc = 0.0
+        zc = self.z_coord.min()
+
+        # then calculate the distance of all gaussian points wrt apex
+        self.apex_r = []
+        for i,p in enumerate(self.z_coord):
+            self.apex_r.append(self.return_spherical_radius(xc,yc,zc,
+                                self.x_coord[i],self.y_coord[i],self.z_coord[i]))
+        self.apex_r = np.array(self.apex_r)
+        
+        # Now start selecting the points and change the active properties
         if 'apex_contractility' in instruction_data['mesh']:
             apex_components = []
-            # first read what components you want to change in apex
             for ci,comp in enumerate(instruction_data['mesh']['apex_contractility']['components']):
                 apex_components.append(dict())
                 for k in comp.keys():
                     apex_components[ci][k] = comp[k][0]
             
                 # then apply
-                print apex_components[ci]
-                indicies = np.where(self.z_coord/self.z_coord.min()>\
-                    apex_components[ci]['z_axis_ratio'])
+                indicies = np.where(self.apex_r<self.apex_r.max()*\
+                    apex_components[ci]['radius_ratio'])
+
                 mask = np.isin(self.dofmap,indicies)
                 hs_list = np.array(self.hs_objs_list)
                 for i,j  in enumerate(hs_list[mask]):
@@ -185,20 +196,6 @@ class LV_simulation():
                     elif apex_components[ci]['level']=='memberanes':
                         j.memb.data[apex_components[ci]['variable']] *= \
                             apex_components[ci]['factor']
-                    
-
-        """indicies = np.where(self.z_coord/self.z_coord.min()>0.9)
-        mask = np.isin(self.dofmap,indicies)
-        hs_list = np.array(self.hs_objs_list)
-        
-        for i,j  in enumerate(hs_list[mask]):
-           j.myof.data['k_1'] *= 0.33"""
-
-        """k1_vlues = self.mesh.data['k_1_list']
-        for i, h in enumerate(self.hs_objs_list):
-            k1_vlues[i] = h.myof.data['k_1']
-        
-        self.mesh.model['functions']['k_1'].vector()[:] = k1_vlues"""
 
         # assign the values from the half-sarcomere isntances
         # to spatial variables that baroreflex can regulate
@@ -843,4 +840,6 @@ class LV_simulation():
 
         return 
 
-        
+    def return_spherical_radius(self,xc,yc,zc,x,y,z):
+
+        return ((xc-x)**2+(yc-y)**2+(zc-z)**2)**0.5 
