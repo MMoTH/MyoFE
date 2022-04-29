@@ -20,7 +20,7 @@ class MeshClass():
         mesh_struct = parent_parameters.instruction_data['mesh']
 
         if self.parent_parameters.comm.Get_size()>1:
-            parameters['mesh_partitioner'] = 'ParMETIS'#'SCOTCH'
+            parameters['mesh_partitioner'] = 'SCOTCH'
 
         self.model = dict()
         self.data = dict()
