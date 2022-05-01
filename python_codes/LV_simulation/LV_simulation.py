@@ -189,10 +189,30 @@ class LV_simulation():
 
                 mask = np.isin(self.dofmap,indicies)
                 hs_list = np.array(self.hs_objs_list)
+
+                ### TEST##
+                """for i in indicies:
+                    mask = np.isin(self.dofmap,i)
+                    print i
+                    print mask
+                    if apex_components[ci]['level']=='myofilaments':
+                        p = hs_list[mask].myof.data[apex_components[ci]['variable']]
+                        r = self.apex_r[i]
+
+                        hs_list[mask].myof.data[apex_components[ci]['variable']] = \
+                           p * (1-apex_components[ci]['factor']) * r / \
+                                (self.apex_r.max()*apex_components[ci]['radius_ratio']) + \
+                                    p * apex_components[ci]['factor']""" 
                 for i,j  in enumerate(hs_list[mask]):
                     if apex_components[ci]['level']=='myofilaments':
                         j.myof.data[apex_components[ci]['variable']] *= \
                             apex_components[ci]['factor']
+                        #p = j.myof.data[apex_components[ci]['variable']]
+                        #r = self.apex_r[self.dofmap[i]]
+                        #j.myof.data[apex_components[ci]['variable']] = \
+                        #    p * (1-apex_components[ci]['factor']) * r / \
+                        #        (self.apex_r.max()*apex_components[ci]['radius_ratio']) + \
+                        #           p * apex_components[ci]['factor']
                     elif apex_components[ci]['level']=='memberanes':
                         j.memb.data[apex_components[ci]['variable']] *= \
                             apex_components[ci]['factor']
@@ -556,6 +576,7 @@ class LV_simulation():
         self.mesh.model['functions']['LVCavityvol'].vol = \
             self.circ.data['v'][-1]
 
+        self.comm.Barrier()
         #Solve cardiac mechanics weak form
         #--------------------------------
         if self.comm.Get_rank() == 0:
