@@ -175,6 +175,12 @@ class LV_simulation():
                                 self.x_coord[i],self.y_coord[i],self.z_coord[i]))
         self.apex_r = np.array(self.apex_r)
         
+        #now build an array for storing radius of apex for local integer points
+        self.apex_r_local = np.zeros(self.local_n_of_int_points)
+        for i,j in enumerate(self.dofmap):
+            self.apex_r_local[i] = self.apex_r[j]
+
+        
         # Now start selecting the points and change the active properties
         if 'apex_contractility' in instruction_data['mesh']:
             apex_components = []
@@ -190,32 +196,24 @@ class LV_simulation():
                 mask = np.isin(self.dofmap,indicies)
                 hs_list = np.array(self.hs_objs_list)
 
-                ### TEST##
-                """for i in indicies:
-                    mask = np.isin(self.dofmap,i)
-                    print i
-                    print mask
-                    if apex_components[ci]['level']=='myofilaments':
-                        p = hs_list[mask].myof.data[apex_components[ci]['variable']]
-                        r = self.apex_r[i]
-
-                        hs_list[mask].myof.data[apex_components[ci]['variable']] = \
-                           p * (1-apex_components[ci]['factor']) * r / \
-                                (self.apex_r.max()*apex_components[ci]['radius_ratio']) + \
-                                    p * apex_components[ci]['factor']""" 
                 for i,j  in enumerate(hs_list[mask]):
+                    r = self.apex_r_local[mask][i]
                     if apex_components[ci]['level']=='myofilaments':
-                        j.myof.data[apex_components[ci]['variable']] *= \
-                            apex_components[ci]['factor']
-                        #p = j.myof.data[apex_components[ci]['variable']]
-                        #r = self.apex_r[self.dofmap[i]]
-                        #j.myof.data[apex_components[ci]['variable']] = \
-                        #    p * (1-apex_components[ci]['factor']) * r / \
-                        #        (self.apex_r.max()*apex_components[ci]['radius_ratio']) + \
-                        #           p * apex_components[ci]['factor']
+                        #j.myof.data[apex_components[ci]['variable']] *= \
+                        #    apex_components[ci]['factor']
+                        p = j.myof.data[apex_components[ci]['variable']]
+                        j.myof.data[apex_components[ci]['variable']] = \
+                            p * (1-apex_components[ci]['factor']) * r / \
+                                (self.apex_r.max()*apex_components[ci]['radius_ratio']) + \
+                                   p * apex_components[ci]['factor']
                     elif apex_components[ci]['level']=='memberanes':
-                        j.memb.data[apex_components[ci]['variable']] *= \
-                            apex_components[ci]['factor']
+                        #j.memb.data[apex_components[ci]['variable']] *= \
+                        #    apex_components[ci]['factor']
+                        p = j.memb.data[apex_components[ci]['variable']]
+                        j.memb.data[apex_components[ci]['variable']] = \
+                            p * (1-apex_components[ci]['factor']) * r / \
+                                (self.apex_r.max()*apex_components[ci]['radius_ratio']) + \
+                                   p * apex_components[ci]['factor']
 
         # assign the values from the half-sarcomere isntances
         # to spatial variables that baroreflex can regulate
