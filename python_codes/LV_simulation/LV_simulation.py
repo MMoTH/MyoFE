@@ -585,7 +585,12 @@ class LV_simulation():
         bcs = self.mesh.model['boundary_conditions']
         Jac = self.mesh.model['Jac']
 
-        solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
+        solve(Ftotal == 0, w, bcs, J = Jac,
+            solver_parameters={"newton_solver":
+                                {"relative_tolerance":1e-6, 
+                                 "absolute_tolerance":1e-6, 
+                                 "maximum_iterations":40}}, 
+                                 form_compiler_parameters={"representation":"uflacs"})
 
         self.mesh.model['functions']['w'] = w
         # Start updating variables after solving the weak form 
