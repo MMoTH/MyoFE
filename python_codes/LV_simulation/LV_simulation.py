@@ -585,7 +585,8 @@ class LV_simulation():
         bcs = self.mesh.model['boundary_conditions']
         Jac = self.mesh.model['Jac']
 
-        solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
+        self.mesh.model['nsolver'].solvenonlinear(Ftotal,w,bcs,Jac)
+        #solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
 
         self.mesh.model['functions']['w'] = w
         # Start updating variables after solving the weak form 
