@@ -17,24 +17,24 @@ class NSolver(object):
                 "Type" : 1}
 
 
-    def solvenonlinear(self, Ftotal, w, bcs, Jac):
+    def solvenonlinear(self):
 
         abs_tol = self.default_parameters()["abs_tol"]
         rel_tol = self.default_parameters()["rel_tol"]
         maxiter = self.default_parameters()["max_iter"]
         mode = self.parameters["mode"]
-       # Jac = self.parameters["Jacobian"]
-        #Jac1 = self.parameters["Jac1"]
-        #Jac2 = self.parameters["Jac2"]
-        #Jac3 = self.parameters["Jac3"]
-        #Jac4 = self.parameters["Jac4"]
-       # Ftotal = self.parameters["F"]
-        #F1 = self.parameters["F1"]
-        #F2 = self.parameters["F2"]
-        #F3 = self.parameters["F3"]
-        #F4 = self.parameters["F4"]
-       # w = self.parameters["w"]
-       # bcs = self.parameters["boundary_conditions"]
+        Jac = self.parameters["Jacobian"]
+        Jac1 = self.parameters["Jac1"]
+        Jac2 = self.parameters["Jac2"]
+        Jac3 = self.parameters["Jac3"]
+        Jac4 = self.parameters["Jac4"]
+        Ftotal = self.parameters["Ftotal"]
+        F1 = self.parameters["F1"]
+        F2 = self.parameters["F2"]
+        F3 = self.parameters["F3"]
+        F4 = self.parameters["F4"]
+        w = self.parameters["w"]
+        bcs = self.parameters["boundary_conditions"]
         solvertype = self.parameters["Type"]
 
         mesh = self.parameters["mesh"]
@@ -81,7 +81,7 @@ class NSolver(object):
                     solve(A, w.vector(), b)
 
             it += 1
-
+            print it
             self.isfirstiteration = 1
 
             B = assemble(Ftotal,\
@@ -101,35 +101,38 @@ class NSolver(object):
                 dww.vector()[:] = 0.0
 
                 #while (rel_res > rel_tol and res > abs_tol) and it < maxiter:
-                while (rel_res > rel_tol) and it < maxiter:
-                        it += 1
+                while (rel_res > rel_tol) and it < maxiter: 
 
-                        A, b = assemble_system(Jac, -Ftotal, bcs, \
-                                form_compiler_parameters={"representation":"uflacs"}\
+                    it += 1
+
+                    A, b = assemble_system(Jac, -Ftotal, bcs, \
+                            form_compiler_parameters={"representation":"uflacs"}\
                                     )
-                        # Trying to assemble individual F terms
-                        #print "checking F terms"
-                        #f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
-                        #f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
-                        #f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
-                        #f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
+                    # Trying to assemble individual F terms
+                    if(MPI.rank(comm) == 0 and mode > 0):
+                        print "checking F terms"
+                    f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
+                    f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
+                    f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
+                    f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
 
-                        #print "checking nan"
-                        #if np.isnan(f1_temp.array().astype(float)).any():
-                    #        print "nan in f1"
-                    #    if np.isnan(f2_temp.array().astype(float)).any():
-                    #        print "nan in f2"
-                    #    if np.isnan(f3_temp.array().astype(float)).any():
-                    #        print "nan in f3"
-                    #    if np.isnan(f4_temp.array().astype(float)).any():
-                    #        print "nan in f4"
-                        #print A.array(), b.array()
-                        #if np.isnan(A.array().astype(float)).any():
-                        #    print "nan found in A assembly"
-                        #if np.isnan(b.array().astype(float)).any():
-                    #        print "nan found in b (Ftotal) assembly"
-                        solve(A, dww.vector(), b)
-                        w.vector().axpy(1.0, dww.vector())
+                    if(MPI.rank(comm) == 0 and mode > 0):
+                        print "checking nan"
+                    if np.isnan(f1_temp.array().astype(float)).any():
+                        print "nan in f1"
+                    if np.isnan(f2_temp.array().astype(float)).any():
+                        print "nan in f2"
+                    if np.isnan(f3_temp.array().astype(float)).any():
+                        print "nan in f3"
+                    if np.isnan(f4_temp.array().astype(float)).any():
+                        print "nan in f4"
+                    #print A.array(), b.array()
+                    if np.isnan(A.array().astype(float)).any():
+                        print "nan found in A assembly"
+                    if np.isnan(b.array().astype(float)).any():
+                        print "nan found in b (Ftotal) assembly"
+                    solve(A, dww.vector(), b)
+                    w.vector().axpy(1.0, dww.vector())
 
                 # DEBUGGING PURPOSES #############################
                 #if(t_a.t_a >= 170 and t_a.t_a <= 172):

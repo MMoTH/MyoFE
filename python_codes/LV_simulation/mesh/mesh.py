@@ -419,6 +419,18 @@ class MeshClass():
         #create solver
         params['mode'] = 1
         params['Type'] = 1
+        params['Jacobian'] = Jac
+        params['Jac1'] = Jac1
+        params['Jac2'] = Jac2
+        params['Jac3'] = Jac3
+        params['Jac4'] = Jac4 
+        params['Ftotal'] = Ftotal
+        params['F1'] = F1
+        params['F2'] = F2
+        params['F3'] = F3
+        params['F4'] = F4
+        params['w'] = w
+        params['boundary_conditions'] = self.model['boundary_conditions']
         nsolver = NSolver(params)
         return Ftotal, Jac, uflforms, nsolver
        
