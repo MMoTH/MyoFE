@@ -180,7 +180,6 @@ class LV_simulation():
         for i,j in enumerate(self.dofmap):
             self.apex_r_local[i] = self.apex_r[j]
 
-        
         # Now start selecting the points and change the active properties
         if 'apex_contractility' in instruction_data['mesh']:
             apex_components = []
@@ -229,15 +228,6 @@ class LV_simulation():
             self.mesh.model['functions'][p].vector()[:] = \
                   self.mesh.data[p]
 
-        """for i, h in enumerate(self.hs_objs_list):
-            for p in ['k_1','k_3','k_on'] :
-                self.mesh.model['functions'][p].vector()[i] = \
-                    h.myof.data[p]
-            for p in ['k_act','k_serca']:
-                self.mesh.model['functions'][p].vector()[i] = \
-                    h.memb.data[p]"""
-                
-
         rank_id = self.comm.Get_rank()
         print '%0.0f integer points have been assigned to core %0.0f'\
              %(self.local_n_of_int_points,rank_id)
@@ -272,8 +262,6 @@ class LV_simulation():
         self.gr = []
         # If required, create the vad object
         self.va = []
-
-
         
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
@@ -436,7 +424,8 @@ class LV_simulation():
                     self.solution_mesh = XDMFFile(mpi_comm_world(),file_path)
                     self.solution_mesh.parameters.update({"functions_share_mesh": True,
                                             "rewrite_function_mesh": False})
-                
+
+
                     for m in self.mesh_obj_to_save:
                         
                         if m == 'displacement':
@@ -587,8 +576,8 @@ class LV_simulation():
 
         solve(Ftotal == 0, w, bcs, J = Jac,
             solver_parameters={"newton_solver":
-                                {"relative_tolerance":1e-6, 
-                                 "absolute_tolerance":1e-6, 
+                                {"relative_tolerance":1e-8, 
+                                 "absolute_tolerance":1e-8, 
                                  "maximum_iterations":40}}, 
                                  form_compiler_parameters={"representation":"uflacs"})
 

@@ -181,9 +181,6 @@ class MeshClass():
             
             self.data[p] = project(functions[p],self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
             
-        """k_1 = Function(self.model['function_spaces']['quadrature_space'])
-        self.k1_list = project(k1,self.model['function_spaces']['quadrature_space']).vector().get_local()[:]"""
-        
         # define functions for the weak form
         w = Function(self.model['function_spaces']['solution_space'])
         dw = TrialFunction(self.model['function_spaces']['solution_space'])
@@ -217,7 +214,6 @@ class MeshClass():
         functions["pseudo_alpha"] = pseudo_alpha
         functions["pseudo_old"] = pseudo_old
         functions["y_vec"] = y_vec
-        #functions["k_1"] = k_1
 
 
         return functions
@@ -234,6 +230,7 @@ class MeshClass():
                         topid)
         boundary_conditions = [boundary_top]
         self.model['functions']["LVendoid"] = LVendoid
+
         return boundary_conditions
 
     def create_weak_form(self):
@@ -262,6 +259,7 @@ class MeshClass():
         c11 = self.model['functions']["c11"]
         wtest = self.model['functions']["wtest"]
         dw = self.model['functions']["dw"]
+        ds = dolfin.ds(subdomain_data = facetboundaries)
 
         pendo = self.model['functions']["pendo"]
         LVendoid = self.model['functions']["LVendoid"]
@@ -295,6 +293,7 @@ class MeshClass():
             "lv_constrained_vol":LVCavityvol,
             "LVendoid": LVendoid,
             "LVendo_comp": 2,
+            "LVepiid": 1
         }
         params.update(ventricle_params)
 
@@ -402,9 +401,16 @@ class MeshClass():
 
         F4 = derivative(L4, w, wtest)
 
-        Ftotal = F1 + F2 + F3 + F4
+        k_spring = Constant(50)#Expression(("k_spring"), k_spring=0.1, degree=0)
+        F5 = k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
+        Jac5 = derivative(F5, w, dw)
+
+        Ftotal = F1 + F2 + F3 + F4 +F5
 
         Ftotal_growth = F1 + F3_p + F4
+
+        
+
 
         Jac1 = derivative(F1, w, dw)
         Jac2 = derivative(F2, w, dw)
@@ -412,7 +418,7 @@ class MeshClass():
         Jac3_p = derivative(F3_p,w,dw)
         Jac4 = derivative(F4, w, dw)
 
-        Jac = Jac1 + Jac2 + Jac3 + Jac4
+        Jac = Jac1 + Jac2 + Jac3 + Jac4 + Jac5
         Jac_growth = Jac1 + Jac3_p + Jac4
 
         return Ftotal, Jac, uflforms
