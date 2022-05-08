@@ -401,10 +401,6 @@ class MeshClass():
 
         F4 = derivative(L4, w, wtest)
 
-        k_spring = Constant(500)#Expression(("k_spring"), k_spring=0.1, degree=0)
-        F5 = k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
-        Jac5 = derivative(F5, w, dw)
-
         Ftotal = F1 + F2 + F3 + F4 +F5
 
         Ftotal_growth = F1 + F3_p + F4
@@ -420,6 +416,17 @@ class MeshClass():
 
         Jac = Jac1 + Jac2 + Jac3 + Jac4 + Jac5
         Jac_growth = Jac1 + Jac3_p + Jac4
+
+        if 'pericardial' in self.parent_parameters.instruction_data['mesh']:
+            pericardial_bc_struct = self.parent_parameters.instruction_data['mesh']['pericardial']
+            if pericardial_bc_struct['type'][0] == 0:
+                k_spring = Constant(pericardial_bc_struct['k_spring'][0])#Expression(("k_spring"), k_spring=0.1, degree=0)
+                Ftotal += k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
+                #F5 = k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
+                #Jac5 = derivative(F5, w, dw)
+                Jac += derivative(F5, w, dw)
+
+        
 
         return Ftotal, Jac, uflforms
        
