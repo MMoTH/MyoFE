@@ -401,7 +401,7 @@ class MeshClass():
 
         F4 = derivative(L4, w, wtest)
 
-        k_spring = Constant(50)#Expression(("k_spring"), k_spring=0.1, degree=0)
+        k_spring = Constant(500)#Expression(("k_spring"), k_spring=0.1, degree=0)
         F5 = k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
         Jac5 = derivative(F5, w, dw)
 
