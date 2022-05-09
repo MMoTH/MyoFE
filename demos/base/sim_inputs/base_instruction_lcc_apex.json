@@ -109,6 +109,11 @@
                 }
             ]
             
+        },
+        "pericardial":
+        {
+            "type": ["spring"],
+            "k_spring": [50]
         }  
     },
     "model":
