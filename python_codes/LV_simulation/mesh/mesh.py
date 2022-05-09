@@ -401,7 +401,7 @@ class MeshClass():
 
         F4 = derivative(L4, w, wtest)
 
-        Ftotal = F1 + F2 + F3 + F4 +F5
+        Ftotal = F1 + F2 + F3 + F4 
 
         Ftotal_growth = F1 + F3_p + F4
 
@@ -414,7 +414,7 @@ class MeshClass():
         Jac3_p = derivative(F3_p,w,dw)
         Jac4 = derivative(F4, w, dw)
 
-        Jac = Jac1 + Jac2 + Jac3 + Jac4 + Jac5
+        Jac = Jac1 + Jac2 + Jac3 + Jac4 
         Jac_growth = Jac1 + Jac3_p + Jac4
 
         if 'pericardial' in self.parent_parameters.instruction_data['mesh']:
