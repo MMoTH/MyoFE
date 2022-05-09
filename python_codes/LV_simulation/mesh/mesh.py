@@ -421,7 +421,7 @@ class MeshClass():
             pericardial_bc_struct = self.parent_parameters.instruction_data['mesh']['pericardial']
             if pericardial_bc_struct['type'][0] == 0:
                 k_spring = Constant(pericardial_bc_struct['k_spring'][0])#Expression(("k_spring"), k_spring=0.1, degree=0)
-                Ftotal += k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
+                Ftotal += -k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
                 #F5 = k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
                 #Jac5 = derivative(F5, w, dw)
                 Jac += derivative(F5, w, dw)
