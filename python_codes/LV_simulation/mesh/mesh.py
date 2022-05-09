@@ -10,6 +10,7 @@ import json
 from dolfin import *
 import os
 from ..dependencies.forms import Forms
+from ..dependencies.nsolver import NSolver
 
 class MeshClass():
 
@@ -48,7 +49,7 @@ class MeshClass():
 
         self.model['boundary_conditions'] = self.initialize_boundary_conditions()
 
-        self.model['Ftotal'], self.model['Jac'], self.model['uflforms'] = \
+        self.model['Ftotal'], self.model['Jac'], self.model['uflforms'], self.model['nsolver'] = \
             self.create_weak_form()
 
     def initialize_function_spaces(self,mesh_struct):
@@ -428,9 +429,24 @@ class MeshClass():
                 Jac_temp = derivative(F_temp, w, dw)
                 Jac += Jac_temp
 
-        
+        #create solver
+        params['mode'] = 1
+        params['Type'] = 1
+        params['Jacobian'] = Jac
+        params['Jac1'] = Jac1
+        params['Jac2'] = Jac2
+        params['Jac3'] = Jac3
+        params['Jac4'] = Jac4 
+        params['Ftotal'] = Ftotal
+        params['F1'] = F1
+        params['F2'] = F2
+        params['F3'] = F3
+        params['F4'] = F4
+        params['w'] = w
+        params['boundary_conditions'] = self.model['boundary_conditions']
+        nsolver = NSolver(params)
 
-        return Ftotal, Jac, uflforms
+        return Ftotal, Jac, uflforms, nsolver
        
     def initialize_dolfin_functions(self,dolfin_functions_dict,fcn_space):
 

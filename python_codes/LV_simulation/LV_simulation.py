@@ -262,6 +262,8 @@ class LV_simulation():
         self.gr = []
         # If required, create the vad object
         self.va = []
+        print 'dolfin version==='
+        print dolfin.dolfin_version()
         
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
