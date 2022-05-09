@@ -422,10 +422,11 @@ class MeshClass():
             if pericardial_bc_struct['type'][0] == 'spring':
                 print 'Spring type pericardial boundary conditions have been applied!'
                 k_spring = Constant(pericardial_bc_struct['k_spring'][0])#Expression(("k_spring"), k_spring=0.1, degree=0)
-                Ftotal += -k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
-                #F5 = k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
-                #Jac5 = derivative(F5, w, dw)
-                Jac += derivative(F5, w, dw)
+                
+                F_temp = - k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
+                Ftotal += F_temp
+                Jac_temp = derivative(F_temp, w, dw)
+                Jac += Jac_temp
 
         
 
