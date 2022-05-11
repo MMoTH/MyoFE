@@ -184,19 +184,19 @@ class NSolver(object):
                 ###################################################
 
 
-                B = assemble(Ftotal, \
-                         form_compiler_parameters={"representation":"uflacs"}\
-                         )
-                for bc in bcs:
-                        bc.apply(B)
-                #if np.isnan(B.array().astype(float)).any():
-                #    print "nan found in B assembly after bcs"
-                rel_res = B.norm("l2")/resid0
-                res = B.norm("l2")
+                    B = assemble(Ftotal, \
+                            form_compiler_parameters={"representation":"uflacs"}\
+                            )
+                    for bc in bcs:
+                            bc.apply(B)
+                    #if np.isnan(B.array().astype(float)).any():
+                    #    print "nan found in B assembly after bcs"
+                    rel_res = B.norm("l2")/resid0
+                    res = B.norm("l2")
 
-            if(MPI.rank(comm) == 0 and mode > 0):
-                        print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
+                if(MPI.rank(comm) == 0 and mode > 0):
+                    print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
-            if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
-                #self.parameters["FileHandler"][4].close()
-                raise RuntimeError("Failed Convergence")
+                if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
+                    #self.parameters["FileHandler"][4].close()
+                    raise RuntimeError("Failed Convergence")
