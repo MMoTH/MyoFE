@@ -583,7 +583,6 @@ class LV_simulation():
                                  form_compiler_parameters={"representation":"uflacs"})
 
         self.mesh.model['functions']['w'] = w"""
-
         self.mesh.model['nsolver'].solvenonlinear()
         # Start updating variables after solving the weak form 
 
