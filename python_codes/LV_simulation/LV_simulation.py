@@ -262,8 +262,7 @@ class LV_simulation():
         self.gr = []
         # If required, create the vad object
         self.va = []
-        print 'dolfin version==='
-        print dolfin.dolfin_version()
+        
         
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
@@ -571,7 +570,7 @@ class LV_simulation():
         #--------------------------------
         if self.comm.Get_rank() == 0:
             print 'solving weak form'
-        Ftotal = self.mesh.model['Ftotal']
+        """Ftotal = self.mesh.model['Ftotal']
         w = self.mesh.model['functions']['w']
         bcs = self.mesh.model['boundary_conditions']
         Jac = self.mesh.model['Jac']
@@ -583,7 +582,9 @@ class LV_simulation():
                                  "maximum_iterations":40}}, 
                                  form_compiler_parameters={"representation":"uflacs"})
 
-        self.mesh.model['functions']['w'] = w
+        self.mesh.model['functions']['w'] = w"""
+
+        self.mesh.model['nsolver'].solvenonlinear()
         # Start updating variables after solving the weak form 
 
         # First pressure in circulation
