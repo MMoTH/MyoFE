@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [2],
+        "no_of_time_steps": [5000],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -96,19 +96,24 @@
             "components":
             [
                 {
-                    "radius_ratio": [0.2],
+                    "radius_ratio": [0.3],
                     "level": ["myofilaments"],
                     "variable": ["k_1"],
-                    "factor": [0.3]
+                    "factor": [0.1]
                 },
                 {
-                    "radius_ratio": [0.2],
+                    "radius_ratio": [0.3],
                     "level": ["myofilaments"],
                     "variable": ["k_on"],
-                    "factor": [1]
+                    "factor": [0.1]
                 }
             ]
             
+        },
+        "pericardial":
+        {
+            "type": ["spring"],
+            "k_spring": [50]
         }  
     },
     "model":
@@ -317,7 +322,7 @@
 	    "k_serca"
         ],
         "dumping_spatial_in_average":[true],
-        "frequency_n": [1]
+        "frequency_n": [10]
         
         
     }

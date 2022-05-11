@@ -10,6 +10,7 @@ import json
 from dolfin import *
 import os
 from ..dependencies.forms import Forms
+from ..dependencies.nsolver import NSolver
 
 class MeshClass():
 
@@ -48,7 +49,7 @@ class MeshClass():
 
         self.model['boundary_conditions'] = self.initialize_boundary_conditions()
 
-        self.model['Ftotal'], self.model['Jac'], self.model['uflforms'] = \
+        self.model['Ftotal'], self.model['Jac'], self.model['uflforms'], self.model['nsolver'] = \
             self.create_weak_form()
 
     def initialize_function_spaces(self,mesh_struct):
@@ -181,9 +182,6 @@ class MeshClass():
             
             self.data[p] = project(functions[p],self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
             
-        """k_1 = Function(self.model['function_spaces']['quadrature_space'])
-        self.k1_list = project(k1,self.model['function_spaces']['quadrature_space']).vector().get_local()[:]"""
-        
         # define functions for the weak form
         w = Function(self.model['function_spaces']['solution_space'])
         dw = TrialFunction(self.model['function_spaces']['solution_space'])
@@ -217,7 +215,6 @@ class MeshClass():
         functions["pseudo_alpha"] = pseudo_alpha
         functions["pseudo_old"] = pseudo_old
         functions["y_vec"] = y_vec
-        #functions["k_1"] = k_1
 
 
         return functions
@@ -234,6 +231,7 @@ class MeshClass():
                         topid)
         boundary_conditions = [boundary_top]
         self.model['functions']["LVendoid"] = LVendoid
+
         return boundary_conditions
 
     def create_weak_form(self):
@@ -262,6 +260,7 @@ class MeshClass():
         c11 = self.model['functions']["c11"]
         wtest = self.model['functions']["wtest"]
         dw = self.model['functions']["dw"]
+        ds = dolfin.ds(subdomain_data = facetboundaries)
 
         pendo = self.model['functions']["pendo"]
         LVendoid = self.model['functions']["LVendoid"]
@@ -295,6 +294,7 @@ class MeshClass():
             "lv_constrained_vol":LVCavityvol,
             "LVendoid": LVendoid,
             "LVendo_comp": 2,
+            "LVepiid": 1
         }
         params.update(ventricle_params)
 
@@ -402,9 +402,12 @@ class MeshClass():
 
         F4 = derivative(L4, w, wtest)
 
-        Ftotal = F1 + F2 + F3 + F4
+        Ftotal = F1 + F2 + F3 + F4 
 
         Ftotal_growth = F1 + F3_p + F4
+
+        
+
 
         Jac1 = derivative(F1, w, dw)
         Jac2 = derivative(F2, w, dw)
@@ -412,10 +415,38 @@ class MeshClass():
         Jac3_p = derivative(F3_p,w,dw)
         Jac4 = derivative(F4, w, dw)
 
-        Jac = Jac1 + Jac2 + Jac3 + Jac4
+        Jac = Jac1 + Jac2 + Jac3 + Jac4 
         Jac_growth = Jac1 + Jac3_p + Jac4
 
-        return Ftotal, Jac, uflforms
+        if 'pericardial' in self.parent_parameters.instruction_data['mesh']:
+            pericardial_bc_struct = self.parent_parameters.instruction_data['mesh']['pericardial']
+            if pericardial_bc_struct['type'][0] == 'spring':
+                print 'Spring type pericardial boundary conditions have been applied!'
+                k_spring = Constant(pericardial_bc_struct['k_spring'][0])#Expression(("k_spring"), k_spring=0.1, degree=0)
+                
+                F_temp = - k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
+                Ftotal += F_temp
+                Jac_temp = derivative(F_temp, w, dw)
+                Jac += Jac_temp
+
+        #create solver
+        params['mode'] = 1
+        params['Type'] = 1
+        params['Jacobian'] = Jac
+        params['Jac1'] = Jac1
+        params['Jac2'] = Jac2
+        params['Jac3'] = Jac3
+        params['Jac4'] = Jac4 
+        params['Ftotal'] = Ftotal
+        params['F1'] = F1
+        params['F2'] = F2
+        params['F3'] = F3
+        params['F4'] = F4
+        params['w'] = w
+        params['boundary_conditions'] = self.model['boundary_conditions']
+        nsolver = NSolver(params)
+
+        return Ftotal, Jac, uflforms, nsolver
        
     def initialize_dolfin_functions(self,dolfin_functions_dict,fcn_space):
 
