@@ -9,6 +9,7 @@ from ast import operator
 from operator import methodcaller
 import os
 import json
+import math
 import pandas as pd
 import numpy as np
 from dolfin import *
@@ -23,6 +24,7 @@ from .mesh.mesh import MeshClass
 from .circulation.circulation import Circulation as circ
 from .heart_rate.heart_rate import heart_rate as hr
 from .dependencies.forms import Forms
+from .dependencies.nsolver import NSolver
 from .output_handler.output_handler import output_handler as oh
 from .baroreflex import baroreflex as br
 from .half_sarcomere import half_sarcomere as hs 
@@ -60,6 +62,11 @@ class LV_simulation():
         # Initialize and define mesh objects (finite elements, 
         # function spaces, functions)
         self.mesh = MeshClass(self)
+
+        # Initialize the solver object 
+        self.solver_params = self.mesh.model['solver_params']
+        self.solver =  NSolver(self.solver_params,comm)
+
 
         self.y_vec = \
             self.mesh.model['functions']['y_vec'].vector().get_local()[:]
@@ -583,7 +590,8 @@ class LV_simulation():
                                  form_compiler_parameters={"representation":"uflacs"})
 
         self.mesh.model['functions']['w'] = w"""
-        self.mesh.model['nsolver'].solvenonlinear()
+        self.solver.solvenonlinear()
+        #self.mesh.model['nsolver'].solvenonlinear()
         # Start updating variables after solving the weak form 
 
         # First pressure in circulation
@@ -859,3 +867,4 @@ class LV_simulation():
     def return_spherical_radius(self,xc,yc,zc,x,y,z):
 
         return ((xc-x)**2+(yc-y)**2+(zc-z)**2)**0.5 
+

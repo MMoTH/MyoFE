@@ -49,7 +49,8 @@ class MeshClass():
 
         self.model['boundary_conditions'] = self.initialize_boundary_conditions()
 
-        self.model['Ftotal'], self.model['Jac'], self.model['uflforms'], self.model['nsolver'] = \
+        self.model['Ftotal'], self.model['Jac'], \
+        self.model['uflforms'], self.model['solver_params'] = \
             self.create_weak_form()
 
     def initialize_function_spaces(self,mesh_struct):
@@ -319,13 +320,15 @@ class MeshClass():
             #print project(hsl,self.model['function_spaces']["quadrature_space"]).vector().get_local()
         
         #----------------------------------
-
+        # create an array for holding different components of the weak form
+        self.F_list = []
+        self.J_list = []
         # Passive stress contribution
         Wp = uflforms.PassiveMatSEF(hsl)
 
         # passive material contribution
         F1 = derivative(Wp, w, wtest)*dx
-
+        self.F_list.append(F1)
          # active stress contribution (Pactive is PK2, transform to PK1)
         # temporary active stress
         #Pactive, cbforce = uflforms.TempActiveStress(0.0)
@@ -386,11 +389,11 @@ class MeshClass():
         self.pass_stress_list = p_f.vector().get_local()[:]
 
         F2 = inner(Fmat*Pactive, grad(v))*dx
-
+        self.F_list.append(F2)
         # LV volume increase
         Wvol = uflforms.LVV0constrainedE()
         F3 = derivative(Wvol, w, wtest)
-
+        self.F_list.append(F3)
         # For pressure on endo instead of volume bdry condition
         F3_p = Press*inner(n,v)*ds(LVendoid)
 
@@ -401,7 +404,7 @@ class MeshClass():
         inner(as_vector([0.0, c11[4], 0.0]), cross(X, u))*dx
 
         F4 = derivative(L4, w, wtest)
-
+        self.F_list.append(F4)
         Ftotal = F1 + F2 + F3 + F4 
 
         Ftotal_growth = F1 + F3_p + F4
@@ -414,6 +417,8 @@ class MeshClass():
         Jac3 = derivative(F3, w, dw)
         Jac3_p = derivative(F3_p,w,dw)
         Jac4 = derivative(F4, w, dw)
+        for f in self.F_list:
+            self.J_list.append(derivative(f, w, dw))
 
         Jac = Jac1 + Jac2 + Jac3 + Jac4 
         Jac_growth = Jac1 + Jac3_p + Jac4
@@ -425,28 +430,31 @@ class MeshClass():
                 k_spring = Constant(pericardial_bc_struct['k_spring'][0])#Expression(("k_spring"), k_spring=0.1, degree=0)
                 
                 F_temp = - k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
+                self.F_list.append(F_temp)
                 Ftotal += F_temp
                 Jac_temp = derivative(F_temp, w, dw)
+                self.J_list.append(Jac_temp)
                 Jac += Jac_temp
 
         #create solver
-        params['mode'] = 1
-        params['Type'] = 1
-        params['Jacobian'] = Jac
-        params['Jac1'] = Jac1
-        params['Jac2'] = Jac2
-        params['Jac3'] = Jac3
-        params['Jac4'] = Jac4 
-        params['Ftotal'] = Ftotal
-        params['F1'] = F1
-        params['F2'] = F2
-        params['F3'] = F3
-        params['F4'] = F4
-        params['w'] = w
-        params['boundary_conditions'] = self.model['boundary_conditions']
-        nsolver = NSolver(params)
+        solver_params = params
+        solver_params['mode'] = 1
+        solver_params['Type'] = 1
+        solver_params['Jacobian'] = Jac
+        solver_params['Jac1'] = Jac1
+        solver_params['Jac2'] = Jac2
+        solver_params['Jac3'] = Jac3
+        solver_params['Jac4'] = Jac4 
+        solver_params['Ftotal'] = Ftotal
+        solver_params['F1'] = F1
+        solver_params['F2'] = F2
+        solver_params['F3'] = F3
+        solver_params['F4'] = F4
+        solver_params['w'] = w
+        solver_params['boundary_conditions'] = self.model['boundary_conditions']
+        #nsolver = NSolver(params)
 
-        return Ftotal, Jac, uflforms, nsolver
+        return Ftotal, Jac, uflforms, solver_params
        
     def initialize_dolfin_functions(self,dolfin_functions_dict,fcn_space):
 

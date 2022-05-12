@@ -5,10 +5,11 @@ import numpy as np
 class NSolver(object):
 
 
-    def __init__(self, params):
+    def __init__(self, params,comm):
 
         self.parameters = params
-        self.isfirstiteration = 0;
+        self.isfirstiteration = 0
+        self.comm = comm
 
     def default_parameters(self):
         return {"rel_tol" : 1e-7,
@@ -76,9 +77,9 @@ class NSolver(object):
                 resid0 = b.norm("l2")
                 rel_res = b.norm("l2")/resid0
                 res = resid0
-                if(MPI.rank(comm) == 0 and mode > 0):
+                if(self.comm.Get_rank() == 0 and mode > 0):
                     print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
-                    solve(A, w.vector(), b)
+                solve(A, w.vector(), b)
 
             it += 1
             self.isfirstiteration = 1
@@ -93,7 +94,7 @@ class NSolver(object):
                 res = B.norm("l2")
                 resid0 = res
 
-                if(MPI.rank(comm) == 0 and mode > 0):
+                if(self.comm.Get_rank() == 0 and mode > 0):
                     print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
                 dww = w.copy(deepcopy=True)
@@ -193,17 +194,17 @@ class NSolver(object):
                     rel_res = B.norm("l2")/resid0
                     res = B.norm("l2")
 
-                    if(MPI.rank(comm) == 0 and mode > 0):
+                    if(self.comm.Get_rank() == 0 and mode > 0):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
-                    if(MPI.rank(comm) == 0 and mode > 0):
+                    if(self.comm.Get_rank() == 0 and mode > 0):
                         print "checking F terms"
                     f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
                     f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
                     f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
                     f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
-                    print f1_temp.array()
-                    if(MPI.rank(comm) == 0 and mode > 0):
+                    
+                    if(self.comm.Get_rank() == 0 and mode > 0):
                         print "checking nan"
                     if np.isnan(f1_temp.array().astype(float)).any():
                         print "nan in f1"
@@ -217,7 +218,7 @@ class NSolver(object):
                     if np.isnan(A.array().astype(float)).any():
                         print "nan found in A assembly"
                     if np.isnan(b.array().astype(float)).any():
-                        print "nan found in b (Ftotal) assembly"
+                        print 'nan found in b (Ftotal) assembly'
 
                 if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
                     #self.parameters["FileHandler"][4].close()
