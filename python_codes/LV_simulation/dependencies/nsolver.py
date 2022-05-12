@@ -194,8 +194,8 @@ class NSolver(object):
                     rel_res = B.norm("l2")/resid0
                     res = B.norm("l2")
 
-                if(MPI.rank(comm) == 0 and mode > 0):
-                    print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
+                    if(MPI.rank(comm) == 0 and mode > 0):
+                        print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
                 if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
                     #self.parameters["FileHandler"][4].close()
