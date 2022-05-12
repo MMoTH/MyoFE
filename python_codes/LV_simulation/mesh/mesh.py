@@ -439,7 +439,7 @@ class MeshClass():
         #create solver
         solver_params = params
         solver_params['mode'] = 1
-        solver_params['Type'] = 0
+        solver_params['Type'] = 1
         solver_params['Jacobian'] = Jac
         solver_params['Jac1'] = Jac1
         solver_params['Jac2'] = Jac2

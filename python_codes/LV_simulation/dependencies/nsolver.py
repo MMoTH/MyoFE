@@ -64,12 +64,11 @@ class NSolver(object):
 
         if(solvertype == 0):
             
-            solve(Ftotal == 0, w, bcs, J = Jac, \
+            solve(Ftotal == 0, w, bcs, J = Jac,
+            form_compiler_parameters={"representation":"uflacs"})
             #solver_parameters={"newton_solver":{"relative_tolerance":1e-9, "absolute_tolerance":1e-9, "maximum_iterations":maxiter, "linear_solver":"umfpack"}}#,\
-            solver_parameters={"linear_solver": "gmres",
-                            "preconditioner": "hypre_euclid"},
-            form_compiler_parameters={"representation":"uflacs"}
-                )
+            
+                
         else:
 
             it = 0
