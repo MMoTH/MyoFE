@@ -81,7 +81,6 @@ class NSolver(object):
                     solve(A, w.vector(), b)
 
             it += 1
-            print it
             self.isfirstiteration = 1
 
             B = assemble(Ftotal,\
@@ -109,13 +108,13 @@ class NSolver(object):
                             form_compiler_parameters={"representation":"uflacs"}\
                                     )
                     # Trying to assemble individual F terms
-                    if(MPI.rank(comm) == 0 and mode > 0):
+                    """if(MPI.rank(comm) == 0 and mode > 0):
                         print "checking F terms"
                     f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
                     f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
                     f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
                     f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
-
+                    print f1_temp.array()
                     if(MPI.rank(comm) == 0 and mode > 0):
                         print "checking nan"
                     if np.isnan(f1_temp.array().astype(float)).any():
@@ -130,7 +129,7 @@ class NSolver(object):
                     if np.isnan(A.array().astype(float)).any():
                         print "nan found in A assembly"
                     if np.isnan(b.array().astype(float)).any():
-                        print "nan found in b (Ftotal) assembly"
+                        print 'nan found in b (Ftotal) assembly'"""
                     solve(A, dww.vector(), b)
                     w.vector().axpy(1.0, dww.vector())
 
@@ -196,6 +195,29 @@ class NSolver(object):
 
                     if(MPI.rank(comm) == 0 and mode > 0):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
+
+                    if(MPI.rank(comm) == 0 and mode > 0):
+                        print "checking F terms"
+                    f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
+                    f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
+                    f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
+                    f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
+                    print f1_temp.array()
+                    if(MPI.rank(comm) == 0 and mode > 0):
+                        print "checking nan"
+                    if np.isnan(f1_temp.array().astype(float)).any():
+                        print "nan in f1"
+                    if np.isnan(f2_temp.array().astype(float)).any():
+                        print "nan in f2"
+                    if np.isnan(f3_temp.array().astype(float)).any():
+                        print "nan in f3"
+                    if np.isnan(f4_temp.array().astype(float)).any():
+                        print "nan in f4"
+                    #print A.array(), b.array()
+                    if np.isnan(A.array().astype(float)).any():
+                        print "nan found in A assembly"
+                    if np.isnan(b.array().astype(float)).any():
+                        print "nan found in b (Ftotal) assembly"
 
                 if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
                     #self.parameters["FileHandler"][4].close()
