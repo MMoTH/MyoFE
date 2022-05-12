@@ -14,7 +14,7 @@ class NSolver(object):
     def default_parameters(self):
         return {"rel_tol" : 1e-7,
         "abs_tol" : 1e-7,
-                "max_iter": 20,
+                "max_iter": 50,
                 "Type" : 1}
 
 
