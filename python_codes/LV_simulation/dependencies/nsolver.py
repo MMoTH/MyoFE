@@ -131,8 +131,12 @@ class NSolver(object):
                         print "nan found in A assembly"
                     if np.isnan(b.array().astype(float)).any():
                         print 'nan found in b (Ftotal) assembly'"""
-                    solve(A, dww.vector(), b,solver_parameters={"linear_solver": "gmres",
-                            "preconditioner": "ilu"})
+
+                    PETScOptions.set("ksp_type", "gmres")
+                    PETScOptions.set("ksp_monitor")
+                    PETScOptions.set("pc_type", "hypre")
+                    PETScOptions.set("pc_hypre_type", "euclid")
+                    solve(A, dww.vector(), b)
                     w.vector().axpy(1.0, dww.vector())
 
                 # DEBUGGING PURPOSES #############################
