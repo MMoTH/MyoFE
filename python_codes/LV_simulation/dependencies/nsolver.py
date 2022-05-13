@@ -1,6 +1,7 @@
 from dolfin import *
 import math
 import numpy as np
+from .solver import Problem, CustomSolver
 
 class NSolver(object):
 
@@ -10,6 +11,12 @@ class NSolver(object):
         self.parameters = params
         self.isfirstiteration = 0
         self.comm = comm
+        
+        """F = self.parameters["Ftotal"]
+        Jac = self.parameters["Jacobian"]
+        bcs = bcs = self.parameters["boundary_conditions"]
+        self.problem = Problem(Jac, F, bcs)
+        self.costum_solver = CustomSolver()"""
 
     def default_parameters(self):
         return {"rel_tol" : 1e-7,
@@ -63,9 +70,18 @@ class NSolver(object):
 
 
         if(solvertype == 0):
+
+            #self.costum_solver.solve(self.problem, w.vector())
             
             solve(Ftotal == 0, w, bcs, J = Jac,
-            form_compiler_parameters={"representation":"uflacs"})
+                                form_compiler_parameters={"representation":"uflacs"})
+            solver_parameters={ 
+                                 "newton_solver":
+                                {"linear_solver":"gmres",
+                                 "preconditioner":"hypre_euclid",
+                                 "relative_tolerance":1e-8, 
+                                 "absolute_tolerance":1e-8, 
+                                 "maximum_iterations":40}},
             #solver_parameters={"newton_solver":{"relative_tolerance":1e-9, "absolute_tolerance":1e-9, "maximum_iterations":maxiter, "linear_solver":"umfpack"}}#,\
             
                 
@@ -203,27 +219,29 @@ class NSolver(object):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
                     if(self.comm.Get_rank() == 0 and mode > 0):
+                        print "checking for nan!"
+                    if math.isnan(rel_res):
                         print "checking F terms"
-                    f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
-                    f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
-                    f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
-                    f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
-                    
-                    if(self.comm.Get_rank() == 0 and mode > 0):
-                        print "checking nan"
-                    if np.isnan(f1_temp.array().astype(float)).any():
-                        print "nan in f1"
-                    if np.isnan(f2_temp.array().astype(float)).any():
-                        print "nan in f2"
-                    if np.isnan(f3_temp.array().astype(float)).any():
-                        print "nan in f3"
-                    if np.isnan(f4_temp.array().astype(float)).any():
-                        print "nan in f4"
-                    #print A.array(), b.array()
-                    if np.isnan(A.array().astype(float)).any():
-                        print "nan found in A assembly"
-                    if np.isnan(b.array().astype(float)).any():
-                        print 'nan found in b (Ftotal) assembly'
+                        f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
+                        f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
+                        f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
+                        f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
+                        
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print "checking nan"
+                        if np.isnan(f1_temp.array().astype(float)).any():
+                            print "nan in f1"
+                        if np.isnan(f2_temp.array().astype(float)).any():
+                            print "nan in f2"
+                        if np.isnan(f3_temp.array().astype(float)).any():
+                            print "nan in f3"
+                        if np.isnan(f4_temp.array().astype(float)).any():
+                            print "nan in f4"
+                        #print A.array(), b.array()
+                        if np.isnan(A.array().astype(float)).any():
+                            print "nan found in A assembly"
+                        if np.isnan(b.array().astype(float)).any():
+                            print 'nan found in b (Ftotal) assembly'
 
                 if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
                     #self.parameters["FileHandler"][4].close()
