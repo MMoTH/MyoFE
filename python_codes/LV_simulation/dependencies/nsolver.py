@@ -177,6 +177,11 @@ class NSolver(object):
                                 print 'nan found in myofiber passive component'
                             if np.isnan(temp_wp_c).any():
                                 print 'nan found in bulk tissue passive component'"""
+                            temp_DG = project(self.mesh.model['functions']['Sff'], 
+                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                                    form_compiler_parameters={"representation":"uflacs"})
+                            print temp_DG.vector().get_local()[:]
+                            
                         if(self.comm.Get_rank() == 0 and mode > 0):
                             print 'checking f2'
                         if np.isnan(f2_temp.array().astype(float)).any():
