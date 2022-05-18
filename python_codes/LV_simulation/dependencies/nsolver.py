@@ -24,7 +24,7 @@ class NSolver(object):
 
     def default_parameters(self):
         return {"rel_tol" : 1e-7,
-        "abs_tol" : 1e-7,
+                "abs_tol" : 1e-7,
                 "max_iter": 50,
                 "Type" : 1}
 
@@ -132,83 +132,11 @@ class NSolver(object):
                     A, b = assemble_system(Jac, -Ftotal, bcs, \
                             form_compiler_parameters={"representation":"uflacs"}\
                                     )
-                    # Trying to assemble individual F terms
-                    """if(MPI.rank(comm) == 0 and mode > 0):
-                        print "checking F terms"
-                    f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
-                    f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
-                    f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
-                    f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
-                    print f1_temp.array()
-                    if(MPI.rank(comm) == 0 and mode > 0):
-                        print "checking nan"
-                    if np.isnan(f1_temp.array().astype(float)).any():
-                        print "nan in f1"
-                    if np.isnan(f2_temp.array().astype(float)).any():
-                        print "nan in f2"
-                    if np.isnan(f3_temp.array().astype(float)).any():
-                        print "nan in f3"
-                    if np.isnan(f4_temp.array().astype(float)).any():
-                        print "nan in f4"
-                    #print A.array(), b.array()
-                    if np.isnan(A.array().astype(float)).any():
-                        print "nan found in A assembly"
-                    if np.isnan(b.array().astype(float)).any():
-                        print 'nan found in b (Ftotal) assembly'"""
 
                     solve(A, dww.vector(), b)
                     #solve(A, dww.vector(), b,solver_parameters={"linear_solver": "gmres",
                     #        "preconditioner": "hypre_euclid"})
                     w.vector().axpy(1.0, dww.vector())
-
-                # DEBUGGING PURPOSES #############################
-                #if(t_a.t_a >= 170 and t_a.t_a <= 172):
-                #    print "DEBUGGING"
-                #    Param1.vector()[:] = project(activeforms.w1(), Q).vector().array()[:]
-                #    self.parameters["FileHandler"][0] << Param1
-                #    print >>self.parameters["FileHandler"][4], "w1", " max = ", max(project(activeforms.w1(), Quad).vector()[:]), " min  = ", min(project(activeforms.w1(), Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.w1(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.w1(), Q).vector().array()[:]
-
-                #    Param2.vector()[:] = project(activeforms.w2(), Q).vector().array()[:]
-                #    self.parameters["FileHandler"][1] << Param2
-                #    print >>self.parameters["FileHandler"][4], "w2", " max = ", max(project(activeforms.w2(), Quad).vector()[:]), " min  = ", min(project(activeforms.w2(), Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.w2(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.w2(), Q).vector().array()[:]
-
-                #    Param3.vector()[:] = project(activeforms.Ct(), Q).vector().array()[:]
-                #    self.parameters["FileHandler"][2] << Param3
-                #    print >>self.parameters["FileHandler"][4], "Ct", " max = ", max(project(activeforms.Ct(), Quad).vector()[:]), " min  = ", min(project(activeforms.Ct(), Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.Ct(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.Ct(), Q).vector().array()[:]
-
-                #    Param4.vector()[:] = project(activeforms.tr(), Q).vector().array()[:]
-                #    self.parameters["FileHandler"][3] << Param4
-                #    print >>self.parameters["FileHandler"][4], "tr", " max = ", max(project(activeforms.tr(), Quad).vector()[:]), " min  = ", min(project(activeforms.tr(), Quad).vector()[:])
-
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.tr(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.tr(), Q).vector().array()[:]
-
-                #    print >>self.parameters["FileHandler"][4], "lmbda*1.85" , " max = ", max(project(activeforms.lmbda()*1.85, Quad).vector()[:]), " min  = ", min(project(activeforms.lmbda()*1.85, Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.lmbda()*1.85, Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.lmbda()*1.85, Q).vector().array()[:]
-
-                #    print >>self.parameters["FileHandler"][4], "ls_l0", " max = ", max(project(activeforms.ls_l0(), Quad).vector()[:]), " min  = ", min(project(activeforms.ls_l0(), Quad).vector()[:])
-
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.ls_l0(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.ls_l0(), Q).vector().array()[:]
-
-                #    print >>self.parameters["FileHandler"][4], "ECa", " max = ", max(project(activeforms.ECa(), Quad).vector()[:]), " min  = ", min(project(activeforms.ECa(), Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.ECa(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.ECa(), Q).vector().array()[:]
-
-                #    print >>self.parameters["FileHandler"][4], "PK1Stress", " max = ", max(project(activeforms.PK1Stress(), Quad).vector()[:]), " min  = ", min(project(activeforms.PK1Stress(), Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.PK1Stress(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.PK1Stress(), Q).vector().array()[:]
-
-
-
-                ###################################################
 
 
                     B = assemble(Ftotal, \
@@ -235,10 +163,11 @@ class NSolver(object):
                 
                         if(self.comm.Get_rank() == 0 and mode > 0):
                             print "checking nan"
+                            print 'checking f1'
                         if np.isnan(f1_temp.array().astype(float)).any():
                             print "nan in f1"
 
-                            wp_m,wp_c = self.uflforms.PassiveMatSEFComps(hsl)
+                            """wp_m,wp_c = self.uflforms.PassiveMatSEFComps(hsl)
                             temp_wp_m = project(wp_m,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
                                 form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
                             temp_wp_c = project(wp_c,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
@@ -247,17 +176,26 @@ class NSolver(object):
                             if np.isnan(temp_wp_m).any():
                                 print 'nan found in myofiber passive component'
                             if np.isnan(temp_wp_c).any():
-                                print 'nan found in bulk tissue passive component'
-
+                                print 'nan found in bulk tissue passive component'"""
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking f2'
                         if np.isnan(f2_temp.array().astype(float)).any():
                             print "nan in f2"
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking f3'
                         if np.isnan(f3_temp.array().astype(float)).any():
                             print "nan in f3"
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking f4'
                         if np.isnan(f4_temp.array().astype(float)).any():
                             print "nan in f4"
                         #print A.array(), b.array()
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking A'
                         if np.isnan(A.array().astype(float)).any():
                             print "nan found in A assembly"
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking b'
                         if np.isnan(b.array().astype(float)).any():
                             print 'nan found in b (Ftotal) assembly'
                     self.comm.Barrier()
