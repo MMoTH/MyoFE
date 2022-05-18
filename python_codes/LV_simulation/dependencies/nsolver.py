@@ -2,15 +2,19 @@ from dolfin import *
 import math
 import numpy as np
 from .solver import Problem, CustomSolver
-
+ 
 class NSolver(object):
 
 
-    def __init__(self, params,comm):
+    def __init__(self,parent_params,comm):
 
-        self.parameters = params
+        self.parent = parent_params
+        self.parameters =  parent_params.mesh.model['solver_params']
+        self.uflforms = parent_params.mesh.model['uflforms']
         self.isfirstiteration = 0
         self.comm = comm
+        
+        
         
         """F = self.parameters["Ftotal"]
         Jac = self.parameters["Jacobian"]
@@ -44,6 +48,8 @@ class NSolver(object):
         w = self.parameters["w"]
         bcs = self.parameters["boundary_conditions"]
         solvertype = self.parameters["Type"]
+        hsl = self.parameters['hsl']
+
 
         mesh = self.parameters["mesh"]
         comm = w.function_space().mesh().mpi_comm()
@@ -226,11 +232,23 @@ class NSolver(object):
                         f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
                         f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
                         f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
-                        
+                
                         if(self.comm.Get_rank() == 0 and mode > 0):
                             print "checking nan"
                         if np.isnan(f1_temp.array().astype(float)).any():
                             print "nan in f1"
+
+                            wp_m,wp_c = self.uflforms.PassiveMatSEFComps(hsl)
+                            temp_wp_m = project(wp_m,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                            temp_wp_c = project(wp_c,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+
+                            if np.isnan(temp_wp_m).any():
+                                print 'nan found in myofiber passive component'
+                            if np.isnan(temp_wp_c).any():
+                                print 'nan found in bulk tissue passive component'
+
                         if np.isnan(f2_temp.array().astype(float)).any():
                             print "nan in f2"
                         if np.isnan(f3_temp.array().astype(float)).any():

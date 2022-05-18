@@ -452,6 +452,7 @@ class MeshClass():
         solver_params['F4'] = F4
         solver_params['w'] = w
         solver_params['boundary_conditions'] = self.model['boundary_conditions']
+        solver_params['hsl'] = self.model['functions']['hsl']
         #nsolver = NSolver(params)
 
         return Ftotal, Jac, uflforms, solver_params

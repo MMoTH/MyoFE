@@ -223,7 +223,6 @@ class Forms(object):
         #QQ_i = (C/2)*Eff**2 + bfx*(Ess**2.0 + Enn**2.0 + 2.0*Ens**2.0) + bxx*(2.0*Efs**2.0 + 2.0*Efn**2.0)
 
 
-
         Wp_m = C2*(exp(QQ_m) -  1.0)
 
         #Wp_m_weighted = phi_m*Wp_m
@@ -242,6 +241,74 @@ class Forms(object):
         #Wp = Wp_c
         return Wp
 
+    def PassiveMatSEFComps(self,hsl):
+    #def PassiveMatSEF(self):
+        Ea = self.Emat()
+        f0 = self.parameters["fiber"]
+        s0 = self.parameters["sheet"]
+        n0 = self.parameters["sheet-normal"]
+        C2 = self.parameters["c2"][-1]
+        C3 = self.parameters["c3"][-1]
+        bff = self.parameters["bf"][-1]
+        bfx = self.parameters["bt"][-1]
+        bxx = self.parameters["bfs"][-1]
+        Kappa = self.parameters["Kappa"]
+        isincomp = self.parameters["incompressible"]
+        Cmat = self.Cmat()
+        phi_m = self.parameters["phi_m"][-1]
+        phi_g = self.parameters["phi_g"][-1]
+        hsl0 = self.parameters["hsl0"]
+
+        if(isincomp):
+            p = self.parameters["pressure_variable"]
+
+        C = self.parameters["c"][-1]
+
+        Eff = inner(f0, Ea*f0)
+        Ess = inner(s0, Ea*s0)
+        Enn = inner(n0, Ea*n0)
+        Efs = inner(f0, Ea*s0)
+        Efn = inner(f0, Ea*n0)
+        Ens = inner(n0, Ea*s0)
+        Esf = inner(s0, Ea*f0)
+        Esn = inner(s0, Ea*n0)
+        Enf = inner(n0, Ea*f0)
+
+        alpha = sqrt(2.0 * Eff + 1.0)
+        myofiber_stretch = hsl/hsl0
+
+        #alpha = sqrt(dot(f0, Cmat*f0))
+
+
+    		#QQ = bff*pow(Eff,2.0) + bfx*(pow(Ess,2.0)+ pow(Enn,2.0)+ 2.0*pow(Ens,2.0)) + bxx*(2.0*pow(Efs,2.0) + 2.0*pow(Efn,2.0))
+
+        #QQ_m = conditional(alpha > 1.0, C3*(alpha - 1.0)**2.0, 0.0)
+        QQ_m = conditional(myofiber_stretch > 1.0, C3*(myofiber_stretch - 1.0)**2.0, 0.0)
+        #QQ_m = C3*(alpha - 1.0)**2.0
+
+        #QQ_c = bff*Eff**2.0 + bfx*(Ess**2.0 + Enn**2.0 + 2.0*Ens**2.0) + bxx*(2.0*Efs**2.0 + 2.0*Efn**2.0)
+        Qbulk = bff*Eff**2.0 + bfx*(Ess**2.0 + Enn**2.0 + Ens**2.0 + Esn**2.0) + bxx*(Efs**2.0 + Esf**2.0 + Efn**2.0 + Enf**2.0)
+        #QQ_i = (C/2)*Eff**2 + bfx*(Ess**2.0 + Enn**2.0 + 2.0*Ens**2.0) + bxx*(2.0*Efs**2.0 + 2.0*Efn**2.0)
+
+
+
+        Wp_m = C2*(exp(QQ_m) -  1.0)
+
+        #Wp_m_weighted = phi_m*Wp_m
+        Wp_m_weighted = Wp_m
+
+        if(isincomp):
+            Wp_c = C/2.0*(exp(Qbulk) -  1.0) - p*(self.J() - 1.0)
+        else:
+            Wp_c = C/2.0*(exp(QQ_c) -  1.0) + Kappa/2.0*(self.J() - 1.0)**2.0
+
+        #Wp_c_weighted = phi_g*Wp_c
+
+
+        Wp = Wp_m + Wp_c
+        #Wp = Wp_m_weighted + Wp_c_weighted
+        #Wp = Wp_c
+        return Wp_m,Wp_c
 
     def LVV0constrainedE(self):
 
