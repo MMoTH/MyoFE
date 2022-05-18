@@ -13,6 +13,16 @@ class NSolver(object):
         self.uflforms = parent_params.mesh.model['uflforms']
         self.isfirstiteration = 0
         self.comm = comm
+        list_linear_solver_methods()
+        print '****'
+        list_krylov_solver_methods()
+        print '****'
+        list_krylov_solver_preconditioners()
+
+        print parameters['linear_algebra_backend']
+        #self.solver = KrylovSolver()
+        #self.solver_params = self.solver.parameters
+        #self.solver_params['nonzero_initial_guess'] = True
         
         
         
@@ -34,6 +44,8 @@ class NSolver(object):
         abs_tol = self.default_parameters()["abs_tol"]
         rel_tol = self.default_parameters()["rel_tol"]
         maxiter = self.default_parameters()["max_iter"]
+
+
         mode = self.parameters["mode"]
         Jac = self.parameters["Jacobian"]
         Jac1 = self.parameters["Jac1"]
@@ -104,6 +116,8 @@ class NSolver(object):
                 if(self.comm.Get_rank() == 0 and mode > 0):
                     print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
                 solve(A, w.vector(), b)
+                #solve(A, w.vector(), b,'gmres')
+                #self.solver.solve(A, w.vector(), b)
 
             it += 1
             self.isfirstiteration = 1
@@ -134,6 +148,8 @@ class NSolver(object):
                                     )
 
                     solve(A, dww.vector(), b)
+                    #solve(A, dww.vector(), b,'gmres')
+                    #self.solver.solve(A, w.vector(), b)
                     #solve(A, dww.vector(), b,solver_parameters={"linear_solver": "gmres",
                     #        "preconditioner": "hypre_euclid"})
                     w.vector().axpy(1.0, dww.vector())
@@ -151,6 +167,11 @@ class NSolver(object):
 
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
+
+                    """temp_DG = project(self.parent.mesh.model['functions']['Sff'], 
+                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                                    form_compiler_parameters={"representation":"uflacs"})
+                    print temp_DG.vector().get_local()[:]"""
 
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print "checking for nan!"
@@ -177,10 +198,7 @@ class NSolver(object):
                                 print 'nan found in myofiber passive component'
                             if np.isnan(temp_wp_c).any():
                                 print 'nan found in bulk tissue passive component'"""
-                            temp_DG = project(self.parent.mesh.model['functions']['Sff'], 
-                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
-                                    form_compiler_parameters={"representation":"uflacs"})
-                            print temp_DG.vector().get_local()[:]
+                            
 
                         if(self.comm.Get_rank() == 0 and mode > 0):
                             print 'checking f2'
