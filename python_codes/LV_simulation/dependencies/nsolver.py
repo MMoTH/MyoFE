@@ -260,7 +260,7 @@ class NSolver(object):
                             print "nan found in A assembly"
                         if np.isnan(b.array().astype(float)).any():
                             print 'nan found in b (Ftotal) assembly'
-
+                    self.comm.Barrier()
                 if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
                     #self.parameters["FileHandler"][4].close()
                     raise RuntimeError("Failed Convergence")
