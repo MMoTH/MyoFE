@@ -168,6 +168,27 @@ class NSolver(object):
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
+                    """temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
+                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                                    form_compiler_parameters={"representation":"uflacs"})
+                    temp_pk2 = project(self.parent.mesh.model['functions']['total_passive_PK2'], 
+                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                                    form_compiler_parameters={"representation":"uflacs"})
+                    #incomp = project(self.parent.mesh.model['functions']['incomp'], 
+                    #                FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                    #                form_compiler_parameters={"representation":"uflacs"})
+                    if np.isnan(temp_sff.vector().array().astype(float)).any():
+                        print 'nan in sff'
+                    else:
+                        print 'no nan in sff'
+                    if np.isnan(temp_pk2.vector().array().astype(float)).any():
+                        print 'nan in pk2'
+                    else:
+                        print 'no nan in pk2'
+                    if np.isnan(incomp.vector().array().astype(float)).any():
+                        print 'nan in incomp'
+                    else:
+                        print 'no nan in incomp'"""
                     """temp_DG = project(self.parent.mesh.model['functions']['Sff'], 
                                     FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
                                     form_compiler_parameters={"representation":"uflacs"})
@@ -188,6 +209,15 @@ class NSolver(object):
                         if np.isnan(f1_temp.array().astype(float)).any():
                             print "nan in f1"
 
+                            temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
+                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                                    form_compiler_parameters={"representation":"uflacs"})
+                            
+                            if np.isnan(temp_sff.vector().array().astype(float)).any():
+                                print 'nan in sff'
+                            else:
+                                print 'no nan in sff'
+                            
                             """wp_m,wp_c = self.uflforms.PassiveMatSEFComps(hsl)
                             temp_wp_m = project(wp_m,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
                                 form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
@@ -199,6 +229,10 @@ class NSolver(object):
                             if np.isnan(temp_wp_c).any():
                                 print 'nan found in bulk tissue passive component'"""
                             
+                            """temp_DG = project(self.parent.mesh.model['functions']['Sff'], 
+                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                                    form_compiler_parameters={"representation":"uflacs"})
+                            print temp_DG.vector().get_local()[:]"""
 
                         if(self.comm.Get_rank() == 0 and mode > 0):
                             print 'checking f2'
