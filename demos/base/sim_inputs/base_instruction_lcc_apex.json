@@ -43,7 +43,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/base/sim_inputs/new_mesh/ellipsoidal_correct_fiber.hdf5"],
+        "mesh_path":["../demos/base/sim_inputs/new_mesh/ellipsoidal_wt_0.14_scale_1.2.hdf5"],
         "function_spaces":
         [
             {
@@ -96,13 +96,13 @@
             "components":
             [
                 {
-                    "radius_ratio": [0.3],
+                    "radius_ratio": [0.4],
                     "level": ["myofilaments"],
                     "variable": ["k_1"],
                     "factor": [0.1]
                 },
                 {
-                    "radius_ratio": [0.3],
+                    "radius_ratio": [0.4],
                     "level": ["myofilaments"],
                     "variable": ["k_on"],
                     "factor": [0.1]
@@ -113,7 +113,7 @@
         "pericardial":
         {
             "type": ["spring"],
-            "k_spring": [50]
+            "k_spring": [100]
         }  
     },
     "model":
@@ -191,7 +191,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [3.5],
+                "k_1": [4],
                 "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [120],
@@ -308,8 +308,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/base/sim_output/apex_testing/data.csv"],
-        "mesh_output_path": ["../demos/base/sim_output/apex_testing/mesh_output"],
+        "output_data_path": ["../demos/base/sim_output/thickened_wall/data.csv"],
+        "mesh_output_path": ["../demos/base/sim_output/thickened_wall/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
