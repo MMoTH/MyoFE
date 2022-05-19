@@ -173,14 +173,7 @@ class NSolver(object):
 
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
-                    hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
-                                self.parent.mesh.model['function_spaces']["quadrature_space"])
-
-                
-                    if np.isnan(hsl_temp.vector().array()).any():
-                        print 'nan in hsl'
-                    else:
-                        print 'no nan in hsl'
+                    
 
                     """temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
                                     FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
