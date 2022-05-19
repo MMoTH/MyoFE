@@ -13,13 +13,15 @@ class NSolver(object):
         self.uflforms = parent_params.mesh.model['uflforms']
         self.isfirstiteration = 0
         self.comm = comm
-        list_linear_solver_methods()
-        print '****'
-        list_krylov_solver_methods()
-        print '****'
-        list_krylov_solver_preconditioners()
 
-        print parameters['linear_algebra_backend']
+        if comm.Get_rank() == 0:
+            list_linear_solver_methods()
+            print '****'
+            list_krylov_solver_methods()
+            print '****'
+            list_krylov_solver_preconditioners()
+
+        #print parameters['linear_algebra_backend']
         #self.solver = KrylovSolver()
         #self.solver_params = self.solver.parameters
         #self.solver_params['nonzero_initial_guess'] = True
