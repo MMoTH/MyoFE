@@ -177,7 +177,7 @@ class NSolver(object):
 
                     f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
                     if np.isnan(f1_temp.array().astype(float)).any():
-                        print "nan in f1"
+                        print "nan in f1 line 180"
                         temp_E= project(self.parent.mesh.model['functions']['E'],
                                         self.parent.mesh.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_E.vector().array()[:]).any():
