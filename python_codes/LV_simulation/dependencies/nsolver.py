@@ -223,6 +223,13 @@ class NSolver(object):
                         if np.isnan(f1_temp.array().astype(float)).any():
                             print "nan in f1"
 
+                            hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
+                                self.parent.mesh.model['function_spaces']["quadrature_space"])
+                            if np.isnan(hsl_temp.vector().array()).any():
+                                print 'nan in hsl'
+                            else:
+                                print 'no nan in hsl'
+
                             """temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
                                     FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
                                     form_compiler_parameters={"representation":"uflacs"})
