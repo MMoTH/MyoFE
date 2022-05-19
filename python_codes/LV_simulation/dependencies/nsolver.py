@@ -173,7 +173,17 @@ class NSolver(object):
 
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
-                    
+
+
+                    f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
+                    if np.isnan(f1_temp.array().astype(float)).any():
+                        print "nan in f1"
+                        temp_E= project(self.parent.mesh.model['functions']['E'],
+                                        self.parent.mesh.model['function_spaces']['tensor_space'])
+                        if np.isnan(temp_E.vector().array()[:]).any():
+                            print 'nan in E'
+                        else:
+                            print 'no nan in E'
 
                     """temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
                                     FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 

@@ -314,6 +314,7 @@ class MeshClass():
         alpha_f = sqrt(dot(f0, Cmat*f0))
         hsl = alpha_f*hsl0
         self.model['functions']["hsl"] = hsl
+        self.model['functions']['E'] = uflforms.Emat()
 
         if MPI.rank(self.comm) == 0:
             print "hsl initial"
