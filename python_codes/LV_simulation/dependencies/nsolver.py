@@ -13,39 +13,36 @@ class NSolver(object):
         self.uflforms = parent_params.mesh.model['uflforms']
         self.isfirstiteration = 0
         self.comm = comm
-
+        
+        self.solver_params = self.default_solver_parameters()
+        if 'solver' in self.parent.instruction_data['mesh']:
+            solver_struct = self.parent.instruction_data['mesh']['solver']
+            if 'params' in solver_struct:
+                for k in solver_struct['params'].keys():
+                    self.solver_params[k] = solver_struct['params'][k][0]
+        
         if comm.Get_rank() == 0:
+            print self.solver_params
             list_linear_solver_methods()
             print '****'
             list_krylov_solver_methods()
             print '****'
             list_krylov_solver_preconditioners()
 
-        #print parameters['linear_algebra_backend']
-        #self.solver = KrylovSolver()
-        #self.solver_params = self.solver.parameters
-        #self.solver_params['nonzero_initial_guess'] = True
-        
-        
-        
-        """F = self.parameters["Ftotal"]
-        Jac = self.parameters["Jacobian"]
-        bcs = bcs = self.parameters["boundary_conditions"]
-        self.problem = Problem(Jac, F, bcs)
-        self.costum_solver = CustomSolver()"""
 
-    def default_parameters(self):
+    def default_solver_parameters(self):
         return {"rel_tol" : 1e-7,
                 "abs_tol" : 1e-7,
                 "max_iter": 50,
-                "Type" : 1}
+                'debugging_mode': False}
 
 
     def solvenonlinear(self):
 
-        abs_tol = self.default_parameters()["abs_tol"]
-        rel_tol = self.default_parameters()["rel_tol"]
-        maxiter = self.default_parameters()["max_iter"]
+        abs_tol = self.solver_params["abs_tol"]
+        rel_tol = self.solver_params["rel_tol"]
+        maxiter = self.solver_params["max_iter"]
+        debugging_mode = self.solver_params["debugging_mode"]
 
 
         mode = self.parameters["mode"]
@@ -61,7 +58,7 @@ class NSolver(object):
         F4 = self.parameters["F4"]
         w = self.parameters["w"]
         bcs = self.parameters["boundary_conditions"]
-        solvertype = self.parameters["Type"]
+        
         hsl = self.parameters['hsl']
 
 
@@ -89,19 +86,26 @@ class NSolver(object):
     ##################################################
 
 
-        if(solvertype == 0):
+        if(not debugging_mode):
 
             #self.costum_solver.solve(self.problem, w.vector())
             
             solve(Ftotal == 0, w, bcs, J = Jac,
-                                form_compiler_parameters={"representation":"uflacs"})
+                solver_parameters={"newton_solver":
+                                {"relative_tolerance":rel_tol, 
+                                 "absolute_tolerance":abs_tol, 
+                                 "maximum_iterations":maxiter}}, 
+                                 form_compiler_parameters={"representation":"uflacs"})
+
+            self.parent.mesh.model['functions']['w'] = w
+                                
             solver_parameters={ 
                                  "newton_solver":
                                 {"linear_solver":"gmres",
                                  "preconditioner":"hypre_euclid",
                                  "relative_tolerance":1e-8, 
                                  "absolute_tolerance":1e-8, 
-                                 "maximum_iterations":40}},
+                                 "maximum_iterations":40}}
             #solver_parameters={"newton_solver":{"relative_tolerance":1e-9, "absolute_tolerance":1e-9, "maximum_iterations":maxiter, "linear_solver":"umfpack"}}#,\
             
                 
@@ -169,6 +173,14 @@ class NSolver(object):
 
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
+                    hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
+                                self.parent.mesh.model['function_spaces']["quadrature_space"])
+
+                
+                    if np.isnan(hsl_temp.vector().array()).any():
+                        print 'nan in hsl'
+                    else:
+                        print 'no nan in hsl'
 
                     """temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
                                     FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 

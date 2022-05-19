@@ -382,11 +382,14 @@ class MeshClass():
                 project(self.model['functions']['hsl'],
                     self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
         
-        total_passive_PK2, self.model['functions']["Sff"] = \
+        self.model['functions']["total_passive_PK2"], self.model['functions']["Sff"] = \
             uflforms.stress(self.model['functions']["hsl"])
         temp_DG = project(self.model['functions']["Sff"], FunctionSpace(mesh, "DG", 1), form_compiler_parameters={"representation":"uflacs"})
         p_f = interpolate(temp_DG, self.model['function_spaces']['quadrature_space'])
         self.pass_stress_list = p_f.vector().get_local()[:]
+        
+        self.model['functions']['pk2'],self.model['functions']['incomp'] = \
+            uflforms.passivestress(self.model['functions']["hsl"])
 
         F2 = inner(Fmat*Pactive, grad(v))*dx
         self.F_list.append(F2)
@@ -439,7 +442,7 @@ class MeshClass():
         #create solver
         solver_params = params
         solver_params['mode'] = 1
-        solver_params['Type'] = 1
+        
         solver_params['Jacobian'] = Jac
         solver_params['Jac1'] = Jac1
         solver_params['Jac2'] = Jac2

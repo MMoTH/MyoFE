@@ -108,7 +108,16 @@
                     "factor": [0.1]
                 }
             ]
-            
+        },
+        "solver":
+        {
+            "params":
+            {
+                "rel_tol": [1e-10],
+                "abs_tol": [1e-10],
+                "max_iter": [40],
+                "debugging_mode": [true]
+            }
         },
         "pericardial":
         {
