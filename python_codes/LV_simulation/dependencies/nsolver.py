@@ -180,6 +180,7 @@ class NSolver(object):
                         print "nan in f1 line 180"
                         temp_E= project(self.parent.mesh.model['functions']['E'],
                                         self.parent.mesh.model['function_spaces']['tensor_space'])
+                        print 'line 183'
                         if np.isnan(temp_E.vector().array()[:]).any():
                             print 'nan in E'
                         else:
