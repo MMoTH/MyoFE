@@ -209,14 +209,14 @@ class NSolver(object):
                         if np.isnan(f1_temp.array().astype(float)).any():
                             print "nan in f1"
 
-                            temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
+                            """temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
                                     FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
                                     form_compiler_parameters={"representation":"uflacs"})
                             
                             if np.isnan(temp_sff.vector().array().astype(float)).any():
                                 print 'nan in sff'
                             else:
-                                print 'no nan in sff'
+                                print 'no nan in sff'"""
                             
                             """wp_m,wp_c = self.uflforms.PassiveMatSEFComps(hsl)
                             temp_wp_m = project(wp_m,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
