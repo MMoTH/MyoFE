@@ -242,9 +242,12 @@ class NSolver(object):
                             print 'Checking %s' %k
                             if k in ['hsl']:
                                 fcn_space = self.parent.mesh.model['function_spaces']["quadrature_space"]
+                            elif k in ['Sff']:
+                                fcn_space = FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1)
                             else:
                                 fcn_space = self.parent.mesh.model['function_spaces']['tensor_space']
-                            temp_param = project(self.parent.mesh.model['functions'][k],fcn_space)
+                            temp_param = project(self.parent.mesh.model['functions'][k],fcn_space,
+                                            form_compiler_parameters={"representation":"uflacs"})
 
                             if np.isnan(temp_param.vector().array()).any():
                                 print 'nan in %s' %k
