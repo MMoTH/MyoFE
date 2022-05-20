@@ -389,7 +389,7 @@ class MeshClass():
         p_f = interpolate(temp_DG, self.model['function_spaces']['quadrature_space'])
         self.pass_stress_list = p_f.vector().get_local()[:]
         
-        self.model['functions']['pk2'],self.model['functions']['incomp'] = \
+        self.model['functions']['PK2_local'],self.model['functions']['incomp'] = \
             uflforms.passivestress(self.model['functions']["hsl"])
 
         F2 = inner(Fmat*Pactive, grad(v))*dx
