@@ -282,7 +282,7 @@ class NSolver(object):
                         else:
                             print 'no nan in PK2'"""
                             
-                            """wp_m,wp_c = self.uflforms.PassiveMatSEFComps(hsl)
+                        """wp_m,wp_c = self.uflforms.PassiveMatSEFComps(hsl)
                             temp_wp_m = project(wp_m,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
                                 form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
                             temp_wp_c = project(wp_c,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
@@ -293,7 +293,7 @@ class NSolver(object):
                             if np.isnan(temp_wp_c).any():
                                 print 'nan found in bulk tissue passive component'"""
                             
-                            """temp_DG = project(self.parent.mesh.model['functions']['Sff'], 
+                        """temp_DG = project(self.parent.mesh.model['functions']['Sff'], 
                                     FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
                                     form_compiler_parameters={"representation":"uflacs"})
                             print temp_DG.vector().get_local()[:]"""
