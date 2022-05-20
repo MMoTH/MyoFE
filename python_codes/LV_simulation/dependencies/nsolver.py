@@ -274,7 +274,7 @@ class NSolver(object):
                         if np.isnan(temp_sff.vector().array().astype(float)).any():
                             print 'nan in sff'
                         
-                        temp_PK2 = project(self.parent.mesh.model['functions']['pk2'],
+                        temp_PK2 = project(self.parent.mesh.model['functions']['PK2_local'],
                                 self.parent.mesh.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_PK2.vector().array()[:]).any():
                             print 'nan in PK2'
