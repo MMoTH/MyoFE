@@ -238,7 +238,7 @@ class NSolver(object):
                         if np.isnan(f1_temp.array().astype(float)).any():
                             print "nan in f1"
 
-                        for k in ['hsl','E','Sff','PK2_local']:
+                        """for k in ['hsl','E','Sff','PK2_local']:
                             print 'Checking %s' %k
                             if k in ['hsl']:
                                 fcn_space = self.parent.mesh.model['function_spaces']["quadrature_space"]
@@ -252,22 +252,20 @@ class NSolver(object):
                             if np.isnan(temp_param.vector().array()).any():
                                 print 'nan in %s' %k
                             else:
-                                print 'no nan in %s' %k
-                        """print 'checking hsl'
+                                print 'no nan in %s' %k"""
+
+
+                        print 'checking hsl'
                         hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
                             self.parent.mesh.model['function_spaces']["quadrature_space"])
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl'
-                        else:
-                            print 'no nan in hsl'
 
                         print 'checking E'
                         temp_E= project(self.parent.mesh.model['functions']['E'],
                                         self.parent.mesh.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_E.vector().array()[:]).any():
                             print 'nan in E'
-                        else:
-                            print 'no nan in E'
 
                         temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
                                     FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
@@ -275,15 +273,11 @@ class NSolver(object):
                             
                         if np.isnan(temp_sff.vector().array().astype(float)).any():
                             print 'nan in sff'
-                        else:
-                            print 'no nan in sff'
                         
                         temp_PK2 = project(self.parent.mesh.model['functions']['pk2'],
                                 self.parent.mesh.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_PK2.vector().array()[:]).any():
                             print 'nan in PK2'
-                        else:
-                            print 'no nan in PK2'"""
                             
                         """wp_m,wp_c = self.uflforms.PassiveMatSEFComps(hsl)
                             temp_wp_m = project(wp_m,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
