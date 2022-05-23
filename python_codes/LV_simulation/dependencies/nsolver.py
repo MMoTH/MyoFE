@@ -261,6 +261,18 @@ class NSolver(object):
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl'
 
+                        print 'checking y_vec'
+                        hsl_temp = project(self.parent.mesh.model['functions']['y_vec'], 
+                            self.parent.mesh.model['function_spaces']["quadrature_space"])
+                        if np.isnan(hsl_temp.vector().array()).any():
+                            print 'nan in y_vec'
+
+                        print 'checking Fmat'
+                        temp_E= project(self.parent.mesh.model['functions']['Fmat'],
+                                        self.parent.mesh.model['function_spaces']['tensor_space'])
+                        if np.isnan(temp_E.vector().array()[:]).any():
+                            print 'nan in Fmat'
+
                         print 'checking E'
                         temp_E= project(self.parent.mesh.model['functions']['E'],
                                         self.parent.mesh.model['function_spaces']['tensor_space'])
