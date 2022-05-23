@@ -175,7 +175,6 @@ class NSolver(object):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
 
-                
                     #print self.parent.mesh.model['functions']['incomp'].vector()
                     #incomp = project(self.parent.mesh.model['functions']['incomp'],
                     #            self.parent.mesh.model['function_spaces']['tensor_space'])
@@ -269,7 +268,7 @@ class NSolver(object):
                         if not (hsl0_temp.vector().array()>0).any():
                             print 'non positive value in hsl'
                         print 'min hsl0:%0.0f, max hsl_0:%0.0f' %(hsl0_temp.vector().array().min(),
-                        hsl0_temp.vector().array().max()())
+                        hsl0_temp.vector().array().max())
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking y_vec'
