@@ -226,7 +226,8 @@ class NSolver(object):
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print "checking for nan!"
                     if math.isnan(rel_res):
-                        print "checking F terms"
+                        if (self.comm.Get_rank() == 0):
+                            print "checking F terms"
                         f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
                         f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
                         f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
@@ -267,6 +268,8 @@ class NSolver(object):
                             self.parent.mesh.model['function_spaces']["quadrature_space"])
                         if not (hsl0_temp.vector().array()>0).any():
                             print 'non positive value in hsl'
+                        print 'min hsl0:%0.0f, max hsl_0:%0.0f' %(hsl0_temp.vector().array().min(),
+                        hsl0_temp.vector().array().max()())
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking y_vec'
