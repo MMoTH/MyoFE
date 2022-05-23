@@ -316,7 +316,8 @@ class MeshClass():
         self.model['functions']["hsl"] = hsl
         self.model['functions']['E'] = uflforms.Emat()
         self.model['functions']['Fmat'] = Fmat
-        
+        self.model['functions']['J'] = J
+
         if MPI.rank(self.comm) == 0:
             print "hsl initial"
             #print project(hsl,self.model['function_spaces']["quadrature_space"]).vector().get_local()

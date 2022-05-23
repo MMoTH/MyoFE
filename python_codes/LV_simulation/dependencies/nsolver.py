@@ -175,7 +175,7 @@ class NSolver(object):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
 
-                    
+                
                     #print self.parent.mesh.model['functions']['incomp'].vector()
                     #incomp = project(self.parent.mesh.model['functions']['incomp'],
                     #            self.parent.mesh.model['function_spaces']['tensor_space'])
@@ -254,32 +254,44 @@ class NSolver(object):
                             else:
                                 print 'no nan in %s' %k"""
 
-
-                        print 'checking hsl'
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking hsl'
                         hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
                             self.parent.mesh.model['function_spaces']["quadrature_space"])
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl'
 
-                        print 'checking y_vec'
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking 0 in hsl_0'
+                        hsl0_temp = project(self.parent.mesh.model['functions']['hsl0'], 
+                            self.parent.mesh.model['function_spaces']["quadrature_space"])
+                        if not (hsl0_temp.vector().array()>0).any():
+                            print 'non positive value in hsl'
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking y_vec'
                         y_vec_temp = project(self.parent.mesh.model['functions']['y_vec'], 
                             self.parent.mesh.model['function_spaces']["quad_vectorized_space"])
                         if np.isnan(y_vec_temp.vector().array()).any():
                             print 'nan in y_vec'
-
-                        print 'checking Fmat'
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking Fmat'
                         temp_F= project(self.parent.mesh.model['functions']['Fmat'],
                                         self.parent.mesh.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_F.vector().array()[:]).any():
                             print 'nan in Fmat'
-
-                        print 'checking E'
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking J'
+                        #print self.parent.mesh.model['functions']['J']
+                        
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking E'
                         temp_E= project(self.parent.mesh.model['functions']['E'],
                                         self.parent.mesh.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_E.vector().array()[:]).any():
                             print 'nan in E'
-
-                        print 'checking Sff'
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking Sff'
                         temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
                                     FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
                                     form_compiler_parameters={"representation":"uflacs"})
@@ -287,7 +299,8 @@ class NSolver(object):
                         if np.isnan(temp_sff.vector().array().astype(float)).any():
                             print 'nan in sff'
 
-                        print 'checking PK2'
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking PK2'
                         temp_PK2 = project(self.parent.mesh.model['functions']['PK2_local'],
                                 self.parent.mesh.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_PK2.vector().array()[:]).any():
