@@ -260,6 +260,8 @@ class NSolver(object):
                             self.parent.mesh.model['function_spaces']["quadrature_space"])
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl'
+                        print 'min hsl:%0.0f, max hsl:%0.0f' %(hsl_temp.vector().array().min(),
+                        hsl_temp.vector().array().max())
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking 0 in hsl_0'
@@ -267,7 +269,7 @@ class NSolver(object):
                             self.parent.mesh.model['function_spaces']["quadrature_space"])
                         if not (hsl0_temp.vector().array()>0).any():
                             print 'non positive value in hsl'
-                        print 'min hsl0:%0.0f, max hsl_0:%0.0f' %(hsl0_temp.vector().array().min(),
+                        print 'min hsl0:%0.0f, max hsl0:%0.0f' %(hsl0_temp.vector().array().min(),
                         hsl0_temp.vector().array().max())
 
                         if (self.comm.Get_rank() == 0):
