@@ -238,6 +238,7 @@ class NSolver(object):
                         if np.isnan(f1_temp.array().astype(float)).any():
                             print "nan in f1"
                             print 'rank in f1 is: %f'%self.comm.Get_rank()
+                            
 
                         """for k in ['hsl','E','Sff','PK2_local']:
                             print 'Checking %s' %k
@@ -261,8 +262,8 @@ class NSolver(object):
                             self.parent.mesh.model['function_spaces']["quadrature_space"])
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl'
-                        print 'min hsl:%0.0f, max hsl:%0.0f' %(hsl_temp.vector().array().min(),
-                        hsl_temp.vector().array().max())
+                        print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f'%(hsl_temp.vector().array().min(),
+                        hsl_temp.vector().array().max(),self.comm.Get_rank())
 
                         #if (self.comm.Get_rank() == 0):
                         #    print 'checking 0 in hsl_0'
