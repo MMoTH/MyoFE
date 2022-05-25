@@ -180,7 +180,7 @@ class NSolver(object):
                     #            self.parent.mesh.model['function_spaces']['tensor_space'])
 
                     
-                    print 
+                    
                     hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
                             self.parent.mesh.model['function_spaces']["quadrature_space"])
                     if np.isnan(hsl_temp.vector().array()).any():
