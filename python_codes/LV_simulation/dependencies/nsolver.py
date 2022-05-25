@@ -174,53 +174,19 @@ class NSolver(object):
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
-
+                    
                     #print self.parent.mesh.model['functions']['incomp'].vector()
                     #incomp = project(self.parent.mesh.model['functions']['incomp'],
                     #            self.parent.mesh.model['function_spaces']['tensor_space'])
 
-                    #print incomp.vector()
-                    """if np.isnan(incomp.vector().array()[:]).any():
-                        print 'nan in incomp'
-                    else:
-                        print 'no nan in incomp'"""
                     
-                    """f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
-                    if np.isnan(f1_temp.array().astype(float)).any():
-                        print "nan in f1 line 180"
-                    temp_E= project(self.parent.mesh.model['functions']['E'],
-                                        self.parent.mesh.model['function_spaces']['tensor_space'])
-                    print 'line 183'
-                    if np.isnan(temp_E.vector().array()[:]).any():
-                        print 'nan in E'
-                    else:
-                        print 'no nan in E'"""
-
-                    """temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
-                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
-                                    form_compiler_parameters={"representation":"uflacs"})
-                    temp_pk2 = project(self.parent.mesh.model['functions']['total_passive_PK2'], 
-                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
-                                    form_compiler_parameters={"representation":"uflacs"})
-                    #incomp = project(self.parent.mesh.model['functions']['incomp'], 
-                    #                FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
-                    #                form_compiler_parameters={"representation":"uflacs"})
-                    if np.isnan(temp_sff.vector().array().astype(float)).any():
-                        print 'nan in sff'
-                    else:
-                        print 'no nan in sff'
-                    if np.isnan(temp_pk2.vector().array().astype(float)).any():
-                        print 'nan in pk2'
-                    else:
-                        print 'no nan in pk2'
-                    if np.isnan(incomp.vector().array().astype(float)).any():
-                        print 'nan in incomp'
-                    else:
-                        print 'no nan in incomp'"""
-                    """temp_DG = project(self.parent.mesh.model['functions']['Sff'], 
-                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
-                                    form_compiler_parameters={"representation":"uflacs"})
-                    print temp_DG.vector().get_local()[:]"""
+                    print 
+                    hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
+                            self.parent.mesh.model['function_spaces']["quadrature_space"])
+                    if np.isnan(hsl_temp.vector().array()).any():
+                        print 'nan in hsl'
+                    print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f before iteration'%(hsl_temp.vector().array().min(),
+                    hsl_temp.vector().array().max(),self.comm.Get_rank())
 
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print "checking for nan!"
