@@ -181,8 +181,9 @@ class NSolver(object):
 
                     
                     
-                    hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
-                            self.parent.mesh.model['function_spaces']["quadrature_space"])
+                    #hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
+                    #        self.parent.mesh.model['function_spaces']["quadrature_space"])
+                    hsl_temp = self.parent.mesh.model['functions']['hsl_old']
                     if np.isnan(hsl_temp.vector().array()).any():
                         print 'nan in hsl'
                     print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f before iteration\n'%(hsl_temp.vector().array().min(),
@@ -192,7 +193,7 @@ class NSolver(object):
                     if (hsl_temp.vector().array()>max_hsl).any():
                         print 'Some half-sarcomeres are over stretched at rank: %f \n' %self.comm.Get_rank()
                         idicies = np.where(hsl_temp.vector().array()>max_hsl)
-                        self.parent.mesh.model['functions']['hsl'].vector()[idicies] = max_hsl
+                        #self.parent.mesh.model['functions']['hsl_old'].vector()[idicies] = max_hsl
 
             
                     self.parent.mesh.model['functions']['hsl_old'].vector()[:]
@@ -234,6 +235,7 @@ class NSolver(object):
                             print 'checking hsl\n'
                         hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
                             self.parent.mesh.model['function_spaces']["quadrature_space"])
+                        hsl_temp = self.parent.mesh.model['functions']['hsl_old']
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl\n'
                         print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f \n'%(hsl_temp.vector().array().min(),
