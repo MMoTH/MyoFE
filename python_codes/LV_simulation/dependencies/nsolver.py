@@ -145,7 +145,7 @@ class NSolver(object):
                 dww.vector()[:] = 0.0
 
                 #while (rel_res > rel_tol and res > abs_tol) and it < maxiter:
-                while (rel_res > rel_tol) and it < maxiter: 
+                while (res > abs_tol) and it < maxiter: 
 
                     it += 1
 
@@ -181,12 +181,12 @@ class NSolver(object):
 
                     
                     
-                    #hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
-                    #        self.parent.mesh.model['function_spaces']["quadrature_space"])
-                    hsl_temp = self.parent.mesh.model['functions']['hsl_old']
+                    hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
+                            self.parent.mesh.model['function_spaces']["quadrature_space"])
+                    #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
                     if np.isnan(hsl_temp.vector().array()).any():
                         print 'nan in hsl'
-                    print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f before iteration\n'%(hsl_temp.vector().array().min(),
+                    print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f before iteration'%(hsl_temp.vector().array().min(),
                     hsl_temp.vector().array().max(),self.comm.Get_rank())
 
                     max_hsl = 1400
@@ -195,8 +195,6 @@ class NSolver(object):
                         idicies = np.where(hsl_temp.vector().array()>max_hsl)
                         #self.parent.mesh.model['functions']['hsl_old'].vector()[idicies] = max_hsl
 
-            
-                    self.parent.mesh.model['functions']['hsl_old'].vector()[:]
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print "checking for nan!"
                     if math.isnan(rel_res):
@@ -213,42 +211,17 @@ class NSolver(object):
                         if np.isnan(f1_temp.array().astype(float)).any():
                             print "nan in f1\n"
                             print 'rank in f1 is: %f \n'%self.comm.Get_rank()
-                            
-
-                        """for k in ['hsl','E','Sff','PK2_local']:
-                            print 'Checking %s' %k
-                            if k in ['hsl']:
-                                fcn_space = self.parent.mesh.model['function_spaces']["quadrature_space"]
-                            elif k in ['Sff']:
-                                fcn_space = FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1)
-                            else:
-                                fcn_space = self.parent.mesh.model['function_spaces']['tensor_space']
-                            temp_param = project(self.parent.mesh.model['functions'][k],fcn_space,
-                                            form_compiler_parameters={"representation":"uflacs"})
-
-                            if np.isnan(temp_param.vector().array()).any():
-                                print 'nan in %s' %k
-                            else:
-                                print 'no nan in %s' %k"""
+                        
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking hsl\n'
                         hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
                             self.parent.mesh.model['function_spaces']["quadrature_space"])
-                        hsl_temp = self.parent.mesh.model['functions']['hsl_old']
+                        #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl\n'
-                        print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f \n'%(hsl_temp.vector().array().min(),
+                        print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f'%(hsl_temp.vector().array().min(),
                         hsl_temp.vector().array().max(),self.comm.Get_rank())
-
-                        #if (self.comm.Get_rank() == 0):
-                        #    print 'checking 0 in hsl_0'
-                        #hsl0_temp = project(self.parent.mesh.model['functions']['hsl0'], 
-                        #    self.parent.mesh.model['function_spaces']["quadrature_space"])
-                        #if not (hsl0_temp.vector().array()>0).any():
-                        #    print 'non positive value in hsl'
-                        #print 'min hsl0:%0.0f, max hsl0:%0.0f' %(hsl0_temp.vector().array().min(),
-                        #hsl0_temp.vector().array().max())
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking y_vec\n'
@@ -256,12 +229,14 @@ class NSolver(object):
                             self.parent.mesh.model['function_spaces']["quad_vectorized_space"])
                         if np.isnan(y_vec_temp.vector().array()).any():
                             print 'nan in y_vec\n'
+
                         if (self.comm.Get_rank() == 0):
                             print 'checking Fmat\n'
                         temp_F= project(self.parent.mesh.model['functions']['Fmat'],
                                         self.parent.mesh.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_F.vector().array()[:]).any():
                             print 'nan in Fmat\n'
+
                         if (self.comm.Get_rank() == 0):
                             print 'checking J\n'
                         #print self.parent.mesh.model['functions']['J']
@@ -272,12 +247,12 @@ class NSolver(object):
                                         self.parent.mesh.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_E.vector().array()[:]).any():
                             print 'nan in E\n'
+
                         if (self.comm.Get_rank() == 0):
                             print 'checking Sff \n'
                         temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
                                     FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
                                     form_compiler_parameters={"representation":"uflacs"})
-                            
                         if np.isnan(temp_sff.vector().array().astype(float)).any():
                             print 'nan in sff \n'
                             print 'rank in sff is: %f \n'%self.comm.Get_rank()
@@ -289,40 +264,28 @@ class NSolver(object):
                         if np.isnan(temp_PK2.vector().array()[:]).any():
                             print 'nan in PK2\n'
                             print 'rank in PK2 is: %f \n'%self.comm.Get_rank()
-                            
-                        """wp_m,wp_c = self.uflforms.PassiveMatSEFComps(hsl)
-                            temp_wp_m = project(wp_m,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
-                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-                            temp_wp_c = project(wp_c,FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
-                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-
-                            if np.isnan(temp_wp_m).any():
-                                print 'nan found in myofiber passive component'
-                            if np.isnan(temp_wp_c).any():
-                                print 'nan found in bulk tissue passive component'"""
-                            
-                        """temp_DG = project(self.parent.mesh.model['functions']['Sff'], 
-                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
-                                    form_compiler_parameters={"representation":"uflacs"})
-                            print temp_DG.vector().get_local()[:]"""
 
                         if(self.comm.Get_rank() == 0 and mode > 0):
                             print 'checking f2\n'
                         if np.isnan(f2_temp.array().astype(float)).any():
                             print "nan in f2\n"
+
                         if(self.comm.Get_rank() == 0 and mode > 0):
                             print 'checking f3\n'
                         if np.isnan(f3_temp.array().astype(float)).any():
                             print "nan in f3\n"
+
                         if(self.comm.Get_rank() == 0 and mode > 0):
                             print 'checking f4\n'
                         if np.isnan(f4_temp.array().astype(float)).any():
                             print "nan in f4\n"
+
                         #print A.array(), b.array()
                         if(self.comm.Get_rank() == 0 and mode > 0):
                             print 'checking A\n'
                         if np.isnan(A.array().astype(float)).any():
                             print "nan found in A assembly\n"
+
                         if(self.comm.Get_rank() == 0 and mode > 0):
                             print 'checking b\n'
                         if np.isnan(b.array().astype(float)).any():
