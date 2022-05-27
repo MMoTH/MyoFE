@@ -98,16 +98,6 @@ class NSolver(object):
                                  form_compiler_parameters={"representation":"uflacs"})
 
             self.parent.mesh.model['functions']['w'] = w
-                                
-            solver_parameters={ 
-                                 "newton_solver":
-                                {"linear_solver":"gmres",
-                                 "preconditioner":"hypre_euclid",
-                                 "relative_tolerance":1e-8, 
-                                 "absolute_tolerance":1e-8, 
-                                 "maximum_iterations":40}}
-            #solver_parameters={"newton_solver":{"relative_tolerance":1e-9, "absolute_tolerance":1e-9, "maximum_iterations":maxiter, "linear_solver":"umfpack"}}#,\
-            
                 
         else:
 
@@ -188,7 +178,12 @@ class NSolver(object):
                         print 'nan in hsl'
                     print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f before iteration'%(hsl_temp.vector().array().min(),
                     hsl_temp.vector().array().max(),self.comm.Get_rank())
-
+                    
+                    cb_stress = project(self.parent.mesh.model['functions']['cb_stress'], 
+                            self.parent.mesh.model['function_spaces']["quadrature_space"]).vector().array()
+                    print cb_stress
+                    print 'rank: %i' %self.comm.Get_rank()
+                    
                     max_hsl = 1400
                     if (hsl_temp.vector().array()>max_hsl).any():
                         print 'Some half-sarcomeres are over stretched at rank: %f \n' %self.comm.Get_rank()
