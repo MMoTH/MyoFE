@@ -611,9 +611,6 @@ class LV_simulation():
         self.mesh.model['functions']['hsl_old'].vector()[:] = \
             project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
-        self.mesh.model['functions']['pseudo_old'].vector()[:] = \
-            project(self.mesh.model['functions']['pseudo_alpha'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
-
         new_hs_length_list = \
             project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 

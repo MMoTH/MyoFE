@@ -345,12 +345,12 @@ class MeshClass():
         alpha_f = sqrt(dot(f0, Cmat*f0)) # actual stretch based on deformation gradient
         
         self.model['functions']["hsl"] = \
-            self.model['functions']["pseudo_alpha"]*alpha_f*self.model['functions']["hsl0"]
+            alpha_f*self.model['functions']["hsl0"]
         self.model['functions']["delta_hsl"] = \
             self.model['functions']["hsl"] - self.model['functions']["hsl_old"]
 
         self.y_split = np.array(split(self.model['functions']['y_vec']))
-        
+
 
         delta_hsl = self.model['functions']["delta_hsl"]
         """bin_pops = self.y_split[2 + np.arange(0, self.hs.myof.no_of_x_bins)]
