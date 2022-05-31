@@ -228,14 +228,14 @@ class LV_simulation():
         for p in ['k_1','k_3','k_on'] :
             for i, h in enumerate(self.hs_objs_list):
                 self.mesh.data[p][i] = h.myof.data[p]
-            self.mesh.model['functions'][p].vector()[:] = \
+            self.mesh.model['functions'][p].vector().get_local()[:] = \
                   self.mesh.data[p]
         for p in ['k_act','k_serca']:
             for i, h in enumerate(self.hs_objs_list):
                 self.mesh.data[p][i] = h.memb.data[p]
-            self.mesh.model['functions'][p].vector()[:] = \
+            self.mesh.model['functions'][p].vector().get_local()[:] = \
                   self.mesh.data[p]
-
+ 
         rank_id = self.comm.Get_rank()
         print '%0.0f integer points have been assigned to core %0.0f'\
              %(self.local_n_of_int_points,rank_id)
@@ -510,7 +510,7 @@ class LV_simulation():
         
             #now update the function for spatial controlled parameters  
             for p in ['k_1','k_3','k_on','k_act','k_serca']:
-                self.mesh.model['functions'][p].vector()[:] = \
+                self.mesh.model['functions'][p].vector().get_local()[:] = \
                   self.mesh.data[p]
         # check for any perturbation
         for p in self.prot.perturbations:
@@ -562,8 +562,8 @@ class LV_simulation():
             print t
 
         # Now update fenics FE for population array (y_vec) and hs_length
-        self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
-        self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
+        self.mesh.model['functions']['y_vec'].vector().get_local()[:] = self.y_vec
+        self.mesh.model['functions']['hsl_old'].vector().get_local()[:] = self.hs_length_list
 
         # Update circulation and FE function for LV cavity volume
         self.circ.data['v'] = \
@@ -608,7 +608,7 @@ class LV_simulation():
         self.cb_stress_list = project(self.mesh.model['functions']['cb_stress'],
                                 self.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
 
-        self.mesh.model['functions']['hsl_old'].vector()[:] = \
+        self.mesh.model['functions']['hsl_old'].vector().get_local()[:] = \
             project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
         new_hs_length_list = \

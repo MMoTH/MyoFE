@@ -165,7 +165,7 @@ class MeshClass():
         pseudo_old = Function(self.model['function_spaces']['quadrature_space'])
         pseudo_old.vector()[:] = 1.0
         hsl_diff_from_reference = Function(self.model['function_spaces']['quadrature_space'])
-        hsl_diff_from_reference.vector()[:] = 0.0
+        hsl_diff_from_reference.vector().get_local()[:] = 0.0
 
         try:
             self.f.read(hsl0, "ellipsoidal" + "/" + "hsl0")
@@ -336,7 +336,7 @@ class MeshClass():
         # temporary active stress
         #Pactive, cbforce = uflforms.TempActiveStress(0.0)
         k_myo_damp = 0
-        self.model['functions']["hsl_old"].vector()[:] = self.model['functions']["hsl0"].vector()[:]
+        self.model['functions']["hsl_old"].vector().get_local()[:] = self.model['functions']["hsl0"].vector().get_local()[:]
         self.model['functions']["hsl_diff_from_reference"] = \
             (self.model['functions']["hsl_old"] - self.model['functions']["hsl0"])/self.model['functions']["hsl0"]
         self.model['functions']["pseudo_alpha"] = \
