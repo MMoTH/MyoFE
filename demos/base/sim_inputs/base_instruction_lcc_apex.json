@@ -1,13 +1,13 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [5000],
+        "no_of_time_steps": [10000],
         "time_step": [0.001],
         "baroreflex": 
         {
             "activations": [
                 {
-                    "t_start_s": [5],
+                    "t_start_s": [50],
                     "t_stop_s": [400]
                 }
             ]
@@ -43,7 +43,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/base/sim_inputs/new_mesh/ellipsoidal_wt_0.14_scale_1.2.hdf5"],
+        "mesh_path":["../demos/base/sim_inputs/new_mesh/ellipsoidal_correct_fiber.hdf5"],
         "function_spaces":
         [
             {
@@ -59,7 +59,7 @@
                 "degree": [1]
             },
             {
-                "name":["growth_tensor_space"],
+                "name":["tensor_space"],
                 "type":["tensor"],
                 "element_type":["DG"],
                 "degree": [1]
@@ -99,13 +99,13 @@
                     "radius_ratio": [0.4],
                     "level": ["myofilaments"],
                     "variable": ["k_1"],
-                    "factor": [0.1]
+                    "factor": [1]
                 },
                 {
                     "radius_ratio": [0.4],
                     "level": ["myofilaments"],
                     "variable": ["k_on"],
-                    "factor": [0.1]
+                    "factor": [1]
                 }
             ]
         },
@@ -115,14 +115,14 @@
             {
                 "rel_tol": [1e-10],
                 "abs_tol": [1e-10],
-                "max_iter": [40],
-                "debugging_mode": [true]
+                "max_iter": [100],
+                "debugging_mode": [false]
             }
         },
         "pericardial":
         {
             "type": ["spring"],
-            "k_spring": [100]
+            "k_spring": [200]
         }  
     },
     "model":
@@ -317,8 +317,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/base/sim_output/thickened_wall/data.csv"],
-        "mesh_output_path": ["../demos/base/sim_output/thickened_wall/mesh_output"],
+        "output_data_path": ["../demos/base/sim_output/new_test/data.csv"],
+        "mesh_output_path": ["../demos/base/sim_output/new_test/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
