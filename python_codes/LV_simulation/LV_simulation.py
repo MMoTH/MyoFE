@@ -15,7 +15,6 @@ import numpy as np
 from dolfin import *
 
 import time
-from scipy.integrate import solve_ivp
 
 from protocol import protocol as prot
 
@@ -578,23 +577,9 @@ class LV_simulation():
         #--------------------------------
         if self.comm.Get_rank() == 0:
             print 'solving weak form'
-        """Ftotal = self.mesh.model['Ftotal']
-        w = self.mesh.model['functions']['w']
-        bcs = self.mesh.model['boundary_conditions']
-        Jac = self.mesh.model['Jac']
-
-        solve(Ftotal == 0, w, bcs, J = Jac,
-            solver_parameters={"newton_solver":
-                                {"relative_tolerance":1e-8, 
-                                 "absolute_tolerance":1e-8, 
-                                 "maximum_iterations":40}}, 
-                                 form_compiler_parameters={"representation":"uflacs"})
-
-        self.mesh.model['functions']['w'] = w"""
         self.solver.solvenonlinear()
-        #self.mesh.model['nsolver'].solvenonlinear()
-        # Start updating variables after solving the weak form 
 
+        # Start updating variables after solving the weak form 
         # First pressure in circulation
         for i in range(self.circ.model['no_of_compartments']-1):
             self.circ.data['p'][i] = (self.circ.data['v'][i] - self.circ.data['s'][i]) / \
