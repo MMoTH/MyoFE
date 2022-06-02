@@ -184,12 +184,6 @@ class NSolver(object):
                     print cb_stress
                     print 'rank: %i' %self.comm.Get_rank()
                     
-                    max_hsl = 1400
-                    if (hsl_temp.vector().array()>max_hsl).any():
-                        print 'Some half-sarcomeres are over stretched at rank: %f \n' %self.comm.Get_rank()
-                        idicies = np.where(hsl_temp.vector().array()>max_hsl)
-                        #self.parent.mesh.model['functions']['hsl_old'].vector()[idicies] = max_hsl
-
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print "checking for nan!"
                     if math.isnan(rel_res):
