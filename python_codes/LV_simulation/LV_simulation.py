@@ -529,7 +529,9 @@ class LV_simulation():
                     for j in range(self.local_n_of_int_points):
                         self.hs_objs_list[j].memb.data[p.data['variable']] +=\
                             p.data['increment']
-
+        
+        # Rubild system arrays
+        self.rebuild_from_perturbations()
         # Proceed time
         (activation, new_beat) = \
             self.hr.implement_time_step(time_step)
@@ -846,6 +848,17 @@ class LV_simulation():
                         self.spatial_sim_data[f].to_csv(out_path)
 
         return 
+    def rebuild_from_perturbations(self):
+        """ builds system arrays that could change during simulation """
+
+        for i, v in enumerate(self.circ.model['compartment_list']):
+            r = self.circ.data[('%s_resistance' % v)]
+            self.circ.data['resistance'][i] = r
+
+        for i, v in enumerate(self.circ.model['compartment_list']):
+            if (i < (self.circ.model['no_of_compartments']-1)):
+                c = self.circ.data[('%s_compliance' % v)]
+                self.circ.data['compliance'][i] = c
 
     def return_spherical_radius(self,xc,yc,zc,x,y,z):
 
