@@ -28,10 +28,7 @@ class half_sarcomere():
 
     def update_simulation(self, time_step, delta_hsl, activation, cb_stress, pas_stress):
         
-        if (np.abs(delta_hsl) > 0.0):
-            # Need to move some things
-            self.myof.move_cb_distributions(delta_hsl)
-            self.data['hs_length'] = self.data['hs_length'] + delta_hsl
+        
 
         if (time_step > 0.0):
             # Need to do some kinetics stuff
@@ -43,6 +40,11 @@ class half_sarcomere():
             # Myofilaments
             self.myof.evolve_kinetics(time_step,
                                       self.memb.data['Ca_cytosol'])
+
+        if (np.abs(delta_hsl) > 0.0):
+            # Need to move some things
+            self.myof.move_cb_distributions(delta_hsl)
+            self.data['hs_length'] = self.data['hs_length'] + delta_hsl
 
         # Update forces
         self.myof.cb_stress = cb_stress
