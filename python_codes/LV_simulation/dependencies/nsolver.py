@@ -1,27 +1,50 @@
 from dolfin import *
 import math
 import numpy as np
-
+from .solver import Problem, CustomSolver
+ 
 class NSolver(object):
 
 
-    def __init__(self, params):
+    def __init__(self,parent_params,comm):
 
-        self.parameters = params
-        self.isfirstiteration = 0;
+        self.parent = parent_params
+        self.parameters =  parent_params.mesh.model['solver_params']
+        self.uflforms = parent_params.mesh.model['uflforms']
+        self.isfirstiteration = 0
+        self.comm = comm
+        
+        self.solver_params = self.default_solver_parameters()
+        if 'solver' in self.parent.instruction_data['mesh']:
+            solver_struct = self.parent.instruction_data['mesh']['solver']
+            if 'params' in solver_struct:
+                for k in solver_struct['params'].keys():
+                    self.solver_params[k] = solver_struct['params'][k][0]
+        
+        if comm.Get_rank() == 0:
+            print self.solver_params
+            list_linear_solver_methods()
+            print '****'
+            list_krylov_solver_methods()
+            print '****'
+            list_krylov_solver_preconditioners()
 
-    def default_parameters(self):
+
+    def default_solver_parameters(self):
         return {"rel_tol" : 1e-7,
-        "abs_tol" : 1e-7,
-                "max_iter": 20,
-                "Type" : 1}
+                "abs_tol" : 1e-7,
+                "max_iter": 50,
+                'debugging_mode': False}
 
 
     def solvenonlinear(self):
 
-        abs_tol = self.default_parameters()["abs_tol"]
-        rel_tol = self.default_parameters()["rel_tol"]
-        maxiter = self.default_parameters()["max_iter"]
+        abs_tol = self.solver_params["abs_tol"]
+        rel_tol = self.solver_params["rel_tol"]
+        maxiter = self.solver_params["max_iter"]
+        debugging_mode = self.solver_params["debugging_mode"]
+
+
         mode = self.parameters["mode"]
         Jac = self.parameters["Jacobian"]
         Jac1 = self.parameters["Jac1"]
@@ -35,7 +58,9 @@ class NSolver(object):
         F4 = self.parameters["F4"]
         w = self.parameters["w"]
         bcs = self.parameters["boundary_conditions"]
-        solvertype = self.parameters["Type"]
+        
+        hsl = self.parameters['hsl']
+
 
         mesh = self.parameters["mesh"]
         comm = w.function_space().mesh().mpi_comm()
@@ -61,11 +86,19 @@ class NSolver(object):
     ##################################################
 
 
-        if(solvertype == 0):
-            solve(Ftotal == 0, w, bcs, J = Jac, \
-        #solver_parameters={"newton_solver":{"relative_tolerance":1e-9, "absolute_tolerance":1e-9, "maximum_iterations":maxiter, "linear_solver":"umfpack"}}#,\
-            form_compiler_parameters={"representation":"uflacs"}
-                )
+        if(not debugging_mode):
+
+            #self.costum_solver.solve(self.problem, w.vector())
+            
+            solve(Ftotal == 0, w, bcs, J = Jac,
+                solver_parameters={"newton_solver":
+                                {"relative_tolerance":rel_tol, 
+                                 "absolute_tolerance":abs_tol, 
+                                 "maximum_iterations":maxiter}}, 
+                                 form_compiler_parameters={"representation":"uflacs"})
+
+            self.parent.mesh.model['functions']['w'] = w
+                
         else:
 
             it = 0
@@ -76,12 +109,13 @@ class NSolver(object):
                 resid0 = b.norm("l2")
                 rel_res = b.norm("l2")/resid0
                 res = resid0
-                if(MPI.rank(comm) == 0 and mode > 0):
+                if(self.comm.Get_rank() == 0 and mode > 0):
                     print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
-                    solve(A, w.vector(), b)
+                solve(A, w.vector(), b)
+                #solve(A, w.vector(), b,'gmres')
+                #self.solver.solve(A, w.vector(), b)
 
             it += 1
-            print it
             self.isfirstiteration = 1
 
             B = assemble(Ftotal,\
@@ -94,94 +128,27 @@ class NSolver(object):
                 res = B.norm("l2")
                 resid0 = res
 
-                if(MPI.rank(comm) == 0 and mode > 0):
+                if(self.comm.Get_rank() == 0 and mode > 0):
                     print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
                 dww = w.copy(deepcopy=True)
                 dww.vector()[:] = 0.0
 
                 #while (rel_res > rel_tol and res > abs_tol) and it < maxiter:
-                while (rel_res > rel_tol) and it < maxiter: 
+                while (res > abs_tol) and it < maxiter: 
 
                     it += 1
 
                     A, b = assemble_system(Jac, -Ftotal, bcs, \
                             form_compiler_parameters={"representation":"uflacs"}\
                                     )
-                    # Trying to assemble individual F terms
-                    if(MPI.rank(comm) == 0 and mode > 0):
-                        print "checking F terms"
-                    f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
-                    f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
-                    f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
-                    f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
 
-                    if(MPI.rank(comm) == 0 and mode > 0):
-                        print "checking nan"
-                    if np.isnan(f1_temp.array().astype(float)).any():
-                        print "nan in f1"
-                    if np.isnan(f2_temp.array().astype(float)).any():
-                        print "nan in f2"
-                    if np.isnan(f3_temp.array().astype(float)).any():
-                        print "nan in f3"
-                    if np.isnan(f4_temp.array().astype(float)).any():
-                        print "nan in f4"
-                    #print A.array(), b.array()
-                    if np.isnan(A.array().astype(float)).any():
-                        print "nan found in A assembly"
-                    if np.isnan(b.array().astype(float)).any():
-                        print "nan found in b (Ftotal) assembly"
                     solve(A, dww.vector(), b)
+                    #solve(A, dww.vector(), b,'gmres')
+                    #self.solver.solve(A, w.vector(), b)
+                    #solve(A, dww.vector(), b,solver_parameters={"linear_solver": "gmres",
+                    #        "preconditioner": "hypre_euclid"})
                     w.vector().axpy(1.0, dww.vector())
-
-                # DEBUGGING PURPOSES #############################
-                #if(t_a.t_a >= 170 and t_a.t_a <= 172):
-                #    print "DEBUGGING"
-                #    Param1.vector()[:] = project(activeforms.w1(), Q).vector().array()[:]
-                #    self.parameters["FileHandler"][0] << Param1
-                #    print >>self.parameters["FileHandler"][4], "w1", " max = ", max(project(activeforms.w1(), Quad).vector()[:]), " min  = ", min(project(activeforms.w1(), Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.w1(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.w1(), Q).vector().array()[:]
-
-                #    Param2.vector()[:] = project(activeforms.w2(), Q).vector().array()[:]
-                #    self.parameters["FileHandler"][1] << Param2
-                #    print >>self.parameters["FileHandler"][4], "w2", " max = ", max(project(activeforms.w2(), Quad).vector()[:]), " min  = ", min(project(activeforms.w2(), Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.w2(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.w2(), Q).vector().array()[:]
-
-                #    Param3.vector()[:] = project(activeforms.Ct(), Q).vector().array()[:]
-                #    self.parameters["FileHandler"][2] << Param3
-                #    print >>self.parameters["FileHandler"][4], "Ct", " max = ", max(project(activeforms.Ct(), Quad).vector()[:]), " min  = ", min(project(activeforms.Ct(), Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.Ct(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.Ct(), Q).vector().array()[:]
-
-                #    Param4.vector()[:] = project(activeforms.tr(), Q).vector().array()[:]
-                #    self.parameters["FileHandler"][3] << Param4
-                #    print >>self.parameters["FileHandler"][4], "tr", " max = ", max(project(activeforms.tr(), Quad).vector()[:]), " min  = ", min(project(activeforms.tr(), Quad).vector()[:])
-
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.tr(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.tr(), Q).vector().array()[:]
-
-                #    print >>self.parameters["FileHandler"][4], "lmbda*1.85" , " max = ", max(project(activeforms.lmbda()*1.85, Quad).vector()[:]), " min  = ", min(project(activeforms.lmbda()*1.85, Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.lmbda()*1.85, Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.lmbda()*1.85, Q).vector().array()[:]
-
-                #    print >>self.parameters["FileHandler"][4], "ls_l0", " max = ", max(project(activeforms.ls_l0(), Quad).vector()[:]), " min  = ", min(project(activeforms.ls_l0(), Quad).vector()[:])
-
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.ls_l0(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.ls_l0(), Q).vector().array()[:]
-
-                #    print >>self.parameters["FileHandler"][4], "ECa", " max = ", max(project(activeforms.ECa(), Quad).vector()[:]), " min  = ", min(project(activeforms.ECa(), Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.ECa(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.ECa(), Q).vector().array()[:]
-
-                #    print >>self.parameters["FileHandler"][4], "PK1Stress", " max = ", max(project(activeforms.PK1Stress(), Quad).vector()[:]), " min  = ", min(project(activeforms.PK1Stress(), Quad).vector()[:])
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.PK1Stress(), Quad).vector().array()[:]
-                #    print >>self.parameters["FileHandler"][4], project(activeforms.PK1Stress(), Q).vector().array()[:]
-
-
-
-                ###################################################
 
 
                     B = assemble(Ftotal, \
@@ -194,9 +161,131 @@ class NSolver(object):
                     rel_res = B.norm("l2")/resid0
                     res = B.norm("l2")
 
-                if(MPI.rank(comm) == 0 and mode > 0):
-                    print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
+                    if(self.comm.Get_rank() == 0 and mode > 0):
+                        print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
+                    
+                    #print self.parent.mesh.model['functions']['incomp'].vector()
+                    #incomp = project(self.parent.mesh.model['functions']['incomp'],
+                    #            self.parent.mesh.model['function_spaces']['tensor_space'])
+
+                    
+                    
+                    hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
+                            self.parent.mesh.model['function_spaces']["quadrature_space"])
+                    #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
+                    if np.isnan(hsl_temp.vector().array()).any():
+                        print 'nan in hsl'
+                    print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f before iteration'%(hsl_temp.vector().array().min(),
+                    hsl_temp.vector().array().max(),self.comm.Get_rank())
+                    
+                    cb_stress = project(self.parent.mesh.model['functions']['cb_stress'], 
+                            self.parent.mesh.model['function_spaces']["quadrature_space"]).vector().array()
+                    print cb_stress
+                    print 'rank: %i' %self.comm.Get_rank()
+                    
+                    max_hsl = 1400
+                    if (hsl_temp.vector().array()>max_hsl).any():
+                        print 'Some half-sarcomeres are over stretched at rank: %f \n' %self.comm.Get_rank()
+                        idicies = np.where(hsl_temp.vector().array()>max_hsl)
+                        #self.parent.mesh.model['functions']['hsl_old'].vector()[idicies] = max_hsl
+
+                    if(self.comm.Get_rank() == 0 and mode > 0):
+                        print "checking for nan!"
+                    if math.isnan(rel_res):
+                        if (self.comm.Get_rank() == 0):
+                            print "checking F terms"
+                        f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
+                        f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
+                        f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
+                        f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
+                
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print "checking nan\n"
+                            print 'checking f1\n'
+                        if np.isnan(f1_temp.array().astype(float)).any():
+                            print "nan in f1\n"
+                            print 'rank in f1 is: %f \n'%self.comm.Get_rank()
+                        
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking hsl\n'
+                        hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
+                            self.parent.mesh.model['function_spaces']["quadrature_space"])
+                        #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
+                        if np.isnan(hsl_temp.vector().array()).any():
+                            print 'nan in hsl\n'
+                        print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f'%(hsl_temp.vector().array().min(),
+                        hsl_temp.vector().array().max(),self.comm.Get_rank())
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking y_vec\n'
+                        y_vec_temp = project(self.parent.mesh.model['functions']['y_vec'], 
+                            self.parent.mesh.model['function_spaces']["quad_vectorized_space"])
+                        if np.isnan(y_vec_temp.vector().array()).any():
+                            print 'nan in y_vec\n'
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking Fmat\n'
+                        temp_F= project(self.parent.mesh.model['functions']['Fmat'],
+                                        self.parent.mesh.model['function_spaces']['tensor_space'])
+                        if np.isnan(temp_F.vector().array()[:]).any():
+                            print 'nan in Fmat\n'
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking J\n'
+                        #print self.parent.mesh.model['functions']['J']
+                        
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking E\n'
+                        temp_E= project(self.parent.mesh.model['functions']['E'],
+                                        self.parent.mesh.model['function_spaces']['tensor_space'])
+                        if np.isnan(temp_E.vector().array()[:]).any():
+                            print 'nan in E\n'
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking Sff \n'
+                        temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
+                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                                    form_compiler_parameters={"representation":"uflacs"})
+                        if np.isnan(temp_sff.vector().array().astype(float)).any():
+                            print 'nan in sff \n'
+                            print 'rank in sff is: %f \n'%self.comm.Get_rank()
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking PK2\n'
+                        temp_PK2 = project(self.parent.mesh.model['functions']['PK2_local'],
+                                self.parent.mesh.model['function_spaces']['tensor_space'])
+                        if np.isnan(temp_PK2.vector().array()[:]).any():
+                            print 'nan in PK2\n'
+                            print 'rank in PK2 is: %f \n'%self.comm.Get_rank()
+
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking f2\n'
+                        if np.isnan(f2_temp.array().astype(float)).any():
+                            print "nan in f2\n"
+
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking f3\n'
+                        if np.isnan(f3_temp.array().astype(float)).any():
+                            print "nan in f3\n"
+
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking f4\n'
+                        if np.isnan(f4_temp.array().astype(float)).any():
+                            print "nan in f4\n"
+
+                        #print A.array(), b.array()
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking A\n'
+                        if np.isnan(A.array().astype(float)).any():
+                            print "nan found in A assembly\n"
+
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking b\n'
+                        if np.isnan(b.array().astype(float)).any():
+                            print 'nan found in b (Ftotal) assembly\n'
+                    self.comm.Barrier()
                 if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
                     #self.parameters["FileHandler"][4].close()
                     raise RuntimeError("Failed Convergence")

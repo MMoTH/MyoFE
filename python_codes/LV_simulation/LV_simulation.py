@@ -9,12 +9,12 @@ from ast import operator
 from operator import methodcaller
 import os
 import json
+import math
 import pandas as pd
 import numpy as np
 from dolfin import *
 
 import time
-from scipy.integrate import solve_ivp
 
 from protocol import protocol as prot
 
@@ -23,6 +23,7 @@ from .mesh.mesh import MeshClass
 from .circulation.circulation import Circulation as circ
 from .heart_rate.heart_rate import heart_rate as hr
 from .dependencies.forms import Forms
+from .dependencies.nsolver import NSolver
 from .output_handler.output_handler import output_handler as oh
 from .baroreflex import baroreflex as br
 from .half_sarcomere import half_sarcomere as hs 
@@ -60,6 +61,12 @@ class LV_simulation():
         # Initialize and define mesh objects (finite elements, 
         # function spaces, functions)
         self.mesh = MeshClass(self)
+
+        # Initialize the solver object 
+        
+        #self.solver_params = self.mesh.model['solver_params']
+        self.solver =  NSolver(self,comm)
+
 
         self.y_vec = \
             self.mesh.model['functions']['y_vec'].vector().get_local()[:]
@@ -227,7 +234,7 @@ class LV_simulation():
                 self.mesh.data[p][i] = h.memb.data[p]
             self.mesh.model['functions'][p].vector()[:] = \
                   self.mesh.data[p]
-
+ 
         rank_id = self.comm.Get_rank()
         print '%0.0f integer points have been assigned to core %0.0f'\
              %(self.local_n_of_int_points,rank_id)
@@ -262,8 +269,7 @@ class LV_simulation():
         self.gr = []
         # If required, create the vad object
         self.va = []
-        
-        
+
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 
@@ -464,6 +470,7 @@ class LV_simulation():
                 self.handle_output(output_struct)
                 return
 
+
         # Now build up global data holders for 
         # spatial variables if multiple cores have been used
         self.handle_output(output_struct)
@@ -570,23 +577,9 @@ class LV_simulation():
         #--------------------------------
         if self.comm.Get_rank() == 0:
             print 'solving weak form'
-        """Ftotal = self.mesh.model['Ftotal']
-        w = self.mesh.model['functions']['w']
-        bcs = self.mesh.model['boundary_conditions']
-        Jac = self.mesh.model['Jac']
+        self.solver.solvenonlinear()
 
-        solve(Ftotal == 0, w, bcs, J = Jac,
-            solver_parameters={"newton_solver":
-                                {"relative_tolerance":1e-8, 
-                                 "absolute_tolerance":1e-8, 
-                                 "maximum_iterations":40}}, 
-                                 form_compiler_parameters={"representation":"uflacs"})
-
-        self.mesh.model['functions']['w'] = w"""
-
-        self.mesh.model['nsolver'].solvenonlinear()
         # Start updating variables after solving the weak form 
-
         # First pressure in circulation
         for i in range(self.circ.model['no_of_compartments']-1):
             self.circ.data['p'][i] = (self.circ.data['v'][i] - self.circ.data['s'][i]) / \
@@ -602,9 +595,6 @@ class LV_simulation():
 
         self.mesh.model['functions']['hsl_old'].vector()[:] = \
             project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
-
-        self.mesh.model['functions']['pseudo_old'].vector()[:] = \
-            project(self.mesh.model['functions']['pseudo_alpha'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
         new_hs_length_list = \
             project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
@@ -860,3 +850,4 @@ class LV_simulation():
     def return_spherical_radius(self,xc,yc,zc,x,y,z):
 
         return ((xc-x)**2+(yc-y)**2+(zc-z)**2)**0.5 
+
