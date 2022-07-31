@@ -488,11 +488,11 @@ class LV_simulation():
                     (self.data['time'],
                     100*self.t_counter/self.prot.data['no_of_time_steps']))
 
-                vol, press, flow = self.return_system_values()
+                d= self.return_system_values()
                 
-                print(json.dumps(vol, indent=4))
-                print(json.dumps(press, indent=4))
-                print(json.dumps(flow, indent=4))
+                print(json.dumps(d, indent=4))
+                #print(json.dumps(press, indent=4))
+                #print(json.dumps(flow, indent=4))
 
         # Check for baroreflex and implement
         if (self.br):
@@ -556,12 +556,17 @@ class LV_simulation():
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
                 self.hs_objs_list[j].myof.y[:]
         end =time.time()
+        t = end-start
 
         if self.comm.Get_rank() == 0:
             print 'Required time for solving myosim was'
             t = end-start 
             print t
-
+        dict = {}
+        dict['core_rank'] = self.comm.Get_rank()
+        dict['myosim_time'] = t
+        dict['Integer_points'] = self.local_n_of_int_points
+        print(json.dumps(dict,indent=4))
         # Now update fenics FE for population array (y_vec) and hs_length
         self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
         self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
@@ -668,7 +673,7 @@ class LV_simulation():
 
     def return_system_values(self, time_interval=0.01):
         d = dict()
-        vol = dict()
+        """vol = dict()
         pres = dict()
         flow = dict()
         vol['volume_ventricle'] = self.circ.data['v'][-1]
@@ -693,7 +698,7 @@ class LV_simulation():
         flow['flow_arterioles_to_capillaries'] = self.circ.data['f'][3]
         flow['flow_capillaries_to_venules'] = self.circ.data['f'][4]
         flow['flow_venules_to_veins'] = self.circ.data['f'][5]
-        flow['flow_veins_to_ventricle'] = self.circ.data['f'][6]
+        flow['flow_veins_to_ventricle'] = self.circ.data['f'][6]"""
         
 
         """if (self.data['time'] > time_interval):
@@ -706,12 +711,12 @@ class LV_simulation():
             d['stroke_volume'] = d['volume_ventricle_max'] - \
                 self.temp_data['volume_ventricle'].min()
             d['pressure_ventricle'] = self.temp_data['pressure_ventricle'].mean()
-            #d['ejection_fraction'] = self.temp_data['ejection_fraction'].mean()
+            d['ejection_fraction'] = d['stroke_volume']/self.temp_data['volume_ventricle'].min()
             d['heart_rate'] = self.data['heart_rate']
             d['cardiac_output'] = d['stroke_volume'] * d['heart_rate']"""
            
             
-        return vol, pres,flow
+        return d,#vol, pres,flow
 
     def write_complete_data_to_sim_data(self):
         """ Writes full data to data frame """

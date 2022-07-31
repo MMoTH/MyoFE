@@ -1,6 +1,8 @@
 from dolfin import *
 import math
 import numpy as np
+import json
+import time
 from .solver import Problem, CustomSolver
  
 class NSolver(object):
@@ -100,7 +102,7 @@ class NSolver(object):
             self.parent.mesh.model['functions']['w'] = w
                 
         else:
-
+            start = time.time()
             it = 0
             if(self.isfirstiteration  == 0):
                 A, b = assemble_system(Jac, -Ftotal, bcs, \
@@ -163,7 +165,7 @@ class NSolver(object):
 
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
-
+                
                     
                     #print self.parent.mesh.model['functions']['incomp'].vector()
                     #incomp = project(self.parent.mesh.model['functions']['incomp'],
@@ -171,7 +173,7 @@ class NSolver(object):
 
                     
                     
-                    hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
+                    """hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
                             self.parent.mesh.model['function_spaces']["quadrature_space"])
                     #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
                     if np.isnan(hsl_temp.vector().array()).any():
@@ -182,7 +184,7 @@ class NSolver(object):
                     cb_stress = project(self.parent.mesh.model['functions']['cb_stress'], 
                             self.parent.mesh.model['function_spaces']["quadrature_space"]).vector().array()
                     print cb_stress
-                    print 'rank: %i' %self.comm.Get_rank()
+                    print 'rank: %i' %self.comm.Get_rank()"""
                     
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print "checking for nan!"
@@ -283,3 +285,12 @@ class NSolver(object):
                 if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
                     #self.parameters["FileHandler"][4].close()
                     raise RuntimeError("Failed Convergence")
+                
+                end = time.time()
+                t = end-start
+                dict = {}
+                dict['Core_rank'] = self.comm.Get_rank()
+                dict['Element_num'] = mesh.num_cells()
+                dict['iter_num'] = it
+                dict['time'] = t
+                print(json.dumps(dict, indent=4))
