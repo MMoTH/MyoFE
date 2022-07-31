@@ -266,7 +266,7 @@ class LV_simulation():
         else:
             self.br = []
         # If required, create the growth object
-        self.gr = []
+        self.gr = [] 
         # If required, create the vad object
         self.va = []
 
