@@ -48,18 +48,30 @@
         [
             {
                 "name":["stimulusFS"],
-                "type":["scaler"],
+                "type":["scalar"],
                 "element_type":["DG"],
                 "degree": [1]
             },
             {
-                "name":["scaler"],
-                "type":["scaler"],
+                "name":["scalar"],
+                "type":["scalar"],
                 "element_type":["DG"],
                 "degree": [1]
             },
             {
                 "name":["tensor_space"],
+                "type":["tensor"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["growth_scalar_FS"],
+                "type":["scalar"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["growth_tensor_FS"],
                 "type":["tensor"],
                 "element_type":["DG"],
                 "degree": [1]
@@ -72,7 +84,7 @@
             },
             {
                 "name":["quadrature_space"],
-                "type":["scaler"],
+                "type":["scalar"],
                 "element_type":["Quadrature"],
                 "degree": [2]
             }
@@ -314,6 +326,22 @@
                 ]
             }
         }
+    },
+    "growth":
+    {
+        "components":
+        [
+            {
+                "type": "eccentric",
+                "level": "half_sarcomere",
+                "signal": "cpt_int_pas_stress",
+                "setpoint": 434.75,
+                "k_drive": 0.2,
+                "k_recov": 0.1,
+                "growth_factor": 5e-3,
+                "antigrowth_factor": -5e-3
+            }
+        ]
     },
     "output_handler":
     {
