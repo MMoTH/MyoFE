@@ -439,16 +439,16 @@ class LV_simulation():
                             temp_obj = self.mesh.model['functions']['w'].sub(0)
                         if m == 'hs_length':
                             temp_obj = project(self.mesh.model['functions']['hsl'], 
-                                                self.mesh.model['function_spaces']["scaler"])
+                                                self.mesh.model['function_spaces']["scalar"])
 
                         if m in ['k_1','k_3','k_on','k_act','k_serca']:
                             temp_obj = project(self.mesh.model['functions'][m], 
-                                                self.mesh.model['function_spaces']["scaler"])
+                                                self.mesh.model['function_spaces']["scalar"])
                         if m == 'active_stress':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scaler"])
+                                        self.mesh.model['function_spaces']["scalar"])
                         if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'])
@@ -636,16 +636,16 @@ class LV_simulation():
                         temp_obj = self.mesh.model['functions']['w'].sub(0)
                     if m == 'hs_length':
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
-                                                self.mesh.model['function_spaces']["scaler"])
+                                                self.mesh.model['function_spaces']["scalar"])
                     
                     if m in ['k_1','k_3','k_on','k_act','k_serca']:
                             temp_obj = project(self.mesh.model['functions'][m], 
-                                                self.mesh.model['function_spaces']["scaler"])
+                                                self.mesh.model['function_spaces']["scalar"])
                     if m == 'active_stress':
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scaler"])
+                                        self.mesh.model['function_spaces']["scalar"])
                     if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'])

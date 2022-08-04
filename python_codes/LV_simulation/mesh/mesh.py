@@ -105,7 +105,7 @@ class MeshClass():
             for fs in mesh_struct['function_spaces']:
     
                 #define required finite elements 
-                if fs['type'][0] == 'scaler':
+                if fs['type'][0] == 'scalar':
                     finite_element = \
                         FiniteElement(fs['element_type'][0],self.model['mesh'].ufl_cell(),
                                         degree = fs['degree'][0],quad_scheme="default")
@@ -191,6 +191,25 @@ class MeshClass():
         (u,p,pendo,c11)   = split(w)
         (v,q,qendo,v11)   = TestFunctions(self.model['function_spaces']['solution_space'])
         
+        # define functions for growth 
+        if 'growth' in self.parent_parameters.instruction_data:
+            for k in ['stimulus','setpoint','theta']:
+                for d in ['ff','ss', 'nn']:
+                    name = k + '_' + d
+                    functions[name] = \
+                        Function(self.model['function_spaces']['growth_scalar_FS'])
+            functions['M1ij'] = \
+                project(as_tensor(f0[i]*f0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
+            functions['M2ij'] = \
+                project(as_tensor(s0[i]*s0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
+            functions['M3ij'] = \
+                project(as_tensor(n0[i]*n0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
+
+            functions['Fg'] = functions['theta_ff'] * functions['M1ij'] +\
+                              functions['theta_ss'] * functions['M2ij'] + \
+                              functions['theta_nn'] * functions['M3ij']
+            
+            
         functions["w"] = w
         functions["f0"] = f0
         functions["s0"] = s0
