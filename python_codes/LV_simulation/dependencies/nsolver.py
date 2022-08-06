@@ -97,6 +97,8 @@ class NSolver(object):
                                  "maximum_iterations":maxiter}}, 
                                  form_compiler_parameters={"representation":"uflacs"})
 
+            
+            #as_backend_type(w.vector()).update_ghost_values()
             self.parent.mesh.model['functions']['w'] = w
                 
         else:
