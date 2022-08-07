@@ -53,3 +53,16 @@ class heart_rate():
 
         return 60 * 1 / (self.data['t_active_period'] +
                              self.data['t_quiescent_period'])
+    
+    def check_end_diastolic(self,time_step):
+        temp_t_RR = self.data['t_RR']
+        temp_t_RR -= time_step
+
+        end_diastolic = 0
+        if temp_t_RR <= 0:
+            end_diastolic = 1
+        
+        return end_diastolic
+
+
+         
