@@ -30,6 +30,13 @@ class protocol():
             for i, b in enumerate(baro_struct['activations']):
                 self.baro_activations.append(baro_activation(
                     b, self.data['time_step']))
+        
+        self.growth_activations = []
+        if ('growth' in prot):
+            growth_struct = prot['growth']
+            for i, g in enumerate(growth_struct['activations']):
+                self.baro_activations.append(growth_activation(
+                    g, self.data['time_step']))
 
 
 class perturbation():
@@ -57,5 +64,14 @@ class baro_activation():
         self.data = dict()
         self.data['t_start_s'] = baro_struct['t_start_s'][0]
         self.data['t_stop_s'] = baro_struct['t_stop_s'][0]
+        self.data['t_start_ind'] = int(self.data['t_start_s'] / time_step)
+        self.data['t_stop_ind'] = int(self.data['t_stop_s'] / time_step)
+
+class growth_activation():
+    """ Class for growth-activation """
+    def __init__(self, growth_struct, time_step):
+        self.data = dict()
+        self.data['t_start_s'] = growth_struct['t_start_s'][0]
+        self.data['t_stop_s'] = growth_struct['t_stop_s'][0]
         self.data['t_start_ind'] = int(self.data['t_start_s'] / time_step)
         self.data['t_stop_ind'] = int(self.data['t_stop_s'] / time_step)
