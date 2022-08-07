@@ -256,6 +256,11 @@ class LV_simulation():
         """ Initialize simulation time and counter"""
         self.data['time'] = 0
         self.t_counter = 0
+        self.end_diastolic = 0
+        self.num_time_steps_per_cycle = 0
+            #(self.hr.data['t_active_period'] + \
+            #    self.hr.data['t_quiescent_period'])/self.data['time_step']
+
 
         """ If requried, create the baroreceptor"""
         self.data['baroreflex_active'] = 0
@@ -268,7 +273,8 @@ class LV_simulation():
             self.br = []
         # If required, create the growth object
         if 'growth' in instruction_data['model']:
-            self.gr = gr.growth(instruction_data['model']['baroreflex'],
+            print 'Initializing growth module'
+            self.gr = gr.growth(instruction_data['model']['growth'],
                                 self)
         else:
             self.gr = [] 
@@ -516,6 +522,29 @@ class LV_simulation():
             for p in ['k_1','k_3','k_on','k_act','k_serca']:
                 self.mesh.model['functions'][p].vector()[:] = \
                   self.mesh.data[p]
+
+
+        if self.gr:
+            if not self.end_diastolic:
+                total_passive_pk2 , Sff = \
+                    self.mesh.model['uflforms'].stress(self.mesh.model['functions']["hsl"])
+                Pactive = self.mesh.model['functions']['Pactive']
+                total_stress = total_passive_pk2 + Pactive
+                self.gr.store_stimuli_data(total_stress,Sff)
+                #print('from main LV sim')
+                stimulus = project(Sff,
+                            self.mesh.model['function_spaces']['growth_scalar_FS'],
+                            form_compiler_parameters={"representation":"uflacs"})
+                #print('sff')
+                #print(stimulus.vector().array())
+                #print('stimulus_ff')
+                #print(self.mesh.model['functions']['stimulus_ff'].vector().array())
+            if self.end_diastolic:
+                print('Growth is happening at ED!')
+                print(self.num_time_steps_per_cycle)
+
+
+
         # check for any perturbation
         for p in self.prot.perturbations:
             if (self.t_counter >= p.data['t_start_ind'] and 
@@ -538,7 +567,7 @@ class LV_simulation():
         # Rubild system arrays
         self.rebuild_from_perturbations()
         # Proceed time
-        (activation, new_beat,end_diastolic) = \
+        (activation, new_beat,self.end_diastolic,self.num_time_steps_per_cycle) = \
             self.hr.implement_time_step(time_step)
 
         if self.comm.Get_rank() == 0:

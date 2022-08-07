@@ -192,24 +192,27 @@ class MeshClass():
         (v,q,qendo,v11)   = TestFunctions(self.model['function_spaces']['solution_space'])
         
         # define functions for growth 
-        if 'growth' in self.parent_parameters.instruction_data:
-            for k in ['stimulus','temp_stimulus','setpoint','theta']:
+        if 'growth' in self.parent_parameters.instruction_data['model']:
+            for k in ['stimulus','setpoint','theta']:
                 for d in ['ff','ss', 'nn']:
                     name = k + '_' + d
                     functions[name] = \
                         Function(self.model['function_spaces']['growth_scalar_FS'])
+                    if k == 'theta':
+                        functions[name].vector().get_local()[:] = 1
             functions['M1ij'] = \
                 project(as_tensor(f0[i]*f0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
             functions['M2ij'] = \
                 project(as_tensor(s0[i]*s0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
             functions['M3ij'] = \
                 project(as_tensor(n0[i]*n0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
+            
 
             functions['Fg'] = functions['theta_ff'] * functions['M1ij'] +\
                               functions['theta_ss'] * functions['M2ij'] + \
                               functions['theta_nn'] * functions['M3ij']
             
-            
+        
         functions["w"] = w
         functions["f0"] = f0
         functions["s0"] = s0
