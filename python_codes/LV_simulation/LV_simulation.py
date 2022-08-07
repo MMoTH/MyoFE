@@ -26,6 +26,7 @@ from .dependencies.forms import Forms
 from .dependencies.nsolver import NSolver
 from .output_handler.output_handler import output_handler as oh
 from .baroreflex import baroreflex as br
+from .growth import growth as gr
 from .half_sarcomere import half_sarcomere as hs 
 
 
@@ -266,7 +267,11 @@ class LV_simulation():
         else:
             self.br = []
         # If required, create the growth object
-        self.gr = [] 
+        if 'growth' in instruction_data['model']:
+            self.gr = gr.growth(instruction_data['model']['baroreflex'],
+                                self)
+        else:
+            self.gr = [] 
         # If required, create the vad object
         self.va = []
 
@@ -533,7 +538,7 @@ class LV_simulation():
         # Rubild system arrays
         self.rebuild_from_perturbations()
         # Proceed time
-        (activation, new_beat) = \
+        (activation, new_beat,end_diastolic) = \
             self.hr.implement_time_step(time_step)
 
         if self.comm.Get_rank() == 0:

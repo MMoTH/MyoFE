@@ -46,7 +46,9 @@ class heart_rate():
         else:
             new_beat = 0
 
-        return (self.data['activation'], new_beat)
+        end_diastolic = self.check_end_diastolic(time_step)
+
+        return (self.data['activation'], new_beat, end_diastolic)
 
     def return_heart_rate(self):
         """ returns heart rate in beats per minute """
