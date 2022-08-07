@@ -193,7 +193,7 @@ class MeshClass():
         
         # define functions for growth 
         if 'growth' in self.parent_parameters.instruction_data:
-            for k in ['stimulus','setpoint','theta']:
+            for k in ['stimulus','temp_stimulus','setpoint','theta']:
                 for d in ['ff','ss', 'nn']:
                     name = k + '_' + d
                     functions[name] = \
