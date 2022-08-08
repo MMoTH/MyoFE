@@ -257,7 +257,7 @@ class LV_simulation():
         self.data['time'] = 0
         self.t_counter = 0
         self.end_diastolic = 0
-        self.num_time_steps_per_cycle = 0
+        self.growth_counter_per_cycle = 1
             #(self.hr.data['t_active_period'] + \
             #    self.hr.data['t_quiescent_period'])/self.data['time_step']
 
@@ -493,9 +493,10 @@ class LV_simulation():
         if self.comm.Get_rank() == 0:
             print '******** NEW TIME STEP ********'
             print (self.data['time'])
+            print 
 
             if (self.t_counter % 10 == 0):
-                print('Sim time (s): %.0f  %.0f%% complete' %
+                print('Sim time (s): %.00f  %.0f%% complete' %
                     (self.data['time'],
                     100*self.t_counter/self.prot.data['no_of_time_steps']))
 
@@ -525,23 +526,40 @@ class LV_simulation():
 
 
         if self.gr:
-            if not self.end_diastolic:
-                total_passive_pk2 , Sff = \
-                    self.mesh.model['uflforms'].stress(self.mesh.model['functions']["hsl"])
-                Pactive = self.mesh.model['functions']['Pactive']
-                total_stress = total_passive_pk2 + Pactive
-                self.gr.store_stimuli_data(total_stress,Sff)
-                #print('from main LV sim')
-                stimulus = project(Sff,
-                            self.mesh.model['function_spaces']['growth_scalar_FS'],
-                            form_compiler_parameters={"representation":"uflacs"})
-                #print('sff')
-                #print(stimulus.vector().array())
-                #print('stimulus_ff')
-                #print(self.mesh.model['functions']['stimulus_ff'].vector().array())
-            if self.end_diastolic:
-                print('Growth is happening at ED!')
-                print(self.num_time_steps_per_cycle)
+            
+            for g in self.prot.growth_activations:
+              
+                if ((self.t_counter >= g.data['t_start_ind']) and
+                        (self.t_counter < g.data['t_stop_ind'])):
+                    print 'Growth module is activated'
+                    if not self.end_diastolic:
+                        total_passive_pk2 , passive_myo = \
+                            self.mesh.model['uflforms'].stress(self.mesh.model['functions']["hsl"])
+                        Pactive = self.mesh.model['functions']['Pactive']
+                        total_stress = total_passive_pk2 + Pactive
+                        
+                        #print('from main LV sim')
+                        stimulus = project(passive_myo,
+                                    self.mesh.model['function_spaces']['growth_scalar_FS'],
+                                    form_compiler_parameters={"representation":"uflacs"})
+                    
+                        print 'sff' 
+                        print(stimulus.vector().array())
+                        self.growth_counter_per_cycle += 1
+                        self.gr.store_stimuli_data(total_stress,passive_myo)
+
+                        print('stimulus_ff')
+                        print(self.mesh.model['functions']['stimulus_ff'].vector().array())
+                    if self.end_diastolic:
+                        print('Growth is happening at ED!')
+                        print(self.growth_counter_per_cycle)
+                        # implement grow at ED
+                        self.gr.implement_growth(self.growth_counter_per_cycle)
+                        self.growth_counter_per_cycle = 0
+                        print 'sff after reseting'
+                        print(self.mesh.model['functions']['stimulus_ff'].vector().array())
+                
+                
 
 
 
@@ -567,7 +585,7 @@ class LV_simulation():
         # Rubild system arrays
         self.rebuild_from_perturbations()
         # Proceed time
-        (activation, new_beat,self.end_diastolic,self.num_time_steps_per_cycle) = \
+        (activation, new_beat,self.end_diastolic) = \
             self.hr.implement_time_step(time_step)
 
         if self.comm.Get_rank() == 0:

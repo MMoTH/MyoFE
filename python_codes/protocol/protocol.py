@@ -14,7 +14,7 @@ class protocol():
 
         prot = protocol_struct
         for p in list(prot.keys()):
-            if not p in ['baroreflex','perturbation']:
+            if not p in ['baroreflex','perturbation','growth']:
                 self.data[p] = prot[p][0]
 
         self.perturbations = []
@@ -35,7 +35,7 @@ class protocol():
         if ('growth' in prot):
             growth_struct = prot['growth']
             for i, g in enumerate(growth_struct['activations']):
-                self.baro_activations.append(growth_activation(
+                self.growth_activations.append(growth_activation(
                     g, self.data['time_step']))
 
 
