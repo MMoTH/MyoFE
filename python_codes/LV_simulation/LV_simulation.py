@@ -243,6 +243,7 @@ class LV_simulation():
         """ Create a circulatory system object"""
         circ_struct = instruction_data['model']['circulation']
         self.circ = circ(circ_struct,self.mesh)
+        self.reference_LV_vol = self.circ.data['v'][-1]
 
         if self.comm.Get_rank() == 0:
             print self.circ.data['v']
@@ -257,10 +258,6 @@ class LV_simulation():
         self.data['time'] = 0
         self.t_counter = 0
         self.end_diastolic = 0
-        self.growth_counter_per_cycle = 1
-            #(self.hr.data['t_active_period'] + \
-            #    self.hr.data['t_quiescent_period'])/self.data['time_step']
-
 
         """ If requried, create the baroreceptor"""
         self.data['baroreflex_active'] = 0
