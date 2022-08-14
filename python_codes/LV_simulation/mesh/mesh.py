@@ -193,8 +193,8 @@ class MeshClass():
         
         # define functions for growth 
         if 'growth' in self.parent_parameters.instruction_data['model']:
-            for k in ['stimulus','setpoint','theta']:
-                for d in ['ff','ss', 'nn']:
+            for k in ['stimulus','temp_stimulus','setpoint','theta']:
+                for d in ['fiber','sheet', 'sheet_normal']:
                     name = k + '_' + d
                     functions[name] = \
                         Function(self.model['function_spaces']['growth_scalar_FS'])
@@ -208,9 +208,9 @@ class MeshClass():
                 project(as_tensor(n0[i]*n0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
             
 
-            functions['Fg'] = functions['theta_ff'] * functions['M1ij'] +\
-                              functions['theta_ss'] * functions['M2ij'] + \
-                              functions['theta_nn'] * functions['M3ij']
+            functions['Fg'] = functions['theta_fiber'] * functions['M1ij'] +\
+                              functions['theta_sheet'] * functions['M2ij'] + \
+                              functions['theta_sheet_normal'] * functions['M3ij']
             
         
         functions["w"] = w

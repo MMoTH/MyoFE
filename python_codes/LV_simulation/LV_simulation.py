@@ -528,37 +528,25 @@ class LV_simulation():
         if self.gr:
             
             for g in self.prot.growth_activations:
-              
+                # Handle setpoint before growth activation
+                if ((self.t_counter >= g.data['t_start_ind']/2) and
+                        (self.t_counter < g.data['t_start_ind'])):
+                    self.gr.store_setpoint()
+                if self.t_counter == g.data['t_start_ind']:
+                    self.gr.assign_setpoint()
+                # 
                 if ((self.t_counter >= g.data['t_start_ind']) and
                         (self.t_counter < g.data['t_stop_ind'])):
-                    print 'Growth module is activated'
-                    if not self.end_diastolic:
-                        total_passive_pk2 , passive_myo = \
-                            self.mesh.model['uflforms'].stress(self.mesh.model['functions']["hsl"])
-                        Pactive = self.mesh.model['functions']['Pactive']
-                        total_stress = total_passive_pk2 + Pactive
-                        
-                        #print('from main LV sim')
-                        stimulus = project(passive_myo,
-                                    self.mesh.model['function_spaces']['growth_scalar_FS'],
-                                    form_compiler_parameters={"representation":"uflacs"})
+                    if self.comm.Get_rank() == 0:
+                        print 'Growth module is activated'
+                    self.gr.update_growth(time_step)
                     
-                        print 'sff' 
-                        print(stimulus.vector().array())
-                        self.growth_counter_per_cycle += 1
-                        self.gr.store_stimuli_data(total_stress,passive_myo)
-
-                        print('stimulus_ff')
-                        print(self.mesh.model['functions']['stimulus_ff'].vector().array())
                     if self.end_diastolic:
-                        print('Growth is happening at ED!')
-                        print(self.growth_counter_per_cycle)
+                        if self.comm.Get_rank() == 0:
+                            print('Growth is happening at ED!')
                         # implement grow at ED
-                        self.gr.implement_growth(self.growth_counter_per_cycle)
-                        self.growth_counter_per_cycle = 0
-                        print 'sff after reseting'
-                        print(self.mesh.model['functions']['stimulus_ff'].vector().array())
-                
+                        self.gr.implement_growth()
+
                 
 
 
