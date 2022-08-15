@@ -199,7 +199,7 @@ class MeshClass():
                     functions[name] = \
                         Function(self.model['function_spaces']['growth_scalar_FS'])
                     if k == 'theta':
-                        functions[name].vector().get_local()[:] = 1
+                        functions[name].vector()[:] = 1
             functions['M1ij'] = \
                 project(as_tensor(f0[i]*f0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
             functions['M2ij'] = \
