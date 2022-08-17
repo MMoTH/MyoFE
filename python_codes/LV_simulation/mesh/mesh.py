@@ -321,6 +321,11 @@ class MeshClass():
         }
         params.update(ventricle_params)
 
+        if 'growth' in self.parent_parameters.instruction_data['model']:
+            growth_params = dict()
+            for n in ['Fg','M1ij','M2ij','M3ij']:
+                growth_params[n] = self.model['functions'][n]
+            params.update(growth_params)
         uflforms = Forms(params)
 
         """d = u.ufl_domain().geometric_dimension()

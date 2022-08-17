@@ -1,13 +1,23 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [10],
+        "no_of_time_steps": [20],
         "time_step": [0.001],
         "baroreflex": 
         {
             "activations": [
                 {
                     "t_start_s": [50],
+                    "t_stop_s": [400]
+                }
+            ]
+        },
+        "growth":
+        {
+            "activations": 
+            [
+                {
+                    "t_start_s": [3],
                     "t_stop_s": [400]
                 }
             ]
@@ -38,7 +48,7 @@
     "heart_rate": {
         "t_active_period": [0.003],
         "t_quiescent_period": [0.92],
-        "t_first_activation": [0.2]
+        "t_first_activation": [0.1]
     },
     "mesh":
     {
@@ -128,7 +138,7 @@
                 "rel_tol": [1e-10],
                 "abs_tol": [1e-10],
                 "max_iter": [100],
-                "debugging_mode": [true]
+                "debugging_mode": [false]
             }
         },
         "pericardial":
@@ -325,23 +335,20 @@
                     }
                 ]
             }
+        },
+        "growth":
+        {
+            "components":
+            [
+                {
+                    "type": ["fiber"],
+                    "signal": ["myofiber_passive_stress"],
+                    "tau": [0.2],
+                    "theta_max": [2],
+                    "theta_min": [0.5]
+                }
+            ]
         }
-    },
-    "growth":
-    {
-        "components":
-        [
-            {
-                "type": "eccentric",
-                "level": "half_sarcomere",
-                "signal": "cpt_int_pas_stress",
-                "setpoint": 434.75,
-                "k_drive": 0.2,
-                "k_recov": 0.1,
-                "growth_factor": 5e-3,
-                "antigrowth_factor": -5e-3
-            }
-        ]
     },
     "output_handler":
     {

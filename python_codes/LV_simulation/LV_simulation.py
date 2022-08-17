@@ -531,7 +531,7 @@ class LV_simulation():
                     self.gr.store_setpoint()
                 if self.t_counter == g.data['t_start_ind']:
                     self.gr.assign_setpoint()
-                # Implement growth when is avtivated
+                # Implement growth when is
                 if ((self.t_counter >= g.data['t_start_ind']) and
                         (self.t_counter < g.data['t_stop_ind'])):
                     if self.comm.Get_rank() == 0:

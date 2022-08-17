@@ -53,7 +53,7 @@ class growth():
                 print comp.data['setpoint']
                 print comp.data['stimulus']"""
 
-        return
+        return 
     
     def store_setpoint(self):
         """ Store setpoint data before growth activation """

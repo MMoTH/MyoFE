@@ -14,14 +14,14 @@ class Forms(object):
 
         self.parameters = self.default_parameters()
         self.parameters.update(params)
-        """if "growth_tensor" in self.parameters:
-            self.Fg = self.parameters["growth_tensor"]
-            self.M1ij = self.parameters["M1"]
-            self.M2ij = self.parameters["M2"]
-            self.M3ij = self.parameters["M3"]
-            self.TF = self.parameters["TF"]
+        if "Fg" in self.parameters:
+            self.Fg = self.parameters["Fg"]
+            self.M1ij = self.parameters["M1ij"]
+            self.M2ij = self.parameters["M2ij"]
+            self.M3ij = self.parameters["M3ij"]
+            #self.TF = self.parameters["TF"]
         else:
-            self.Fg = Identity(3)"""
+            self.Fg = Identity(3)
 
     def default_parameters(self):
         return {#"bff"  : 29.0,
@@ -40,22 +40,22 @@ class Forms(object):
         F = I + grad(u)
         return F
 
-    """def update_Fg(self,theta1,theta2,theta3):
+    def update_Fg(self,theta1,theta2,theta3):
         Fg = self.Fg
         M1ij = self.M1ij
         M2ij = self.M2ij
         M3ij = self.M3ij
         Fg = theta1*M1ij + theta2*M2ij + theta3*M3ij
-        print "Fg updated", project(Fg,self.TF).vector().get_local()
-        self.Fg = Fg"""
+        #print "Fg updated", project(Fg,self.TF).vector().get_local()
+        self.Fg = Fg
 
     def Fe(self):
         #Fg = self.parameters["growth_tensor"]
         F = self.Fmat()
         #Fg = self.Fg
         #Fe = as_tensor(F[i,j]*inv(Fg)[j,k], (i,k))
-        if "growth_tensor" in self.parameters:
-            Fg = self.parameters["growth_tensor"]
+        if "Fg" in self.parameters:
+            Fg = self.Fg
             Fe = as_tensor(F[i,j]*inv(Fg)[j,k], (i,k))
         else:
             Fe = F
@@ -66,8 +66,8 @@ class Forms(object):
         u = self.parameters["displacement_variable"]
         d = u.ufl_domain().geometric_dimension()
         I = Identity(d)
-        #F = self.Fmat()
-    	F = self.Fe()
+        F = self.Fmat()
+    	#F = self.Fe()
         #return 0.5*(F.T*F-I)
     	return 0.5*(as_tensor(F[k,i]*F[k,j] - I[i,j], (i,j)))
 
@@ -76,14 +76,14 @@ class Forms(object):
 
         u = self.parameters["displacement_variable"]
         d = u.ufl_domain().geometric_dimension()
-        #F = self.Fmat()
-        F = self.Fe()
+        F = self.Fmat()
+        #F = self.Fe()
         return F.T*F
         #return as_tensor(F[k,i]*F[k,j],(i,j))
 
     def J(self):
-        #F = self.Fmat()
-        F = self.Fe()
+        F = self.Fmat()
+        #F = self.Fe()
         return det(F)
 
 
@@ -95,8 +95,8 @@ class Forms(object):
         X = SpatialCoordinate(mesh)
         ds = dolfin.ds(subdomain_data = self.parameters["facetboundaries"])
 
-        #F = self.Fmat()
-        F = self.Fe()
+        F = self.Fmat()
+        #F = self.Fe()
 
         vol_form = -Constant(1.0/3.0) * inner(det(F)*dot(inv(F).T, N), X + u)*ds(self.parameters["LVendoid"])
 
@@ -323,8 +323,8 @@ class Forms(object):
         X = SpatialCoordinate(mesh)
         x = u + X
 
-        #F = self.Fmat()
-        F = self.Fe()
+        F = self.Fmat()
+        #F = self.Fe()
 
         N = self.parameters["facet_normal"]
         n = cofac(F)*N
@@ -391,8 +391,8 @@ class Forms(object):
         u = self.parameters["displacement_variable"]
         d = u.ufl_domain().geometric_dimension()
         I = Identity(d)
-        #F = self.Fmat()
-        F = self.Fe()
+        F = self.Fmat()
+        #F = self.Fe()
         #F = I + grad(u)
 
         #F=Fe
@@ -508,8 +508,8 @@ class Forms(object):
         u = self.parameters["displacement_variable"]
         d = u.ufl_domain().geometric_dimension()
         I = Identity(d)
-        #F = self.Fmat()
-        F = self.Fe()
+        F = self.Fmat()
+        #F = self.Fe()
         #F = I + grad(u)
 
         #F=Fe
@@ -607,8 +607,8 @@ class Forms(object):
 
     def Umat(self):
 
-        #Fmat = self.Fmat()
-        Fmat = self.Fe()
+        Fmat = self.Fmat()
+        #Fmat = self.Fe()
         F0 = Fmat
         for j in range(15):
             F0 = 0.5* (F0 + inv(F0).T)
