@@ -45,14 +45,6 @@ class growth():
             # reset setpoint_tracker 
             comp.data['setpoint_tracker'] = []
 
-            # assign stumulus to be equal to setpoint at the initial 
-            # time step
-            comp.data['stimulus'] = comp.data['setpoint']
-
-            """if self.comm.Get_rank() == 0:
-                print comp.data['setpoint']
-                print comp.data['stimulus']"""
-
         return 
     
     def store_setpoint(self):
@@ -63,29 +55,44 @@ class growth():
     def implement_growth(self,end_diastolic,time_step):
         # First update the stimulus and theta for each growth type
         for comp in self.components:
-            comp.update_stimulus_tracker()
-            # Second update theta values
-            comp.data['stimulus'] = \
-                comp.update_stimulus(comp.data['stimulus_tracker'],
-                                    end_diastolic)
-
-            comp.update_theta(comp.data['stimulus'],time_step)
+        
+            # update stimulus signal 
+            comp.data['stimulus'] = comp.return_stimulus()
+            # update theta 
+            comp.data['theta'] = comp.return_theta(comp.data['stimulus'],time_step)
+            # store theta data for a cardiac cycle
+            comp.data['theta_tracker'].append(comp.data['theta'])
+            #comp.return_theta(comp.data['stimulus'],time_step)
             if end_diastolic:
                 if self.comm.Get_rank() == 0:
                     print('Growth is happening at ED!')
+                
+                # update mean theta per cycle 
+                comp.data['mean_theta'] = \
+                    np.mean(comp.data['theta_tracker'],axis=0)
+                # reset the theta tracker
+                comp.data['theta_tracker'] = []
                 # reset stimuli tracker
-                comp.data['stimulus_tracker'] = []
+                #comp.data['stimulus_tracker'] = []
 
                 # Update theta functions to update Fg
                 name = 'theta_' + comp.data['type']
 
-                self.mesh.model['functions'][name].vector()[:] = \
-                    comp.data['theta']
+                #self.mesh.model['functions'][name].vector()[:] = \
+                #    comp.data['theta']
 
         # Second, unload the mesh to the reference configuration
         if end_diastolic:
+            
             if self.comm.Get_rank() == 0:
                 print 'Unloading LV to the reference volume'
+            
+            # update Fg
+            theta_ff = np.ones(len(self.mesh.model['functions']['theta_fiber'].vector().get_local()[:]))
+            theta_ss = np.ones(len(self.mesh.model['functions']['theta_sheet'].vector().get_local()[:]))
+            theta_nn = np.ones(len(self.mesh.model['functions']['theta_sheet_normal'].vector().get_local()[:]))
+            
+            
 
             # Third, grow the mesh with Fg
             if self.comm.Get_rank() == 0:
@@ -116,8 +123,8 @@ class growth_component():
         for item in comp_struct:
             self.data[item] = comp_struct[item][0]
         
-        for item in ['stimulus','stimulus_tracker', 
-                    'theta','setpoint', 'setpoint_tracker']:
+        for item in ['stimulus', 'theta', 'theta_tracker',
+                    'setpoint', 'setpoint_tracker']:
             name = item + '_' + self.data['type']
             #size = len(self.parent.mesh.model['functions'][name].vector().get_local()[:])
             if item == 'theta':
@@ -125,45 +132,9 @@ class growth_component():
                 self.data[item] = np.ones(size)
             else:
                 self.data[item] = []
-            #    self.parent.mesh.model['functions'][name]
-        #size = len(self.data['stimulus'].vector().get_local()[:])
-        #self.data['stimulus_holder'] = np.zeros(size)
-        #print type(self.data['temp_stimulus'].vector().get_local()[:])
-        #print type(self.data['temp_stimulus'].vector()[:])
-        #print type(self.data['temp_stimulus'].vector().array()[:])
-        #print self.data['temp_stimulus'].vector().array()[:]
-
+        self.data['mean_theta'] = self.data['theta']
     
-    def update_stimulus(self,stimulus_tracker,end_diastolic = 0):
-
-        if end_diastolic:
-            s = np.mean(stimulus_tracker,axis=0)
-        else: 
-            s = self.data['stimulus']
-            
-        return s
-    
-    def reset_stimulus_functions(self):
-
-        #self.data['temp_stimulus'].vector()[:] = \
-        self.data['stimulus_holder'] = \
-            self.data['stimulus'].vector().get_local()[:]
-
-        """stimulus_name = self.data['stimulus_name']
-        function_space = self.parent.mesh.model['function_spaces']['growth_scalar_FS']
-        if self.data['type'] == 'eccentric':
-            stimulus = self.parent.mesh.model['functions']['Sff']
-            self.parent.mesh.model['functions'][stimulus_name] = \
-                project(stimulus,function_space)
-
-        elif self.data['type'] == 'concentric':
-            stimulus = \
-                self.parent.mesh.model['functions']['total_passive_PK2'] + \
-                    self.parent.mesh.model['functions']['Pactive']
-            self.parent.mesh.model['functions'][stimulus_name] = \
-                project(stimulus,function_space)"""
-
-    def update_stimulus_tracker(self):
+    def return_stimulus(self):
         if self.parent.comm.Get_rank() == 0:
             print 'Storing stimuli data!'
         hsl = self.parent.mesh.model['functions']['hsl']
@@ -182,23 +153,29 @@ class growth_component():
 
             s = project(inner_p,
                             scalar_fs).vector().get_local()[:]   
-        self.data['stimulus_tracker'].append(s)       
+        return s
 
-    def update_theta(self,stimulus,time_step):
+    def return_theta(self,stimulus,time_step):
+
         """ Update thetha values for Fg"""
         s_set = self.data['setpoint']
+        theta_old = self.data['theta']
+        theta_new = np.zeros(len(theta_old))
         for i,s in enumerate(stimulus):
-            t = self.data['theta'][i]
+            t_0 = theta_old[i]
 
-            dthetha = self.return_theta_dot(t,s,s_set[i])
+            dtheta = self.return_theta_dot(t_0,s,s_set[i])
 
-            self.data['theta'][i] += dthetha*time_step
+            theta_new[i] = t_0 + dtheta*time_step
         if self.parent.comm.Get_rank() == 0:
             print 'theta'
-            print self.data['theta']
+            print theta_new
+        return theta_new
 
     def return_theta_dot(self,theta,s,set):
+
         """ Return rate of change of theta"""
+        # theta merges to thta_max if s > set and vice versa.
         tau = self.data['tau']
         range_theta = self.data['theta_max'] - self.data['theta_min']
 
