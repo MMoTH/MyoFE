@@ -95,7 +95,6 @@ class growth():
                 print 'Moving the mesh to build the new reference configuration'
 
 
-
         # Move the mesh
 
         # Load back to EDV
