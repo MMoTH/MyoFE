@@ -469,9 +469,11 @@ class MeshClass():
                 F_temp = - k_spring * inner(dot(u,n)*n,v) * ds(params['LVepiid'])
                 self.F_list.append(F_temp)
                 Ftotal += F_temp
+                Ftotal_growth +=F_temp
                 Jac_temp = derivative(F_temp, w, dw)
                 self.J_list.append(Jac_temp)
                 Jac += Jac_temp
+                Jac_growth += Jac_temp
 
         #create solver
         solver_params = params
