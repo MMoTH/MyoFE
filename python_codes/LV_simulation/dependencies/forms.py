@@ -66,8 +66,8 @@ class Forms(object):
         u = self.parameters["displacement_variable"]
         d = u.ufl_domain().geometric_dimension()
         I = Identity(d)
-        F = self.Fmat()
-    	#F = self.Fe()
+        #F = self.Fmat()
+    	F = self.Fe()
         #return 0.5*(F.T*F-I)
     	return 0.5*(as_tensor(F[k,i]*F[k,j] - I[i,j], (i,j)))
 
@@ -76,14 +76,14 @@ class Forms(object):
 
         u = self.parameters["displacement_variable"]
         d = u.ufl_domain().geometric_dimension()
-        F = self.Fmat()
-        #F = self.Fe()
+        #F = self.Fmat()
+        F = self.Fe()
         return F.T*F
         #return as_tensor(F[k,i]*F[k,j],(i,j))
 
     def J(self):
-        F = self.Fmat()
-        #F = self.Fe()
+        #F = self.Fmat()
+        F = self.Fe()
         return det(F)
 
 
@@ -95,8 +95,8 @@ class Forms(object):
         X = SpatialCoordinate(mesh)
         ds = dolfin.ds(subdomain_data = self.parameters["facetboundaries"])
 
-        F = self.Fmat()
-        #F = self.Fe()
+        #F = self.Fmat()
+        F = self.Fe()
 
         vol_form = -Constant(1.0/3.0) * inner(det(F)*dot(inv(F).T, N), X + u)*ds(self.parameters["LVendoid"])
 
@@ -323,8 +323,8 @@ class Forms(object):
         X = SpatialCoordinate(mesh)
         x = u + X
 
-        F = self.Fmat()
-        #F = self.Fe()
+        #F = self.Fmat()
+        F = self.Fe()
 
         N = self.parameters["facet_normal"]
         n = cofac(F)*N
@@ -391,8 +391,8 @@ class Forms(object):
         u = self.parameters["displacement_variable"]
         d = u.ufl_domain().geometric_dimension()
         I = Identity(d)
-        F = self.Fmat()
-        #F = self.Fe()
+        #F = self.Fmat()
+        F = self.Fe()
         #F = I + grad(u)
 
         #F=Fe
@@ -508,8 +508,8 @@ class Forms(object):
         u = self.parameters["displacement_variable"]
         d = u.ufl_domain().geometric_dimension()
         I = Identity(d)
-        F = self.Fmat()
-        #F = self.Fe()
+        #F = self.Fmat()
+        F = self.Fe()
         #F = I + grad(u)
 
         #F=Fe
