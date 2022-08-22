@@ -193,13 +193,17 @@ class MeshClass():
         
         # define functions for growth 
         if 'growth' in self.parent_parameters.instruction_data['model']:
-            for k in ['theta']:
+            # Define theta functions to be used to update Fg later
+            for k in ['theta','stimulus','deviation']:
                 for d in ['fiber','sheet', 'sheet_normal']:
                     name = k + '_' + d
                     functions[name] = \
                         Function(self.model['function_spaces']['growth_scalar_FS'])
                     if k == 'theta':
                         functions[name].vector()[:] = 1
+            # create a temp fenics function to build up Fg
+            theta = Function(self.model['function_spaces']['growth_scalar_FS'])
+            theta.vector()[:] = 1
             functions['M1ij'] = \
                 project(as_tensor(f0[i]*f0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
             functions['M2ij'] = \
@@ -208,9 +212,9 @@ class MeshClass():
                 project(as_tensor(n0[i]*n0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
             
 
-            functions['Fg'] = functions['theta_fiber'] * functions['M1ij'] +\
-                              functions['theta_sheet'] * functions['M2ij'] + \
-                              functions['theta_sheet_normal'] * functions['M3ij']
+            functions['Fg'] = theta * functions['M1ij'] +\
+                              theta * functions['M2ij'] + \
+                              theta * functions['M3ij']
             
         
         functions["w"] = w
