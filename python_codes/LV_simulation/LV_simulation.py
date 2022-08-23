@@ -270,7 +270,8 @@ class LV_simulation():
             self.br = []
         # If required, create the growth object
         if 'growth' in instruction_data['model']:
-            print 'Initializing growth module'
+            if self.comm.Get_rank() == 0:
+                print 'Initializing growth module'
             self.gr = gr.growth(instruction_data['model']['growth'],
                                 self)
         else:
@@ -325,8 +326,8 @@ class LV_simulation():
                                                     in_average = False,
                                                     frequency = 1):
         """ return a data structure for each spatial variables, specially for MyoSim parameters"""
-
-        print 'creating spatial sim data'
+        if self.comm.Get_rank() == 0:
+            print 'creating spatial sim data'
         
         rows = int(no_of_data_points/frequency) +1 # 1 for time zero
         i = np.zeros(rows)
@@ -368,7 +369,8 @@ class LV_simulation():
             for f in data_field:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
                 #spatial_data[f]['time'] = pd.Series(0)
-        print 'spatial simulation data is created'
+        if self.comm.Get_rank() == 0:
+            print 'spatial simulation data is created'
         
         return spatial_data
 
@@ -432,7 +434,8 @@ class LV_simulation():
                     self.check_output_directory_folder(path = mesh_out_path)
                 
                 if "mesh_object_to_save" in output_struct:
-                    print 'mesh obj is defined'
+                    if self.comm.Get_rank() == 0:
+                        print 'mesh obj is defined'
                     self.mesh_obj_to_save = output_struct['mesh_object_to_save']
                     # start creating file for mesh objects
                     file_path = os.path.join(mesh_out_path,'solution.xdmf') 
@@ -440,26 +443,29 @@ class LV_simulation():
                     self.solution_mesh.parameters.update({"functions_share_mesh": True,
                                             "rewrite_function_mesh": False})
 
-
+                    
                     for m in self.mesh_obj_to_save:
-                        
                         if m == 'displacement':
                             temp_obj = self.mesh.model['functions']['w'].sub(0)
                         if m == 'hs_length':
                             temp_obj = project(self.mesh.model['functions']['hsl'], 
-                                                self.mesh.model['function_spaces']["scalar"])
+                                                self.mesh.model['function_spaces']["scalar"],
+                                                form_compiler_parameters={"representation":"uflacs"})
 
                         if m in ['k_1','k_3','k_on','k_act','k_serca']:
                             temp_obj = project(self.mesh.model['functions'][m], 
-                                                self.mesh.model['function_spaces']["scalar"])
+                                                self.mesh.model['function_spaces']["scalar"],
+                                                form_compiler_parameters={"representation":"uflacs"})
                         if m == 'active_stress':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"])
+                                        self.mesh.model['function_spaces']["scalar"],
+                                        form_compiler_parameters={"representation":"uflacs"})
                         if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['vector_f'])
+                                        self.mesh.model['function_spaces']['vector_f'],
+                                        form_compiler_parameters={"representation":"uflacs"})
 
                         temp_obj.rename(m,'')
                         self.solution_mesh.write(temp_obj,0)
@@ -668,19 +674,23 @@ class LV_simulation():
                         temp_obj = self.mesh.model['functions']['w'].sub(0)
                     if m == 'hs_length':
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
-                                                self.mesh.model['function_spaces']["scalar"])
+                                                self.mesh.model['function_spaces']["scalar"],
+                                                form_compiler_parameters={"representation":"uflacs"})
                     
                     if m in ['k_1','k_3','k_on','k_act','k_serca']:
                             temp_obj = project(self.mesh.model['functions'][m], 
-                                                self.mesh.model['function_spaces']["scalar"])
+                                                self.mesh.model['function_spaces']["scalar"],
+                                                form_compiler_parameters={"representation":"uflacs"})
                     if m == 'active_stress':
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"])
+                                        self.mesh.model['function_spaces']["scalar"],
+                                        form_compiler_parameters={"representation":"uflacs"})
                     if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['vector_f'])
+                                        self.mesh.model['function_spaces']['vector_f'],
+                                        form_compiler_parameters={"representation":"uflacs"})
 
                     temp_obj.rename(m,'')
                     self.solution_mesh.write(temp_obj,self.data['time'])

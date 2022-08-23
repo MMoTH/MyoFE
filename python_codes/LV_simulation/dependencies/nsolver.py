@@ -36,7 +36,27 @@ class NSolver(object):
                 "max_iter": 50,
                 'debugging_mode': False}
 
+    def solve_growth(self):
+        abs_tol = self.solver_params["abs_tol"]
+        rel_tol = self.solver_params["rel_tol"]
+        maxiter = self.solver_params["max_iter"]
+        debugging_mode = self.solver_params["debugging_mode"]
 
+        w = self.parameters["w"]
+        bcs = self.parameters["boundary_conditions"]
+        Jac_gr = self.parameters["Jac_gr"]
+        Ftotal_Gr = self.parameters["Ftotal_gr"]
+
+        if(not debugging_mode):
+
+            solve(Ftotal_Gr == 0, w, bcs, J = Jac_gr,
+                solver_parameters={"newton_solver":
+                                {"relative_tolerance":rel_tol, 
+                                 "absolute_tolerance":abs_tol, 
+                                 "maximum_iterations":maxiter}}, 
+                                 form_compiler_parameters={"representation":"uflacs"})
+
+            self.parent.mesh.model['functions']['w'] = w
     def solvenonlinear(self):
 
         abs_tol = self.solver_params["abs_tol"]

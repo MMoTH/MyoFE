@@ -94,14 +94,25 @@ class growth():
             unloading_vol = \
                 self.parent_circulation.circ.data['v'][-1] - ref_LV_vol
             self.unload_to_reference_config(unloading_vol)
+            #Fmat = self.parent_circulation.mesh.model['uflforms'].Fmat()
+            #temp_F= project(Fmat,self.parent_circulation.mesh.model['function_spaces']['tensor_space'])
+            #print "self.mesh.model['uflforms'].LVcavityvol()"
+            #print self.mesh.model['uflforms'].LVcavityvol()
 
             # update Fg
-            theta_ff = self.mesh.model['functions']['theta_fiber']
-            theta_ss = self.mesh.model['functions']['theta_sheet']
-            theta_nn = self.mesh.model['functions']['theta_sheet_normal']
-            self.mesh.model['uflforms'].update_Fg(theta_ff,theta_ss,theta_nn)
-            
-
+            self.update_theta_Fg()
+            """Fg = self.parent_circulation.mesh.model['uflforms'].Fg
+            temp_Fg = project(Fg,self.parent_circulation.mesh.model['function_spaces']['tensor_space'],
+                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+            if self.comm.Get_rank() == 0:
+                print 'temp_Fg'
+                print temp_Fg"""
+            self.grow_reference_config()
+         
+            for dir in ['fiber','sheet','sheet_normal']:
+                name = 'theta_' + dir
+                self.mesh.model['functions'][name].vector()[:] = 1
+            self.update_theta_Fg()
             # Third, grow the mesh with Fg
             if self.comm.Get_rank() == 0:
                 print 'Growing the mesh at the reference configuration'
@@ -143,11 +154,30 @@ class growth():
             if self.comm.Get_rank() == 0:
                 print '%d more steps to unload LV back to its reference configuration' %remained_steps
             
-
         return 
+
     def grow_reference_config(self):
+
+        # growth the mesh with Fg
+        if self.comm.Get_rank() == 0:
+            print 'Solveing Fg = 0'
+        self.parent_circulation.solver.solve_growth()
+        
+        # move the mesh and build up new reference config
+        (u,p,pendo,c11)   = split(self.mesh.model['functions']['w'])
+        mesh = self.mesh.model['mesh']
+        if self.comm.Get_rank() == 0:
+            print 'Moving reference mesh'
+        ALE.move(mesh, project(u, VectorFunctionSpace(mesh, 'CG', 1),
+                                form_compiler_parameters={"representation":"uflacs"}))
+
         return 
 
+    def update_theta_Fg(self):
+        theta_ff = self.mesh.model['functions']['theta_fiber']
+        theta_ss = self.mesh.model['functions']['theta_sheet']
+        theta_nn = self.mesh.model['functions']['theta_sheet_normal']
+        self.mesh.model['uflforms'].update_Fg(theta_ff,theta_ss,theta_nn)
 
 class growth_component():
     "Class for a growth component"
@@ -181,14 +211,15 @@ class growth_component():
 
         if self.data['signal'] == 'myofiber_passive_stress':
             s = project(inner(f0,myofiber_passive*f0),
-                            scalar_fs).vector().array()[:]
+                            scalar_fs,
+                            form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
         if self.data['signal'] == 'total_stress':
-            active_stress = self.mesh.model['functions']['Pactive']
+            active_stress = self.parent.mesh.model['functions']['Pactive']
             total_stress = total_passive + active_stress
             inner_p = inner(f0,total_stress*f0)
 
-            s = project(inner_p,
-                            scalar_fs).vector().get_local()[:]   
+            s = project(inner_p,scalar_fs,
+                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
         return s
 
     def return_theta(self,stimulus,time_step):
@@ -203,9 +234,7 @@ class growth_component():
             dtheta = self.return_theta_dot(t_0,s,s_set[i])
 
             theta_new[i] = t_0 + dtheta*time_step
-        if self.parent.comm.Get_rank() == 0:
-            print 'theta'
-            print theta_new
+        
         return theta_new
 
     def return_theta_dot(self,theta,s,set):
@@ -237,14 +266,15 @@ class growth_component():
 
         if self.data['signal'] == 'myofiber_passive_stress':
             set = project(inner(f0,myofiber_passive*f0),
-                            scalar_fs).vector().array()[:]
+                            scalar_fs,
+                            form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
         if self.data['signal'] == 'total_stress':
-            active_stress = self.mesh.model['functions']['Pactive']
+            active_stress = self.parent.mesh.model['functions']['Pactive']
             total_stress = total_passive + active_stress
             inner_p = inner(f0,total_stress*f0)
 
-            set = project(inner_p,
-                            scalar_fs).vector().get_local()[:]   
+            set = project(inner_p,scalar_fs,
+                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
 
         self.data['setpoint_tracker'].append(set)
 

@@ -52,6 +52,7 @@ class Forms(object):
     def Fe(self):
         #Fg = self.parameters["growth_tensor"]
         F = self.Fmat()
+
         #Fg = self.Fg
         #Fe = as_tensor(F[i,j]*inv(Fg)[j,k], (i,k))
         if "Fg" in self.parameters:
@@ -67,7 +68,7 @@ class Forms(object):
         d = u.ufl_domain().geometric_dimension()
         I = Identity(d)
         #F = self.Fmat()
-    	F = self.Fe()
+        F = self.Fe()
         #return 0.5*(F.T*F-I)
     	return 0.5*(as_tensor(F[k,i]*F[k,j] - I[i,j], (i,j)))
 
@@ -509,7 +510,7 @@ class Forms(object):
         d = u.ufl_domain().geometric_dimension()
         I = Identity(d)
         #F = self.Fmat()
-        F = self.Fe()
+        #F = self.Fe()
         #F = I + grad(u)
 
         #F=Fe

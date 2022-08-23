@@ -49,8 +49,8 @@ class MeshClass():
 
         self.model['boundary_conditions'] = self.initialize_boundary_conditions()
 
-        self.model['Ftotal'], self.model['Jac'], \
-        self.model['uflforms'], self.model['solver_params'] = \
+        self.model['Ftotal'], self.model['Ftotal_gr'],self.model['Jac'], \
+        self.model['Jac_gr'], self.model['uflforms'], self.model['solver_params'] = \
             self.create_weak_form()
 
     def initialize_function_spaces(self,mesh_struct):
@@ -480,11 +480,13 @@ class MeshClass():
         solver_params['mode'] = 1
         
         solver_params['Jacobian'] = Jac
+        solver_params['Jac_gr'] = Jac_growth
         solver_params['Jac1'] = Jac1
         solver_params['Jac2'] = Jac2
         solver_params['Jac3'] = Jac3
         solver_params['Jac4'] = Jac4 
         solver_params['Ftotal'] = Ftotal
+        solver_params['Ftotal_gr'] = Ftotal_growth
         solver_params['F1'] = F1
         solver_params['F2'] = F2
         solver_params['F3'] = F3
@@ -494,7 +496,7 @@ class MeshClass():
         solver_params['hsl'] = self.model['functions']['hsl']
         #nsolver = NSolver(params)
 
-        return Ftotal, Jac, uflforms, solver_params
+        return Ftotal, Ftotal_growth, Jac, Jac_growth, uflforms, solver_params
        
     def initialize_dolfin_functions(self,dolfin_functions_dict,fcn_space):
 
