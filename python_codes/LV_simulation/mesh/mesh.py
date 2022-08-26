@@ -128,7 +128,11 @@ class MeshClass():
     def initialize_functions(self, mesh_struct):
 
         functions = dict()
-
+        # create a functions to store which parts of mesh is handled by which core
+        core_ranks = MeshFunction('size_t', self.model['mesh'], 
+                                    self.model['mesh'].topology().dim()-1)
+        core_ranks.set_all(self.comm.Get_rank())
+        
         half_sarcomere_params = \
             self.parent_parameters.instruction_data['model']['half_sarcomere']
         # mesh function needed later
@@ -204,6 +208,7 @@ class MeshClass():
             # create a temp fenics function to build up Fg
             theta = Function(self.model['function_spaces']['growth_scalar_FS'])
             theta.vector()[:] = 1
+
             functions['M1ij'] = \
                 project(as_tensor(f0[i]*f0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
             functions['M2ij'] = \
@@ -242,6 +247,7 @@ class MeshClass():
         functions["pseudo_alpha"] = pseudo_alpha
         functions["pseudo_old"] = pseudo_old
         functions["y_vec"] = y_vec
+        functions['core_ranks'] = core_ranks
 
 
         return functions
@@ -432,7 +438,7 @@ class MeshClass():
         F3 = derivative(Wvol, w, wtest)
         self.F_list.append(F3)
         # For pressure on endo instead of volume bdry condition
-        F3_p = Press*inner(n,v)*ds(LVendoid)
+        F3_p = Press*inner(n,v)*ds(params['LVendo_comp'])
 
         # constrain rigid body motion
         L4 = inner(as_vector([c11[0], c11[1], 0.0]), u)*dx + \
@@ -444,7 +450,7 @@ class MeshClass():
         self.F_list.append(F4)
         Ftotal = F1 + F2 + F3 + F4 
 
-        Ftotal_growth = F1 + F3_p + F4
+        Ftotal_growth = F1 +F3 + F4
 
         
 
@@ -458,7 +464,7 @@ class MeshClass():
             self.J_list.append(derivative(f, w, dw))
 
         Jac = Jac1 + Jac2 + Jac3 + Jac4 
-        Jac_growth = Jac1 + Jac3_p + Jac4
+        Jac_growth = Jac1 + Jac3+ Jac4
 
         if 'pericardial' in self.parent_parameters.instruction_data['mesh']:
             pericardial_bc_struct = self.parent_parameters.instruction_data['mesh']['pericardial']
