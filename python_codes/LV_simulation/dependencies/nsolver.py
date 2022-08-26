@@ -79,6 +79,7 @@ class NSolver(object):
         w = self.parameters["w"]
         bcs = self.parameters["boundary_conditions"]
         
+        
         hsl = self.parameters['hsl']
 
 

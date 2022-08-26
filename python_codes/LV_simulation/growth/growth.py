@@ -92,13 +92,26 @@ class growth():
                 print 'Unloading LV to the reference volume'
             ref_LV_vol = self.parent_circulation.reference_LV_vol
             unloading_vol = \
-                self.parent_circulation.circ.data['v'][-1] - ref_LV_vol
-            self.unload_to_reference_config(unloading_vol)
+                ref_LV_vol - self.parent_circulation.circ.data['v'][-1] 
+            print 'Unloading volume is: %f' %unloading_vol
+            print 'Ref vol is: %f' %ref_LV_vol
+            # first store cb distribution data into a temp variable
+            # and then reset it to 0
+            temp_y_vec = \
+                Function(self.mesh.model['function_spaces']['quad_vectorized_space'])
+
+            # assign the value of main y-vec to temporary function
+            temp_y_vec.assign(self.mesh.model['functions']['y_vec'])
+            # reset y_vec to 0
+            self.mesh.model['functions']['y_vec'].vector()[:] = 0
+            
+            self.diastolic_loading(unloading_vol)
             #Fmat = self.parent_circulation.mesh.model['uflforms'].Fmat()
             #temp_F= project(Fmat,self.parent_circulation.mesh.model['function_spaces']['tensor_space'])
             #print "self.mesh.model['uflforms'].LVcavityvol()"
             #print self.mesh.model['uflforms'].LVcavityvol()
-
+            print "vol before growth"
+            print self.mesh.model['uflforms'].LVcavityvol()
             # update Fg
             self.update_theta_Fg()
             """Fg = self.parent_circulation.mesh.model['uflforms'].Fg
@@ -107,12 +120,31 @@ class growth():
             if self.comm.Get_rank() == 0:
                 print 'temp_Fg'
                 print temp_Fg"""
+            
             self.grow_reference_config()
-         
+
+            
             for dir in ['fiber','sheet','sheet_normal']:
                 name = 'theta_' + dir
                 self.mesh.model['functions'][name].vector()[:] = 1
             self.update_theta_Fg()
+            print "vol after growth"
+            print self.mesh.model['uflforms'].LVcavityvol()
+            #update LV vol expression 
+            self.mesh.model['functions']['LVCavityvol'].vol = \
+                self.mesh.model['uflforms'].LVcavityvol()
+            self.parent_circulation.reference_LV_vol = \
+                self.mesh.model['uflforms'].LVcavityvol()
+            
+            # reset solution to zero 
+            self.mesh.model['functions']['w'].vector()[:] = 0.0
+
+            # now reload back to ED vol
+            loading_vol = \
+                self.parent_circulation.circ.data['v'][-1] - \
+                    self.parent_circulation.reference_LV_vol
+            self.diastolic_loading(loading_vol)
+        
             # Third, grow the mesh with Fg
             if self.comm.Get_rank() == 0:
                 print 'Growing the mesh at the reference configuration'
@@ -128,33 +160,24 @@ class growth():
         # Reload cb distribution
         return
 
-    def unload_to_reference_config(self,unloading_vol):
-        # first store cb distribution data into a temp variable
-        # and then reset it to 0
-        temp_y_vec = \
-            Function(self.mesh.model['function_spaces']['quad_vectorized_space'])
+    def diastolic_loading(self,volume_change):
+        
 
-        # assign the value of main y-vec to temporary function
-        temp_y_vec.assign(self.mesh.model['functions']['y_vec'])
-        # reset y_vec to 0
-        self.mesh.model['functions']['y_vec'].vector()[:] = 0
-
-        # Unload LV decrementally in n_step =10
         n_step = 10.0
-        decrement_vol = unloading_vol / n_step
+        delta_vol = volume_change / n_step
 
         if self.comm.Get_rank() == 0:
-            print 'Unloading LV to the reference configuration'
+            print 'Diastolic loading/unloading ...'
         for n in range(int(n_step)):
-            self.mesh.model['functions']['LVCavityvol'].vol -= decrement_vol
-            lv_vol = self.mesh.model['functions']['LVCavityvol'].vol
+            self.mesh.model['functions']['LVCavityvol'].vol += delta_vol
+            #lv_vol = self.mesh.model['functions']['LVCavityvol'].vol
             
             self.parent_circulation.solver.solvenonlinear()
-            remained_steps = n_step - (n+1)
+            lv_vol = self.mesh.model['uflforms'].LVcavityvol()
+            #remained_steps = n_step - (n+1)
             if self.comm.Get_rank() == 0:
-                print '%d more steps to unload LV back to its reference configuration' %remained_steps
+                print 'LV vol at step %d of loading/unloading is: %f' %(n,lv_vol)
             
-        return 
 
     def grow_reference_config(self):
 
