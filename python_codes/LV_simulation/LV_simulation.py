@@ -442,8 +442,13 @@ class LV_simulation():
                     self.solution_mesh = XDMFFile(mpi_comm_world(),file_path)
                     self.solution_mesh.parameters.update({"functions_share_mesh": True,
                                             "rewrite_function_mesh": False})
+                    # if multiple cores are being used then save
+                    # a mesh object to visualize core assignments
+                    if self.comm.Get_size()>1:
+                        xdmf = XDMFFile(mesh_out_path+"/mesh_with_mpi" + ".xdmf")
+                        xdmf.write(self.mesh.model['functions']['core_ranks'])
+                        xdmf.close()
 
-                    
                     for m in self.mesh_obj_to_save:
                         if m == 'displacement':
                             temp_obj = self.mesh.model['functions']['w'].sub(0)
@@ -451,7 +456,7 @@ class LV_simulation():
                             temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scalar"],
                                                 form_compiler_parameters={"representation":"uflacs"})
-
+                        
                         if m in ['k_1','k_3','k_on','k_act','k_serca']:
                             temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scalar"],
@@ -466,9 +471,14 @@ class LV_simulation():
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'],
                                         form_compiler_parameters={"representation":"uflacs"})
-
-                        temp_obj.rename(m,'')
-                        self.solution_mesh.write(temp_obj,0)
+                        
+                        if m == 'facetboundaries':
+                            xdmf = XDMFFile(mesh_out_path+"/facet_boundaries" + ".xdmf")
+                            xdmf.write(self.mesh.model['functions']['facetboundaries'])
+                            xdmf.close()
+                        else:
+                            temp_obj.rename(m,'')
+                            self.solution_mesh.write(temp_obj,0)
 
             if 'output_data_path' in output_struct:
                 self.output_data_str = output_struct['output_data_path'][0]
@@ -476,13 +486,13 @@ class LV_simulation():
                     self.check_output_directory_folder(path = self.output_data_str)
 
         for i in np.arange(self.prot.data['no_of_time_steps']+1):
-            #self.implement_time_step(self.prot.data['time_step'])
-            try:
+            self.implement_time_step(self.prot.data['time_step'])
+            """try:
                 self.implement_time_step(self.prot.data['time_step'])
             except RuntimeError: 
                 print "RuntimeError happend"
                 self.handle_output(output_struct)
-                return
+                return"""
 
 
         # Now build up global data holders for 
@@ -676,7 +686,7 @@ class LV_simulation():
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scalar"],
                                                 form_compiler_parameters={"representation":"uflacs"})
-                    
+                   
                     if m in ['k_1','k_3','k_on','k_act','k_serca']:
                             temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scalar"],
@@ -693,8 +703,9 @@ class LV_simulation():
                                         form_compiler_parameters={"representation":"uflacs"})
 
                     temp_obj.rename(m,'')
-                    self.solution_mesh.write(temp_obj,self.data['time'])
-
+                    #self.solution_mesh.write(temp_obj,self.data['time'])
+                    
+                    self.solution_mesh.write(temp_obj,0)
         # Update the t counter for the next step
         self.t_counter = self.t_counter + 1
         self.data['time'] = self.data['time'] + time_step
