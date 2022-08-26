@@ -452,9 +452,6 @@ class MeshClass():
 
         Ftotal_growth = F1 +F3 + F4
 
-        
-
-
         Jac1 = derivative(F1, w, dw)
         Jac2 = derivative(F2, w, dw)
         Jac3 = derivative(F3, w, dw)

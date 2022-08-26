@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [20],
+        "no_of_time_steps": [100],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -17,7 +17,7 @@
             "activations": 
             [
                 {
-                    "t_start_s": [3],
+                    "t_start_s": [0.005],
                     "t_stop_s": [400]
                 }
             ]
@@ -47,8 +47,8 @@
     },
     "heart_rate": {
         "t_active_period": [0.003],
-        "t_quiescent_period": [0.92],
-        "t_first_activation": [0.1]
+        "t_quiescent_period": [0.004],
+        "t_first_activation": [0.007]
     },
     "mesh":
     {
@@ -346,24 +346,32 @@
                     "tau": [0.2],
                     "theta_max": [2],
                     "theta_min": [0.5]
+                },
+                {
+                    "type": ["sheet"],
+                    "signal": ["total_stress"],
+                    "tau": [0.2],
+                    "theta_max": [2],
+                    "theta_min": [0.5]
                 }
             ]
         }
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/base/sim_output/new_test/data.csv"],
-        "mesh_output_path": ["../demos/base/sim_output/new_test/mesh_output"],
+        "output_data_path": ["../demos/base/sim_output/growth_test/data.csv"],
+        "mesh_output_path": ["../demos/base/sim_output/growth_test/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
             "active_stress",
             "hs_length",
-	    "k_1",
-	    "k_3",
-	    "k_on",
-	    "k_act",
-	    "k_serca"
+            "facetboundaries",
+            "k_1",
+            "k_3",
+            "k_on",
+            "k_act",
+            "k_serca"
         ],
         "dumping_spatial_in_average":[true],
         "frequency_n": [10]

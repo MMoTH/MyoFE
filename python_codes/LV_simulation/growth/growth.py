@@ -92,14 +92,15 @@ class growth():
                 print 'Unloading LV to the reference volume'
             ref_LV_vol = self.parent_circulation.reference_LV_vol
             unloading_vol = \
-                ref_LV_vol - self.parent_circulation.circ.data['v'][-1] 
-            print 'Unloading volume is: %f' %unloading_vol
-            print 'Ref vol is: %f' %ref_LV_vol
+                ref_LV_vol - self.parent_circulation.circ.data['v'][-1]
+            if self.comm.Get_rank() == 0: 
+                print 'Unloading volume is: %f' %unloading_vol
+                print 'Ref vol is: %f' %ref_LV_vol
+
             # first store cb distribution data into a temp variable
             # and then reset it to 0
             temp_y_vec = \
                 Function(self.mesh.model['function_spaces']['quad_vectorized_space'])
-
             # assign the value of main y-vec to temporary function
             temp_y_vec.assign(self.mesh.model['functions']['y_vec'])
             # reset y_vec to 0
@@ -110,8 +111,9 @@ class growth():
             #temp_F= project(Fmat,self.parent_circulation.mesh.model['function_spaces']['tensor_space'])
             #print "self.mesh.model['uflforms'].LVcavityvol()"
             #print self.mesh.model['uflforms'].LVcavityvol()
-            print "vol before growth"
-            print self.mesh.model['uflforms'].LVcavityvol()
+            if self.comm.Get_rank() == 0:
+                print "vol before growth"
+                print self.mesh.model['uflforms'].LVcavityvol()
             # update Fg
             self.update_theta_Fg()
             """Fg = self.parent_circulation.mesh.model['uflforms'].Fg
@@ -120,19 +122,21 @@ class growth():
             if self.comm.Get_rank() == 0:
                 print 'temp_Fg'
                 print temp_Fg"""
-            
+            # Grow reference configuration
             self.grow_reference_config()
 
-            
+            # reset Fg = 1
             for dir in ['fiber','sheet','sheet_normal']:
                 name = 'theta_' + dir
                 self.mesh.model['functions'][name].vector()[:] = 1
             self.update_theta_Fg()
-            print "vol after growth"
-            print self.mesh.model['uflforms'].LVcavityvol()
+            if self.comm.Get_rank() == 0:
+                print "vol after growth"
+                print self.mesh.model['uflforms'].LVcavityvol()
             #update LV vol expression 
             self.mesh.model['functions']['LVCavityvol'].vol = \
                 self.mesh.model['uflforms'].LVcavityvol()
+            # uodate reference volume 
             self.parent_circulation.reference_LV_vol = \
                 self.mesh.model['uflforms'].LVcavityvol()
             
@@ -144,21 +148,13 @@ class growth():
                 self.parent_circulation.circ.data['v'][-1] - \
                     self.parent_circulation.reference_LV_vol
             self.diastolic_loading(loading_vol)
-        
-            # Third, grow the mesh with Fg
-            if self.comm.Get_rank() == 0:
-                print 'Growing the mesh at the reference configuration'
 
-            if self.comm.Get_rank() == 0:
-                print 'Moving the mesh to build the new reference configuration'
+            # reset y_vec back to its original value before growth
+            self.mesh.model['functions']['y_vec'].vector()[:] = \
+                temp_y_vec.vector().get_local()[:]
+            # solve with updted y_vec
+            self.parent_circulation.solver.solvenonlinear()
 
-
-        # Move the mesh
-
-        # Load back to EDV
-
-        # Reload cb distribution
-        return
 
     def diastolic_loading(self,volume_change):
         
