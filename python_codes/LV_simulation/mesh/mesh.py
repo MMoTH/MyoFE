@@ -207,15 +207,28 @@ class MeshClass():
                         functions[name].vector()[:] = 1
             # create a temp fenics function to build up Fg
             theta = Function(self.model['function_spaces']['growth_scalar_FS'])
+            #theta = Function(self.model['function_spaces']['quadrature_space'])
             theta.vector()[:] = 1
 
             functions['M1ij'] = \
-                project(as_tensor(f0[i]*f0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
+                project(as_tensor(f0[i]*f0[j], (i,j)), 
+                        self.model['function_spaces']['growth_tensor_FS'],
+                        form_compiler_parameters={"representation":"uflacs"})
             functions['M2ij'] = \
-                project(as_tensor(s0[i]*s0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
+                project(as_tensor(s0[i]*s0[j], (i,j)), 
+                        self.model['function_spaces']['growth_tensor_FS'],
+                        form_compiler_parameters={"representation":"uflacs"})
             functions['M3ij'] = \
-                project(as_tensor(n0[i]*n0[j], (i,j)), self.model['function_spaces']['growth_tensor_FS'])
+                project(as_tensor(n0[i]*n0[j], (i,j)), 
+                        self.model['function_spaces']['growth_tensor_FS'],
+                        form_compiler_parameters={"representation":"uflacs"})
             
+            """functions['M1ij'] = as_tensor(f0[i]*f0[j], (i,j)) 
+                
+            functions['M2ij'] = as_tensor(s0[i]*s0[j], (i,j))
+                
+            functions['M3ij'] = as_tensor(n0[i]*n0[j], (i,j))"""
+                
 
             functions['Fg'] = theta * functions['M1ij'] +\
                               theta * functions['M2ij'] + \
@@ -450,7 +463,7 @@ class MeshClass():
         self.F_list.append(F4)
         Ftotal = F1 + F2 + F3 + F4 
 
-        Ftotal_growth = F1 +F3 + F4
+        Ftotal_growth = F1 +F3_p + F4
 
         Jac1 = derivative(F1, w, dw)
         Jac2 = derivative(F2, w, dw)
@@ -461,7 +474,7 @@ class MeshClass():
             self.J_list.append(derivative(f, w, dw))
 
         Jac = Jac1 + Jac2 + Jac3 + Jac4 
-        Jac_growth = Jac1 + Jac3+ Jac4
+        Jac_growth = Jac1 + Jac3_p+ Jac4
 
         if 'pericardial' in self.parent_parameters.instruction_data['mesh']:
             pericardial_bc_struct = self.parent_parameters.instruction_data['mesh']['pericardial']

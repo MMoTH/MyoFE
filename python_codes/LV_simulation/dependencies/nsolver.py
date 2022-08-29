@@ -21,13 +21,13 @@ class NSolver(object):
                 for k in solver_struct['params'].keys():
                     self.solver_params[k] = solver_struct['params'][k][0]
         
-        if comm.Get_rank() == 0:
+        """if comm.Get_rank() == 0:
             print self.solver_params
             list_linear_solver_methods()
             print '****'
             list_krylov_solver_methods()
             print '****'
-            list_krylov_solver_preconditioners()
+            list_krylov_solver_preconditioners()"""
 
 
     def default_solver_parameters(self):

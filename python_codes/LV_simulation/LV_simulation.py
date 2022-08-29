@@ -64,7 +64,9 @@ class LV_simulation():
         self.mesh = MeshClass(self)
 
         # Initialize the solver object 
-        
+        myocardium_vol = CellVolume(self.mesh.model['mesh'])
+        print 'Myocardium volume'
+        print myocardium_vol
         #self.solver_params = self.mesh.model['solver_params']
         self.solver =  NSolver(self,comm)
 
@@ -545,8 +547,10 @@ class LV_simulation():
                 if ((self.t_counter >= g.data['t_start_ind']/2) and
                         (self.t_counter < g.data['t_start_ind'])):
                     self.gr.store_setpoint()
+
                 if self.t_counter == g.data['t_start_ind']:
                     self.gr.assign_setpoint()
+
                 # Implement growth when is
                 if ((self.t_counter >= g.data['t_start_ind']) and
                         (self.t_counter < g.data['t_stop_ind'])):
@@ -554,8 +558,91 @@ class LV_simulation():
                         print 'Growth module is activated'
                     self.gr.implement_growth(self.end_diastolic,time_step)
                     
+                    if self.end_diastolic:
+                        if self.comm.Get_rank() == 0:
+                            print 'Unloading LV to the reference volume'
 
-                
+                        ref_LV_vol = self.reference_LV_vol
+                        unloading_vol = \
+                            ref_LV_vol - self.circ.data['v'][-1]
+                        if self.comm.Get_rank() == 0: 
+                            print 'Unloading volume is: %f' %unloading_vol
+                            print 'Ref vol is: %f' %ref_LV_vol
+
+                        # first store cb distribution data into a temp variable
+                        # and then reset it to 0
+                        temp_y_vec = \
+                            Function(self.mesh.model['function_spaces']['quad_vectorized_space'])
+                        # assign the value of main y-vec to temporary function
+                        temp_y_vec.assign(self.mesh.model['functions']['y_vec'])
+                        # reset y_vec to 0
+                        self.mesh.model['functions']['y_vec'].vector()[:] = 0
+
+                        if self.comm.Get_rank() == 0:
+                            print "solving before updating unloading "
+                        self.solver.solvenonlinear()
+                        
+                        self.diastolic_loading(unloading_vol)
+                        #Fmat = self.parent_circulation.mesh.model['uflforms'].Fmat()
+                        #temp_F= project(Fmat,self.parent_circulation.mesh.model['function_spaces']['tensor_space'])
+                        #print "self.mesh.model['uflforms'].LVcavityvol()"
+                        #print self.mesh.model['uflforms'].LVcavityvol()
+                        if self.comm.Get_rank() == 0:
+                            print "vol before growth"
+                            print self.mesh.model['uflforms'].LVcavityvol()
+                        if self.comm.Get_rank() == 0:
+                            print "solving before updating FG"
+                        #self.parent_circulation.solver.solve_growth()
+                        #self.solver.solvenonlinear()
+                        # update Fg
+                        # *** testing 
+                        #for i in range(3):
+                        #    if self.comm.Get_rank() == 0:
+                        #        print 'Try: %d' %i
+                        #    self.solver.solvenonlinear()
+                        
+                        # *** testing
+                        self.update_theta_Fg()
+                        Fg = self.mesh.model['uflforms'].Fg
+                        Fg = self.mesh.model['functions']['Fg']
+                        temp_Fg = project(Fg,self.mesh.model['function_spaces']['tensor_space'],
+                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                        if self.comm.Get_rank() == 0:
+                            print 'temp_Fg'
+                            print temp_Fg
+                        # Grow reference configuration
+                        self.grow_reference_config()
+
+                        # reset Fg = 1
+                        for dir in ['fiber','sheet','sheet_normal']:
+                            name = 'theta_' + dir
+                            self.mesh.model['functions'][name].vector()[:] = 1
+
+                        self.update_theta_Fg()
+
+                        if self.comm.Get_rank() == 0:
+                            print "vol after growth"
+                            print self.mesh.model['uflforms'].LVcavityvol()
+                        #update LV vol expression 
+                        #self.mesh.model['functions']['LVCavityvol'].vol = \
+                        #    self.mesh.model['uflforms'].LVcavityvol()
+                        # uodate reference volume 
+                        self.reference_LV_vol = \
+                            self.mesh.model['uflforms'].LVcavityvol()
+                        
+                        # reset solution to zero 
+                        self.mesh.model['functions']['w'].vector()[:] = 0.0
+
+                        # now reload back to ED vol
+                        loading_vol = self.circ.data['v'][-1] - self.reference_LV_vol
+                        self.diastolic_loading(loading_vol)
+
+                        # reset y_vec back to its original value before growth
+                        self.mesh.model['functions']['y_vec'].vector()[:] = \
+                            temp_y_vec.vector().get_local()[:]
+                        # solve with updted y_vec
+                        self.solver.solvenonlinear()
+                        
 
 
 
@@ -917,3 +1004,48 @@ class LV_simulation():
 
         return ((xc-x)**2+(yc-y)**2+(zc-z)**2)**0.5 
 
+    def diastolic_loading(self,volume_change):
+        
+
+        n_step = 10.0
+        delta_vol = volume_change / n_step
+
+        if self.comm.Get_rank() == 0:
+            print 'Diastolic loading/unloading ...'
+        for n in range(int(n_step)):
+            self.mesh.model['functions']['LVCavityvol'].vol += delta_vol
+            #lv_vol = self.mesh.model['functions']['LVCavityvol'].vol
+            
+            self.solver.solvenonlinear()
+            lv_vol = self.mesh.model['uflforms'].LVcavityvol()
+            #remained_steps = n_step - (n+1)
+            if self.comm.Get_rank() == 0:
+                print 'LV vol at step %d of loading/unloading is: %f' %(n,lv_vol)
+            
+        """if self.comm.Get_rank() == 0:
+                print "solving for testing"
+            #self.parent_circulation.solver.solve_growth()
+        self.mesh.model['functions']['LVCavityvol'].vol += delta_vol
+        self.solver.solvenonlinear()"""
+    
+    def update_theta_Fg(self):
+        theta_ff = self.mesh.model['functions']['theta_fiber']
+        theta_ss = self.mesh.model['functions']['theta_sheet']
+        theta_nn = self.mesh.model['functions']['theta_sheet_normal']
+        self.mesh.model['uflforms'].update_Fg(theta_ff,theta_ss,theta_nn)
+    
+    def grow_reference_config(self):
+
+        # growth the mesh with Fg
+        if self.comm.Get_rank() == 0:
+            print 'Solveing Fg = 0'
+        self.solver.solve_growth()
+        #self.parent_circulation.solver.solvenonlinear()
+        
+        # move the mesh and build up new reference config
+        (u,p,pendo,c11)   = split(self.mesh.model['functions']['w'])
+        mesh = self.mesh.model['mesh']
+        if self.comm.Get_rank() == 0:
+            print 'Moving reference mesh'
+        ALE.move(mesh, project(u, VectorFunctionSpace(mesh, 'CG', 1),
+                                form_compiler_parameters={"representation":"uflacs"}))

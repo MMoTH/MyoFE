@@ -85,118 +85,7 @@ class growth():
                     print comp.data['mean_theta']
                     print self.mesh.model['functions'][name].vector().get_local()[:]
 
-        # Second, unload the mesh to the reference configuration
-        if end_diastolic:
-            
-            if self.comm.Get_rank() == 0:
-                print 'Unloading LV to the reference volume'
-            ref_LV_vol = self.parent_circulation.reference_LV_vol
-            unloading_vol = \
-                ref_LV_vol - self.parent_circulation.circ.data['v'][-1]
-            if self.comm.Get_rank() == 0: 
-                print 'Unloading volume is: %f' %unloading_vol
-                print 'Ref vol is: %f' %ref_LV_vol
-
-            # first store cb distribution data into a temp variable
-            # and then reset it to 0
-            temp_y_vec = \
-                Function(self.mesh.model['function_spaces']['quad_vectorized_space'])
-            # assign the value of main y-vec to temporary function
-            temp_y_vec.assign(self.mesh.model['functions']['y_vec'])
-            # reset y_vec to 0
-            self.mesh.model['functions']['y_vec'].vector()[:] = 0
-            
-            self.diastolic_loading(unloading_vol)
-            #Fmat = self.parent_circulation.mesh.model['uflforms'].Fmat()
-            #temp_F= project(Fmat,self.parent_circulation.mesh.model['function_spaces']['tensor_space'])
-            #print "self.mesh.model['uflforms'].LVcavityvol()"
-            #print self.mesh.model['uflforms'].LVcavityvol()
-            if self.comm.Get_rank() == 0:
-                print "vol before growth"
-                print self.mesh.model['uflforms'].LVcavityvol()
-            # update Fg
-            self.update_theta_Fg()
-            """Fg = self.parent_circulation.mesh.model['uflforms'].Fg
-            temp_Fg = project(Fg,self.parent_circulation.mesh.model['function_spaces']['tensor_space'],
-                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-            if self.comm.Get_rank() == 0:
-                print 'temp_Fg'
-                print temp_Fg"""
-            # Grow reference configuration
-            self.grow_reference_config()
-
-            # reset Fg = 1
-            for dir in ['fiber','sheet','sheet_normal']:
-                name = 'theta_' + dir
-                self.mesh.model['functions'][name].vector()[:] = 1
-            self.update_theta_Fg()
-            if self.comm.Get_rank() == 0:
-                print "vol after growth"
-                print self.mesh.model['uflforms'].LVcavityvol()
-            #update LV vol expression 
-            self.mesh.model['functions']['LVCavityvol'].vol = \
-                self.mesh.model['uflforms'].LVcavityvol()
-            # uodate reference volume 
-            self.parent_circulation.reference_LV_vol = \
-                self.mesh.model['uflforms'].LVcavityvol()
-            
-            # reset solution to zero 
-            self.mesh.model['functions']['w'].vector()[:] = 0.0
-
-            # now reload back to ED vol
-            loading_vol = \
-                self.parent_circulation.circ.data['v'][-1] - \
-                    self.parent_circulation.reference_LV_vol
-            self.diastolic_loading(loading_vol)
-
-            # reset y_vec back to its original value before growth
-            self.mesh.model['functions']['y_vec'].vector()[:] = \
-                temp_y_vec.vector().get_local()[:]
-            # solve with updted y_vec
-            self.parent_circulation.solver.solvenonlinear()
-
-
-    def diastolic_loading(self,volume_change):
-        
-
-        n_step = 10.0
-        delta_vol = volume_change / n_step
-
-        if self.comm.Get_rank() == 0:
-            print 'Diastolic loading/unloading ...'
-        for n in range(int(n_step)):
-            self.mesh.model['functions']['LVCavityvol'].vol += delta_vol
-            #lv_vol = self.mesh.model['functions']['LVCavityvol'].vol
-            
-            self.parent_circulation.solver.solvenonlinear()
-            lv_vol = self.mesh.model['uflforms'].LVcavityvol()
-            #remained_steps = n_step - (n+1)
-            if self.comm.Get_rank() == 0:
-                print 'LV vol at step %d of loading/unloading is: %f' %(n,lv_vol)
-            
-
-    def grow_reference_config(self):
-
-        # growth the mesh with Fg
-        if self.comm.Get_rank() == 0:
-            print 'Solveing Fg = 0'
-        self.parent_circulation.solver.solve_growth()
-        
-        # move the mesh and build up new reference config
-        (u,p,pendo,c11)   = split(self.mesh.model['functions']['w'])
-        mesh = self.mesh.model['mesh']
-        if self.comm.Get_rank() == 0:
-            print 'Moving reference mesh'
-        ALE.move(mesh, project(u, VectorFunctionSpace(mesh, 'CG', 1),
-                                form_compiler_parameters={"representation":"uflacs"}))
-
-        return 
-
-    def update_theta_Fg(self):
-        theta_ff = self.mesh.model['functions']['theta_fiber']
-        theta_ss = self.mesh.model['functions']['theta_sheet']
-        theta_nn = self.mesh.model['functions']['theta_sheet_normal']
-        self.mesh.model['uflforms'].update_Fg(theta_ff,theta_ss,theta_nn)
+      
 
 class growth_component():
     "Class for a growth component"
@@ -220,8 +109,10 @@ class growth_component():
         self.data['mean_theta'] = self.data['theta']
     
     def return_stimulus(self):
+
         if self.parent.comm.Get_rank() == 0:
             print 'Storing stimuli data!'
+
         hsl = self.parent.mesh.model['functions']['hsl']
         f0 = self.parent.mesh.model['functions']['f0']
         scalar_fs = self.parent.mesh.model['function_spaces']['growth_scalar_FS']
@@ -232,6 +123,7 @@ class growth_component():
             s = project(inner(f0,myofiber_passive*f0),
                             scalar_fs,
                             form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
+
         if self.data['signal'] == 'total_stress':
             active_stress = self.parent.mesh.model['functions']['Pactive']
             total_stress = total_passive + active_stress
