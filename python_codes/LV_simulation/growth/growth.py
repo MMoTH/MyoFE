@@ -76,7 +76,7 @@ class growth():
                 #comp.data['stimulus_tracker'] = []
 
                 # Update theta functions to update Fg
-                name = 'theta_' + comp.data['type']
+                name = 'temp_theta_' + comp.data['type']
 
                 self.mesh.model['functions'][name].vector()[:] = \
                     comp.data['mean_theta']

@@ -47,6 +47,12 @@ class NSolver(object):
         Jac_gr = self.parameters["Jac_gr"]
         Ftotal_Gr = self.parameters["Ftotal_gr"]
 
+        
+        F3_p = self.parameters["F3_p"]
+
+        f3_p_temp = assemble(F3_p, form_compiler_parameters={"representation":"uflacs"})
+        
+
         if(not debugging_mode):
 
             solve(Ftotal_Gr == 0, w, bcs, J = Jac_gr,

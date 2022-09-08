@@ -45,7 +45,10 @@ class Forms(object):
         M1ij = self.M1ij
         M2ij = self.M2ij
         M3ij = self.M3ij
-        Fg = theta1*M1ij + theta2*M2ij + theta3*M3ij
+        #Fg = theta1*M1ij + theta2*M2ij + theta3*M3ij
+        temp_Fg = theta1*M1ij + theta2*M2ij + theta3*M3ij
+        Fg = project(temp_Fg,self.parameters["growth_tensor_FS"],
+                    form_compiler_parameters={"representation":"uflacs"})
         #print "Fg updated", project(Fg,self.TF).vector().get_local()
         self.Fg = Fg
 
@@ -96,8 +99,8 @@ class Forms(object):
         X = SpatialCoordinate(mesh)
         ds = dolfin.ds(subdomain_data = self.parameters["facetboundaries"])
 
-        #F = self.Fmat()
-        F = self.Fe()
+        F = self.Fmat()
+        #F = self.Fe()
 
         vol_form = -Constant(1.0/3.0) * inner(det(F)*dot(inv(F).T, N), X + u)*ds(self.parameters["LVendoid"])
 
@@ -324,8 +327,8 @@ class Forms(object):
         X = SpatialCoordinate(mesh)
         x = u + X
 
-        #F = self.Fmat()
-        F = self.Fe()
+        F = self.Fmat()
+        #F = self.Fe()
 
         N = self.parameters["facet_normal"]
         n = cofac(F)*N

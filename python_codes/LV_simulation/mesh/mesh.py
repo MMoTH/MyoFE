@@ -95,6 +95,14 @@ class MeshClass():
         hs_y_vec_len = len(self.parent_parameters.hs.myof.y)
         Quad_vectorized_Fspace = \
             FunctionSpace(self.model['mesh'], MixedElement(hs_y_vec_len*[Quadelem]))
+        
+        Telem2 = TensorElement("Quadrature", self.model['mesh'].ufl_cell(), 
+                            degree=deg, shape=2*(3,), quad_scheme='default')
+        Telem2._quad_scheme = 'default'
+        for e in Telem2.sub_elements():
+            e._quad_scheme = 'default'
+        TFQuad = FunctionSpace(self.model['mesh'], Telem2)
+        fcn_spaces['tensor_quadrature'] = TFQuad
 
         fcn_spaces['solution_space'] = W
         fcn_spaces["quadrature_space"] = Quad
@@ -198,17 +206,17 @@ class MeshClass():
         # define functions for growth 
         if 'growth' in self.parent_parameters.instruction_data['model']:
             # Define theta functions to be used to update Fg later
-            for k in ['theta','stimulus','deviation']:
+            for k in ['theta','temp_theta','stimulus','deviation']:
                 for d in ['fiber','sheet', 'sheet_normal']:
                     name = k + '_' + d
                     functions[name] = \
-                        Function(self.model['function_spaces']['growth_scalar_FS'])
+                        Function(self.model['function_spaces']['quadrature_space'])
                     if k == 'theta':
-                        functions[name].vector()[:] = 1
+                        functions[name].vector()[:] = 10
             # create a temp fenics function to build up Fg
-            theta = Function(self.model['function_spaces']['growth_scalar_FS'])
+            #theta = Function(self.model['function_spaces']['growth_scalar_FS'])
             #theta = Function(self.model['function_spaces']['quadrature_space'])
-            theta.vector()[:] = 1
+            #theta.vector()[:] = 1
 
             functions['M1ij'] = \
                 project(as_tensor(f0[i]*f0[j], (i,j)), 
@@ -228,11 +236,32 @@ class MeshClass():
             functions['M2ij'] = as_tensor(s0[i]*s0[j], (i,j))
                 
             functions['M3ij'] = as_tensor(n0[i]*n0[j], (i,j))"""
-                
+            
+            functions['Fg'] = functions['theta_fiber'] * functions['M1ij'] +\
+                                functions['theta_sheet'] * functions['M2ij'] + \
+                                functions['theta_sheet_normal'] * functions['M3ij']
 
-            functions['Fg'] = theta * functions['M1ij'] +\
+            """temp_Fg = functions['theta_fiber'] * functions['M1ij'] +\
+                        functions['theta_sheet'] * functions['M2ij'] + \
+                        functions['theta_sheet_normal'] * functions['M3ij']"""
+
+            """functions['Fg'] = theta * functions['M1ij'] +\
                               theta * functions['M2ij'] + \
-                              theta * functions['M3ij']
+                              theta * functions['M3ij']"""
+            """functions['Fg'] = project(functions['theta_fiber'] * functions['M1ij'] +\
+                                        functions['theta_sheet'] * functions['M2ij'] + \
+                                        functions['theta_sheet_normal'] * functions['M3ij'],
+                                        self.model['function_spaces']['growth_tensor_FS'],
+                                        form_compiler_parameters={"representation":"uflacs"})"""
+            #functions['Fg'] = project(temp_Fg,self.model['function_spaces']['tensor_quadrature'],
+            #                    form_compiler_parameters={"representation":"quadrature"})
+            print '*****'
+            print functions['theta_fiber']#.vector().get_local()[:]
+            #temp_Fg_0 = project(functions['Fg'],self.model['function_spaces']['growth_tensor_FS'],
+            #                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+            temp_Fg_0 = project(functions['Fg'],self.model['function_spaces']['growth_tensor_FS'],
+                                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+            print temp_Fg_0
             
         
         functions["w"] = w
@@ -332,7 +361,7 @@ class MeshClass():
         # Need to tack on some other stuff, including an expression to keep track of
         # and manipulate the cavity volume
         LVCavityvol = Expression(("vol"), vol=0.0, degree=2)
-        Press = Expression(("P"),P=0.0,degree=0)
+        Press = Expression(("P"),P=0.0,degree=2)
         self.model['functions']["LVCavityvol"] = LVCavityvol
         self.model['functions']["Press"] = Press
         ventricle_params  = {
@@ -348,6 +377,8 @@ class MeshClass():
             growth_params = dict()
             for n in ['Fg','M1ij','M2ij','M3ij']:
                 growth_params[n] = self.model['functions'][n]
+            growth_params['growth_tensor_FS'] = \
+                self.model['function_spaces']['growth_tensor_FS']
             params.update(growth_params)
         uflforms = Forms(params)
 
@@ -357,15 +388,17 @@ class MeshClass():
         J = det(Fmat)
         Cmat = Fmat.T*Fmat"""
 
-        Fmat = uflforms.Fe()
+        Fe = uflforms.Fe()
+        F = uflforms.Fmat()
         Cmat = uflforms.Cmat()
         J = uflforms.J()
-        n = J*inv(Fmat.T)*N
+        n = J*inv(F.T)*N
         alpha_f = sqrt(dot(f0, Cmat*f0))
         hsl = alpha_f*hsl0
         self.model['functions']["hsl"] = hsl
         self.model['functions']['E'] = uflforms.Emat()
-        self.model['functions']['Fmat'] = Fmat
+        self.model['functions']['Fmat'] = F
+        self.model['functions']['Fe'] = Fe
         self.model['functions']['J'] = J
 
         if MPI.rank(self.comm) == 0:
@@ -444,7 +477,8 @@ class MeshClass():
         self.model['functions']['PK2_local'],self.model['functions']['incomp'] = \
             uflforms.passivestress(self.model['functions']["hsl"])
 
-        F2 = inner(Fmat*Pactive, grad(v))*dx
+        #F2 = inner(Fmat*Pactive, grad(v))*dx
+        F2 = inner(F*Pactive, grad(v))*dx
         self.F_list.append(F2)
         # LV volume increase
         Wvol = uflforms.LVV0constrainedE()
@@ -463,7 +497,7 @@ class MeshClass():
         self.F_list.append(F4)
         Ftotal = F1 + F2 + F3 + F4 
 
-        Ftotal_growth = F1 +F3_p + F4
+        Ftotal_growth = F1 + F3_p + F4
 
         Jac1 = derivative(F1, w, dw)
         Jac2 = derivative(F2, w, dw)
@@ -474,7 +508,7 @@ class MeshClass():
             self.J_list.append(derivative(f, w, dw))
 
         Jac = Jac1 + Jac2 + Jac3 + Jac4 
-        Jac_growth = Jac1 + Jac3_p+ Jac4
+        Jac_growth = Jac1 + Jac3_p + Jac4
 
         if 'pericardial' in self.parent_parameters.instruction_data['mesh']:
             pericardial_bc_struct = self.parent_parameters.instruction_data['mesh']['pericardial']
@@ -500,6 +534,7 @@ class MeshClass():
         solver_params['Jac1'] = Jac1
         solver_params['Jac2'] = Jac2
         solver_params['Jac3'] = Jac3
+        solver_params['Jac3_p'] = Jac3_p
         solver_params['Jac4'] = Jac4 
         solver_params['Ftotal'] = Ftotal
         solver_params['Ftotal_gr'] = Ftotal_growth
@@ -507,6 +542,7 @@ class MeshClass():
         solver_params['F2'] = F2
         solver_params['F3'] = F3
         solver_params['F4'] = F4
+        solver_params['F3_p'] = F3_p
         solver_params['w'] = w
         solver_params['boundary_conditions'] = self.model['boundary_conditions']
         solver_params['hsl'] = self.model['functions']['hsl']

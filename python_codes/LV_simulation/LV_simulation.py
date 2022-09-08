@@ -482,11 +482,22 @@ class LV_simulation():
                             temp_obj.rename(m,'')
                             self.solution_mesh.write(temp_obj,0)
 
+            if 'growth_mesh_path' in output_struct:
+                # create mesh object and visualize the growth of reference config
+                path = output_struct['growth_mesh_path'][0]
+                file_path = os.path.join(path,'growth.xdmf') 
+                self.growth_mesh = XDMFFile(mpi_comm_world(),file_path)
+                self.growth_mesh.parameters.update({"functions_share_mesh": True,
+                                            "rewrite_function_mesh": False})
+                temp_obj = self.mesh.model['functions']['w'].sub(0)
+                temp_obj.rename('Dis','')
+                self.growth_mesh.write(temp_obj,0)
+
             if 'output_data_path' in output_struct:
                 self.output_data_str = output_struct['output_data_path'][0]
                 if self.comm.Get_rank() == 0: 
                     self.check_output_directory_folder(path = self.output_data_str)
-
+            
         for i in np.arange(self.prot.data['no_of_time_steps']+1):
             self.implement_time_step(self.prot.data['time_step'])
             """try:
@@ -509,6 +520,8 @@ class LV_simulation():
             print '******** NEW TIME STEP ********'
             print (self.data['time'])
             print 
+        
+                #print self.
 
             if (self.t_counter % 10 == 0):
                 print('Sim time (s): %.00f  %.0f%% complete' %
@@ -521,6 +534,14 @@ class LV_simulation():
                 print(json.dumps(press, indent=4))
                 print(json.dumps(flow, indent=4))
 
+        temp_vol = self.mesh.model['uflforms'].LVcavityvol()
+        if self.comm.Get_rank() == 0:
+            print "LV volume: %f" %temp_vol
+        lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+        if self.comm.Get_rank() == 0:
+            print 'lv_p: %f' %lv_p
+            
+       
         # Check for baroreflex and implement
         if (self.br):
             self.data['baroreflex_active'] = 0
@@ -568,7 +589,18 @@ class LV_simulation():
                         if self.comm.Get_rank() == 0: 
                             print 'Unloading volume is: %f' %unloading_vol
                             print 'Ref vol is: %f' %ref_LV_vol
+                        if self.comm.Get_rank() == 0: 
+                            print 'solve original weak form try 1 before y-vec to be 0'
+                        self.solver.solvenonlinear()
+                        if self.comm.Get_rank() == 0: 
+                            print 'solve original weak form try 2 before y-vec to be 0'
+                        self.solver.solvenonlinear()
+                        if self.comm.Get_rank() == 0: 
+                            print 'solve original weak form try 3 before y-vec to be 0'
+                        self.solver.solvenonlinear()
 
+                        #print 'printing Ftotal'
+                        #print self.mesh.model['Ftotal']
                         # first store cb distribution data into a temp variable
                         # and then reset it to 0
                         temp_y_vec = \
@@ -578,8 +610,8 @@ class LV_simulation():
                         # reset y_vec to 0
                         self.mesh.model['functions']['y_vec'].vector()[:] = 0
 
-                        if self.comm.Get_rank() == 0:
-                            print "solving before updating unloading "
+                        if self.comm.Get_rank() == 0: 
+                            print 'solve original weak form try 1 after y-vec to be 0'
                         self.solver.solvenonlinear()
                         
                         self.diastolic_loading(unloading_vol)
@@ -587,42 +619,96 @@ class LV_simulation():
                         #temp_F= project(Fmat,self.parent_circulation.mesh.model['function_spaces']['tensor_space'])
                         #print "self.mesh.model['uflforms'].LVcavityvol()"
                         #print self.mesh.model['uflforms'].LVcavityvol()
+                        temp_lv_vol = \
+                            self.mesh.model['uflforms'].LVcavityvol()
                         if self.comm.Get_rank() == 0:
-                            print "vol before growth"
-                            print self.mesh.model['uflforms'].LVcavityvol()
-                        if self.comm.Get_rank() == 0:
-                            print "solving before updating FG"
-                        #self.parent_circulation.solver.solve_growth()
-                        #self.solver.solvenonlinear()
-                        # update Fg
-                        # *** testing 
-                        #for i in range(3):
-                        #    if self.comm.Get_rank() == 0:
-                        #        print 'Try: %d' %i
-                        #    self.solver.solvenonlinear()
-                        
+                            print 'Ref LV vol before growth: %f' %temp_lv_vol
+
                         # *** testing
-                        self.update_theta_Fg()
-                        Fg = self.mesh.model['uflforms'].Fg
-                        Fg = self.mesh.model['functions']['Fg']
-                        temp_Fg = project(Fg,self.mesh.model['function_spaces']['tensor_space'],
+                        Fe_0 = self.mesh.model['functions']['Fe']
+                        temp_Fe_0 = project(Fe_0,self.mesh.model['function_spaces']['tensor_space'],
                                             form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                        Fg_0 = self.mesh.model['functions']['Fg']
+                        #temp_Fg_0 = project(Fg_0,self.mesh.model['function_spaces']['tensor_space'],
+                        #                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                        temp_Fg_0  = Fg_0.vector().get_local()[:]
+                        print Fg_0
+                        #if self.comm.Get_rank() == 0:
+                        #    print 'solving before growing'
+                        #self.solver.solvenonlinear()
+
+                        for dir in ['fiber','sheet','sheet_normal']:
+                            name = 'theta_' + dir
+                            temp_name = 'temp_' + name
+                            #self.mesh.model['functions'][name].assign(self.mesh.model['functions'][temp_name])
+                            self.mesh.model['functions'][name].vector()[:] = \
+                                self.mesh.model['functions'][temp_name].vector().get_local()[:]
+                        #self.update_theta_Fg()
                         if self.comm.Get_rank() == 0:
-                            print 'temp_Fg'
+                            print self.mesh.model['functions']['theta_fiber'].vector().get_local()[:]
+                            print self.mesh.model['functions']['theta_sheet'].vector().get_local()[:]
+
+                        Fg = self.mesh.model['functions']['Fg']
+                        Fe = self.mesh.model['functions']['Fe']
+                        #Fg = self.mesh.model['functions']['Fg']
+                        temp_Fg = Fg.vector().get_local()[:]
+                        temp_Fe = project(Fe,self.mesh.model['function_spaces']['tensor_space'],
+                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                        print Fg
+                        if self.comm.Get_rank() == 0:
+                            print 'Fe before updating Fg'
+                            print temp_Fe_0
+                            print 'Fg before updating Fg'
+                            print temp_Fg_0
+                            print 'Fg after updating Fg'
                             print temp_Fg
+                            print 'Fe after updating Fg'
+                            print temp_Fe
                         # Grow reference configuration
                         self.grow_reference_config()
-
+                        
+                        #if self.comm.Get_rank() == 0:
+                        #    print 'solving after growing'
+                        #self.solver.solvenonlinear()
+                        # save new regerence cofig mesh
+                        temp_obj = self.mesh.model['functions']['w'].sub(0)
+                        temp_obj.rename('Dis','')
+                        self.growth_mesh.write(temp_obj,self.data['time'])
+                        
+                        # check if the pressure is zero 
+                        temp_lv_vol = \
+                            self.mesh.model['uflforms'].LVcavityvol()
+                        if self.comm.Get_rank() == 0:
+                            print 'Ref LV vol after growth: %f' %temp_lv_vol
+                        lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+                        if self.comm.Get_rank() == 0:
+                            print 'lv_p: %f' %lv_p
+                            
                         # reset Fg = 1
                         for dir in ['fiber','sheet','sheet_normal']:
                             name = 'theta_' + dir
                             self.mesh.model['functions'][name].vector()[:] = 1
-
-                        self.update_theta_Fg()
-
+                        #self.update_theta_Fg()
+                        Fg = self.mesh.model['uflforms'].Fg
+                        Fe = self.mesh.model['uflforms'].Fe()
+                        #Fg = self.mesh.model['functions']['Fg']
+                        temp_Fg = project(Fg,self.mesh.model['function_spaces']['tensor_space'],
+                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                        temp_Fe = project(Fe,self.mesh.model['function_spaces']['tensor_space'],
+                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
                         if self.comm.Get_rank() == 0:
-                            print "vol after growth"
-                            print self.mesh.model['uflforms'].LVcavityvol()
+                            print 'Fg after reseting Fg'
+                            print temp_Fg
+                            print 'Fe after reseting Fg'
+                            print temp_Fe
+                       # check if the pressure is zero 
+                        temp_lv_vol = \
+                            self.mesh.model['uflforms'].LVcavityvol()
+                        if self.comm.Get_rank() == 0:
+                            print 'Ref LV vol after reseting theta: %f' %temp_lv_vol
+                        lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+                        if self.comm.Get_rank() == 0:
+                            print 'lv_p: %f' %lv_p
                         #update LV vol expression 
                         #self.mesh.model['functions']['LVCavityvol'].vol = \
                         #    self.mesh.model['uflforms'].LVcavityvol()
@@ -636,7 +722,7 @@ class LV_simulation():
                         # now reload back to ED vol
                         loading_vol = self.circ.data['v'][-1] - self.reference_LV_vol
                         self.diastolic_loading(loading_vol)
-
+                       
                         # reset y_vec back to its original value before growth
                         self.mesh.model['functions']['y_vec'].vector()[:] = \
                             temp_y_vec.vector().get_local()[:]
@@ -790,9 +876,9 @@ class LV_simulation():
                                         form_compiler_parameters={"representation":"uflacs"})
 
                     temp_obj.rename(m,'')
-                    #self.solution_mesh.write(temp_obj,self.data['time'])
+                    self.solution_mesh.write(temp_obj,self.data['time'])
                     
-                    self.solution_mesh.write(temp_obj,0)
+                    #self.solution_mesh.write(temp_obj,0)
         # Update the t counter for the next step
         self.t_counter = self.t_counter + 1
         self.data['time'] = self.data['time'] + time_step
@@ -1040,7 +1126,7 @@ class LV_simulation():
         if self.comm.Get_rank() == 0:
             print 'Solveing Fg = 0'
         self.solver.solve_growth()
-        #self.parent_circulation.solver.solvenonlinear()
+        #self.solver.solvenonlinear()
         
         # move the mesh and build up new reference config
         (u,p,pendo,c11)   = split(self.mesh.model['functions']['w'])
