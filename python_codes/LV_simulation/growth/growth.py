@@ -60,6 +60,7 @@ class growth():
             comp.data['stimulus'] = comp.return_stimulus()
             # update theta 
             comp.data['theta'] = comp.return_theta(comp.data['stimulus'],time_step)
+            print comp.data['theta']
             # store theta data for a cardiac cycle
             comp.data['theta_tracker'].append(comp.data['theta'])
             #comp.return_theta(comp.data['stimulus'],time_step)
@@ -70,6 +71,10 @@ class growth():
                 # update mean theta per cycle 
                 comp.data['mean_theta'] = \
                     np.mean(comp.data['theta_tracker'],axis=0)
+                """print 'Max mean theta'
+                print comp.data['mean_theta'].max()
+                print 'Min mean theta'
+                print comp.data['mean_theta'].min()"""
                 # reset the theta tracker
                 comp.data['theta_tracker'] = []
                 # reset stimuli tracker
@@ -143,8 +148,9 @@ class growth_component():
             t_0 = theta_old[i]
 
             dtheta = self.return_theta_dot(t_0,s,s_set[i])
-
+            
             theta_new[i] = t_0 + dtheta*time_step
+            
         
         return theta_new
 
@@ -152,9 +158,9 @@ class growth_component():
 
         """ Return rate of change of theta"""
         # theta merges to thta_max if s > set and vice versa.
-        tau = self.data['tau']
+        tau = float(self.data['tau'])
         range_theta = self.data['theta_max'] - self.data['theta_min']
-
+        
         if s-set>=0:
             dthetha = \
                     1/tau*(self.data['theta_max'] - theta)/range_theta * (s - set)

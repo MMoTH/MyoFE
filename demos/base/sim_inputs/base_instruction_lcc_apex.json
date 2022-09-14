@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [10000],
+        "no_of_time_steps": [10],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -19,8 +19,8 @@
                 {
                     "level": ["circulation"],
                     "variable": ["aorta_resistance"],
-                    "t_start_s": [30],
-                    "t_stop_s": [60],
+                    "t_start_s": [0.005],
+                    "t_stop_s": [0.006],
                     "total_change": [20]
                 },
                 {
@@ -48,13 +48,13 @@
         [
             {
                 "name":["stimulusFS"],
-                "type":["scaler"],
+                "type":["scalar"],
                 "element_type":["DG"],
                 "degree": [1]
             },
             {
-                "name":["scaler"],
-                "type":["scaler"],
+                "name":["scalar"],
+                "type":["scalar"],
                 "element_type":["DG"],
                 "degree": [1]
             },
@@ -72,7 +72,7 @@
             },
             {
                 "name":["quadrature_space"],
-                "type":["scaler"],
+                "type":["scalar"],
                 "element_type":["Quadrature"],
                 "degree": [2]
             }

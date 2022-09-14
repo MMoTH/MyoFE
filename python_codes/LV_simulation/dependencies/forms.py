@@ -60,6 +60,7 @@ class Forms(object):
         #Fe = as_tensor(F[i,j]*inv(Fg)[j,k], (i,k))
         if "Fg" in self.parameters:
             Fg = self.Fg
+            #Fe = F* inv(Fg)
             Fe = as_tensor(F[i,j]*inv(Fg)[j,k], (i,k))
         else:
             Fe = F

@@ -210,9 +210,9 @@ class MeshClass():
                 for d in ['fiber','sheet', 'sheet_normal']:
                     name = k + '_' + d
                     functions[name] = \
-                        Function(self.model['function_spaces']['quadrature_space'])
-                    if k == 'theta':
-                        functions[name].vector()[:] = 10
+                        Function(self.model['function_spaces']['growth_scalar_FS'])
+                    if k == 'theta' or k == 'temp_theta':
+                        functions[name].vector()[:] = 1
             # create a temp fenics function to build up Fg
             #theta = Function(self.model['function_spaces']['growth_scalar_FS'])
             #theta = Function(self.model['function_spaces']['quadrature_space'])
@@ -256,12 +256,17 @@ class MeshClass():
             #functions['Fg'] = project(temp_Fg,self.model['function_spaces']['tensor_quadrature'],
             #                    form_compiler_parameters={"representation":"quadrature"})
             print '*****'
-            print functions['theta_fiber']#.vector().get_local()[:]
+            #functions['theta_fiber'].vector()[:] = 5
+            print functions['theta_fiber'].vector().get_local()[:]
+            print len(functions['theta_fiber'].vector()[:])
             #temp_Fg_0 = project(functions['Fg'],self.model['function_spaces']['growth_tensor_FS'],
             #                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
             temp_Fg_0 = project(functions['Fg'],self.model['function_spaces']['growth_tensor_FS'],
                                         form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+            temp_inv_Fg = project(inv(functions['Fg']),self.model['function_spaces']['tensor_space'],
+                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
             print temp_Fg_0
+            print temp_inv_Fg
             
         
         functions["w"] = w
@@ -336,6 +341,12 @@ class MeshClass():
         wtest = self.model['functions']["wtest"]
         dw = self.model['functions']["dw"]
         ds = dolfin.ds(subdomain_data = facetboundaries)
+        #dx = dolfin.dx(mesh,metadata = {"integration_order":2})
+
+        myocardium_vol = assemble(Constant(1.0)*dx(domain=mesh), form_compiler_parameters={"representation":"uflacs"})
+        if self.comm.Get_rank() == 0:
+            print 'Myocardium vol'
+            print myocardium_vol
 
         pendo = self.model['functions']["pendo"]
         LVendoid = self.model['functions']["LVendoid"]
