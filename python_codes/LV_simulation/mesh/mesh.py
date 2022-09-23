@@ -199,6 +199,9 @@ class MeshClass():
         w = Function(self.model['function_spaces']['solution_space'])
         dw = TrialFunction(self.model['function_spaces']['solution_space'])
         wtest = TestFunction(self.model['function_spaces']['solution_space'])
+        #print project(wtest.sub[0],self.model['function_spaces']['tensor_space'],
+        #                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                                        
         du,dp,dpendo,dc11 = TrialFunctions(self.model['function_spaces']['solution_space'])
         (u,p,pendo,c11)   = split(w)
         (v,q,qendo,v11)   = TestFunctions(self.model['function_spaces']['solution_space'])
@@ -296,7 +299,7 @@ class MeshClass():
         functions["y_vec"] = y_vec
         functions['core_ranks'] = core_ranks
 
-
+        
         return functions
 
     def initialize_boundary_conditions(self):
@@ -408,6 +411,11 @@ class MeshClass():
         hsl = alpha_f*hsl0
         self.model['functions']["hsl"] = hsl
         self.model['functions']['E'] = uflforms.Emat()
+        temp_E = project(self.model['functions']['E'],
+                        self.model['function_spaces']['tensor_space'],
+                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        print '**E**'
+        print temp_E
         self.model['functions']['Fmat'] = F
         self.model['functions']['Fe'] = Fe
         self.model['functions']['J'] = J
@@ -425,7 +433,19 @@ class MeshClass():
 
         # passive material contribution
         F1 = derivative(Wp, w, wtest)*dx
+        
+        """F_labels = ['F1']
+        F_dict = dict()
+        for i,F in enumerate([F1]):
+            F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
+            for bc in self.model['boundary_conditions']:
+                bc.apply(F_temp)
+                                
+            F_dict[F_labels[i]] = F_temp.norm("l2")
+        if(self.comm.Get_rank() == 0):
+            print(json.dumps(F_dict, indent=4))"""
         self.F_list.append(F1)
+
          # active stress contribution (Pactive is PK2, transform to PK1)
         # temporary active stress
         #Pactive, cbforce = uflforms.TempActiveStress(0.0)
@@ -508,7 +528,7 @@ class MeshClass():
         self.F_list.append(F4)
         Ftotal = F1 + F2 + F3 + F4 
 
-        Ftotal_growth = F1 + F3_p + F4
+        Ftotal_growth = F1 +F2 +F3 +  F4
 
         Jac1 = derivative(F1, w, dw)
         Jac2 = derivative(F2, w, dw)
@@ -519,7 +539,7 @@ class MeshClass():
             self.J_list.append(derivative(f, w, dw))
 
         Jac = Jac1 + Jac2 + Jac3 + Jac4 
-        Jac_growth = Jac1 + Jac3_p + Jac4
+        Jac_growth = Jac1 +Jac2 +Jac3 + Jac4
 
         if 'pericardial' in self.parent_parameters.instruction_data['mesh']:
             pericardial_bc_struct = self.parent_parameters.instruction_data['mesh']['pericardial']

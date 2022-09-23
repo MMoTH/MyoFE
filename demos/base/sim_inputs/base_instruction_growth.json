@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [20],
+        "no_of_time_steps": [10],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -135,17 +135,12 @@
         {
             "params":
             {
-                "rel_tol": [1e-10],
-                "abs_tol": [1e-10],
+                "rel_tol": [1e-11],
+                "abs_tol": [1e-11],
                 "max_iter": [100],
-                "debugging_mode": [false]
+                "debugging_mode": [true]
             }
-        },
-        "pericardial":
-        {
-            "type": ["spring"],
-            "k_spring": [200]
-        }  
+        } 
     },
     "model":
     {
@@ -343,14 +338,7 @@
                 {
                     "type": ["fiber"],
                     "signal": ["myofiber_passive_stress"],
-                    "tau": [0.2],
-                    "theta_max": [2],
-                    "theta_min": [0.5]
-                },
-                {
-                    "type": ["sheet"],
-                    "signal": ["total_stress"],
-                    "tau": [0.2],
+                    "tau": [2],
                     "theta_max": [2],
                     "theta_min": [0.5]
                 }
