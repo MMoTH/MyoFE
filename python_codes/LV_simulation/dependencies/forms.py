@@ -106,6 +106,37 @@ class Forms(object):
         vol_form = -Constant(1.0/3.0) * inner(det(F)*dot(inv(F).T, N), X + u)*ds(self.parameters["LVendoid"])
 
         return assemble(vol_form, form_compiler_parameters={"representation":"uflacs"})
+    
+    def LVV0constrainedE(self):
+
+
+        mesh = self.parameters["mesh"]
+        u = self.parameters["displacement_variable"]
+        ds = dolfin.ds(subdomain_data = self.parameters["facetboundaries"])
+        dsendo = ds(self.parameters["LVendoid"], domain = self.parameters["mesh"], subdomain_data = self.parameters["facetboundaries"])
+        pendo = self.parameters["lv_volconst_variable"]
+        V0= self.parameters["lv_constrained_vol"]
+
+        X = SpatialCoordinate(mesh)
+        x = u + X
+
+        F = self.Fmat()
+        #F = self.Fe()
+
+        N = self.parameters["facet_normal"]
+        n = cofac(F)*N
+
+        #n = det(F)*dot(inv(F).T, N)
+        #vol_form = -Constant(1.0/3.0) * inner(det(F)*dot(inv(F).T, N), X + u)*ds(self.parameters["LVendoid"])
+
+        area = assemble(Constant(1.0) * dsendo, form_compiler_parameters={"representation":"uflacs"})
+        print 'area in wvol'
+        print area
+        V_u = - Constant(1.0/3.0) * inner(n, x)
+        #Wvol = (Constant(1.0/area) * pendo  * V0 * dsendo) - (pendo * V_u *dsendo)
+        Wvol = (Constant(1.0/area) * pendo  * V0 * ds(self.parameters["LVendoid"])) - (pendo * V_u *ds(self.parameters["LVendoid"]))
+
+        return Wvol
 
     def RVcavityvol(self):
 
@@ -315,36 +346,7 @@ class Forms(object):
         #Wp = Wp_c
         return Wp_m,Wp_c
 
-    def LVV0constrainedE(self):
-
-
-        mesh = self.parameters["mesh"]
-        u = self.parameters["displacement_variable"]
-        ds = dolfin.ds(subdomain_data = self.parameters["facetboundaries"])
-        dsendo = ds(self.parameters["LVendoid"], domain = self.parameters["mesh"], subdomain_data = self.parameters["facetboundaries"])
-        pendo = self.parameters["lv_volconst_variable"]
-        V0= self.parameters["lv_constrained_vol"]
-
-        X = SpatialCoordinate(mesh)
-        x = u + X
-
-        F = self.Fmat()
-        #F = self.Fe()
-
-        N = self.parameters["facet_normal"]
-        #n = cofac(F)*N
-
-        n = det(F)*dot(inv(F).T, N)
-        #vol_form = -Constant(1.0/3.0) * inner(det(F)*dot(inv(F).T, N), X + u)*ds(self.parameters["LVendoid"])
-
-        area = assemble(Constant(1.0) * dsendo, form_compiler_parameters={"representation":"uflacs"})
-        print 'area in wvol'
-        print area
-        V_u = - Constant(1.0/3.0) * inner(n, x)
-        Wvol = (Constant(1.0/area) * pendo  * V0 * dsendo) - (pendo * V_u *dsendo)
-        #Wvol = (Constant(1.0/area) * pendo  * V0 * ds(self.parameters["LVendoid"])) - (pendo * V_u *ds(self.parameters["LVendoid"]))
-
-        return Wvol
+    
 
 
     def RVV0constrainedE(self):

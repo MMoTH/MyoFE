@@ -302,13 +302,15 @@ class LV_simulation():
             print "expression vol after first solve before starting"
             print expression_vol
         (u,pres,pendo,c11)   = split(self.mesh.model['functions']['w'])
+        u = self.mesh.model['functions']['w'].sub(0)
         print'u'
+        print len(self.mesh.model['functions']['w'].vector().array()[:])
         Velem = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
         #print project(u,Velem).vector().get_local()[:]
 
-        X = SpatialCoordinate(self.mesh.model['mesh'])
-        print 'X'
-        print X.evaluate()
+        #X = SpatialCoordinate(self.mesh.model['mesh'])
+        #print 'X'
+        #print X.evaluate()
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 
@@ -727,6 +729,9 @@ class LV_simulation():
                         #    print self.mesh.model['functions']['theta_sheet'].vector().get_local()[:]
                         #    print len_thetha_fiber_0
                         #    print len_thetha_fiber_1
+                        #for dir in ['fiber','sheet','sheet_normal']:
+                        #    name = 'theta_' + dir
+                        #    self.mesh.model['functions'][name].vector()[:] = 1
 
                         Fg = self.mesh.model['functions']['Fg']
                         inv_Fg = inv(Fg)
@@ -752,10 +757,11 @@ class LV_simulation():
                             
                         # Grow reference configuration
                         self.grow_reference_config()
-                        (u,pres,pendo,c11)   = split(self.mesh.model['functions']['w'])
-                        print'u'
-                        print project(u,self.mesh.model['function_spaces']['tensor_space'],
-                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                        
+                        sol = self.mesh.model['functions']['w'].vector().array()[:] 
+                        if self.comm.Get_rank() == 0:
+                            print 'Checking solution after growth'
+                            print sol
                         # check if the pressure is zero 
                         temp_lv_vol = \
                             self.mesh.model['uflforms'].LVcavityvol()
@@ -788,7 +794,10 @@ class LV_simulation():
                         
                         # reset solution to zero 
                         self.mesh.model['functions']['w'].vector()[:] = 0.0
-
+                        sol = self.mesh.model['functions']['w'].vector().array()[:] 
+                        if self.comm.Get_rank() == 0:
+                            print 'Checking solution is reset to 0'
+                            print sol
                         temp_obj = self.mesh.model['functions']['w'].sub(0)
                         temp_obj.rename('Dis','')
 
@@ -799,6 +808,10 @@ class LV_simulation():
                                                     "rewrite_function_mesh": True})
                         self.growth_mesh.write(self.mesh.model['mesh'])
                         
+                        file_path = os.path.join(self.growth_path,'growth_' + str(self.data['time']) +'.hdf5') 
+                        new_mesh_obj = HDF5File(mpi_comm_world(),file_path,'w')
+                        new_mesh_obj.write(self.mesh.model['mesh'],'new_mesh')
+
                         Fg = self.mesh.model['functions']['Fg']
                   
                         Fe = self.mesh.model['functions']['Fe']
@@ -860,11 +873,12 @@ class LV_simulation():
                             print lv_cavity_vol
                             print'lv press'
                             print lv_p
-
-                        
-                        #self.mesh.model['Ftotal'], self.mesh.model['Ftotal_gr'],self.mesh.model['Jac'], \
-                        #self.mesh.model['Jac_gr'], self.mesh.model['uflforms'], self.mesh.model['solver_params'] = \
-                        #    self.mesh.create_weak_form()
+                        mesh_struct = self.instruction_data['mesh']
+                        self.mesh.model['functions'] = \
+                            self.mesh.initialize_functions(mesh_struct)
+                        self.mesh.model['Ftotal'], self.mesh.model['Ftotal_gr'],self.mesh.model['Jac'], \
+                        self.mesh.model['Jac_gr'], self.mesh.model['uflforms'], self.mesh.model['solver_params'] = \
+                            self.mesh.create_weak_form()
                         
                         lv_cavity_vol = self.mesh.model['uflforms'].LVcavityvol()
                         lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
@@ -1378,6 +1392,9 @@ class LV_simulation():
     def return_spherical_radius(self,xc,yc,zc,x,y,z):
 
         return ((xc-x)**2+(yc-y)**2+(zc-z)**2)**0.5 
+
+    def initialize_dof_mapping(self):
+        
 
     def diastolic_loading(self,volume_change):
         

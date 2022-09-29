@@ -528,7 +528,7 @@ class MeshClass():
         self.F_list.append(F4)
         Ftotal = F1 + F2 + F3 + F4 
 
-        Ftotal_growth = F1 +F2 +F3 +  F4
+        Ftotal_growth = F1 +F2 +  F4
 
         Jac1 = derivative(F1, w, dw)
         Jac2 = derivative(F2, w, dw)
@@ -539,7 +539,7 @@ class MeshClass():
             self.J_list.append(derivative(f, w, dw))
 
         Jac = Jac1 + Jac2 + Jac3 + Jac4 
-        Jac_growth = Jac1 +Jac2 +Jac3 + Jac4
+        Jac_growth = Jac1 +Jac2  + Jac4
 
         if 'pericardial' in self.parent_parameters.instruction_data['mesh']:
             pericardial_bc_struct = self.parent_parameters.instruction_data['mesh']['pericardial']
