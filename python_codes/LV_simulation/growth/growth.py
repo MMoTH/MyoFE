@@ -54,6 +54,8 @@ class growth():
 
     def implement_growth(self,end_diastolic,time_step):
         # First update the stimulus and theta for each growth type
+        #update mesh class
+        self.mesh = self.parent_circulation.mesh
         for comp in self.components:
         
             # update stimulus signal 

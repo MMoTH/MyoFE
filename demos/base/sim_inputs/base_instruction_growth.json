@@ -138,7 +138,7 @@
                 "rel_tol": [1e-11],
                 "abs_tol": [1e-11],
                 "max_iter": [100],
-                "debugging_mode": [true]
+                "debugging_mode": [false]
             }
         } 
     },

@@ -130,8 +130,6 @@ class Forms(object):
         #vol_form = -Constant(1.0/3.0) * inner(det(F)*dot(inv(F).T, N), X + u)*ds(self.parameters["LVendoid"])
 
         area = assemble(Constant(1.0) * dsendo, form_compiler_parameters={"representation":"uflacs"})
-        print 'area in wvol'
-        print area
         V_u = - Constant(1.0/3.0) * inner(n, x)
         #Wvol = (Constant(1.0/area) * pendo  * V0 * dsendo) - (pendo * V_u *dsendo)
         Wvol = (Constant(1.0/area) * pendo  * V0 * ds(self.parameters["LVendoid"])) - (pendo * V_u *ds(self.parameters["LVendoid"]))

@@ -414,15 +414,11 @@ class MeshClass():
         temp_E = project(self.model['functions']['E'],
                         self.model['function_spaces']['tensor_space'],
                         form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-        print '**E**'
-        print temp_E
+        #print '**E**'
+        #print temp_E
         self.model['functions']['Fmat'] = F
         self.model['functions']['Fe'] = Fe
         self.model['functions']['J'] = J
-
-        if MPI.rank(self.comm) == 0:
-            print "hsl initial"
-            #print project(hsl,self.model['function_spaces']["quadrature_space"]).vector().get_local()
         
         #----------------------------------
         # create an array for holding different components of the weak form
