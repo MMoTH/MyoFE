@@ -747,16 +747,6 @@ class LV_simulation():
                             print'lv press'
                             print lv_p
                        
-                        
-                        lv_cavity_vol = self.mesh.model['uflforms'].LVcavityvol()
-                        lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
-                        if self.comm.Get_rank() == 0: 
-                        
-                            print 'lv_cavity_vol after re-create weak form'
-                            print lv_cavity_vol
-                            print'lv press after re-creating weak form'
-                            print lv_p
-                            print 'solving weak form'
 
                         self.mesh.model['functions']['LVCavityvol'].vol = \
                             self.mesh.model['uflforms'].LVcavityvol()

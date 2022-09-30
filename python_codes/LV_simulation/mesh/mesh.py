@@ -258,18 +258,6 @@ class MeshClass():
                                         form_compiler_parameters={"representation":"uflacs"})"""
             #functions['Fg'] = project(temp_Fg,self.model['function_spaces']['tensor_quadrature'],
             #                    form_compiler_parameters={"representation":"quadrature"})
-            print '*****'
-            #functions['theta_fiber'].vector()[:] = 5
-            print functions['theta_fiber'].vector().get_local()[:]
-            print len(functions['theta_fiber'].vector()[:])
-            #temp_Fg_0 = project(functions['Fg'],self.model['function_spaces']['growth_tensor_FS'],
-            #                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-            temp_Fg_0 = project(functions['Fg'],self.model['function_spaces']['growth_tensor_FS'],
-                                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-            temp_inv_Fg = project(inv(functions['Fg']),self.model['function_spaces']['tensor_space'],
-                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-            print temp_Fg_0
-            print temp_inv_Fg
             
         
         functions["w"] = w
@@ -345,11 +333,6 @@ class MeshClass():
         dw = self.model['functions']["dw"]
         ds = dolfin.ds(subdomain_data = facetboundaries)
         #dx = dolfin.dx(mesh,metadata = {"integration_order":2})
-
-        myocardium_vol = assemble(Constant(1.0)*dx(domain=mesh), form_compiler_parameters={"representation":"uflacs"})
-        if self.comm.Get_rank() == 0:
-            print 'Myocardium vol'
-            print myocardium_vol
 
         pendo = self.model['functions']["pendo"]
         LVendoid = self.model['functions']["LVendoid"]
@@ -524,7 +507,7 @@ class MeshClass():
         self.F_list.append(F4)
         Ftotal = F1 + F2 + F3 + F4 
 
-        Ftotal_growth = F1 +F2 +  F4
+        Ftotal_growth = F1 +F2+ F3 +  F4
 
         Jac1 = derivative(F1, w, dw)
         Jac2 = derivative(F2, w, dw)
@@ -535,7 +518,7 @@ class MeshClass():
             self.J_list.append(derivative(f, w, dw))
 
         Jac = Jac1 + Jac2 + Jac3 + Jac4 
-        Jac_growth = Jac1 +Jac2  + Jac4
+        Jac_growth = Jac1 +Jac2 + Jac3 + Jac4
 
         if 'pericardial' in self.parent_parameters.instruction_data['mesh']:
             pericardial_bc_struct = self.parent_parameters.instruction_data['mesh']['pericardial']

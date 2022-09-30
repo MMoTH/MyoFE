@@ -62,7 +62,8 @@ class growth():
             comp.data['stimulus'] = comp.return_stimulus()
             # update theta 
             comp.data['theta'] = comp.return_theta(comp.data['stimulus'],time_step)
-            print comp.data['theta']
+            if self.comm.Get_rank() == 0:
+                print comp.data['theta']
             # store theta data for a cardiac cycle
             comp.data['theta_tracker'].append(comp.data['theta'])
             #comp.return_theta(comp.data['stimulus'],time_step)

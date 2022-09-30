@@ -338,7 +338,7 @@
                 {
                     "type": ["fiber"],
                     "signal": ["myofiber_passive_stress"],
-                    "tau": [2],
+                    "tau": [10],
                     "theta_max": [2],
                     "theta_min": [0.5]
                 }
