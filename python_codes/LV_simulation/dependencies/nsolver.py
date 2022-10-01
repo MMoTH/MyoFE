@@ -351,7 +351,7 @@ class NSolver(object):
                 res = resid0
                 if(self.comm.Get_rank() == 0 and mode > 0):
                     print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
-                F_labels = ['F1','F2','F3','F4']
+                """F_labels = ['F1','F2','F3','F4']
                 F_dict = dict()
                 for i,F in enumerate([F1,F2,F3,F4]):
                     F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
@@ -361,7 +361,7 @@ class NSolver(object):
                     F_dict[F_labels[i]] = F_temp.norm("l2")
                 if(self.comm.Get_rank() == 0 and mode > 0):
                     print(json.dumps(F_dict, indent=4))
-                    print 'before first solve'
+                    print 'before first solve'"""
                 solve(A, w.vector(), b)
                 #solve(A, w.vector(), b,'gmres')
                 #self.solver.solve(A, w.vector(), b)
@@ -372,7 +372,7 @@ class NSolver(object):
             B = assemble(Ftotal,\
                         form_compiler_parameters={"representation":"uflacs"}\
                                     )
-            F_labels = ['F1','F2','F3','F4']
+            """F_labels = ['F1','F2','F3','F4']
             F_dict = dict()
             for i,F in enumerate([F1,F2,F3,F4]):
                 F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
@@ -381,7 +381,7 @@ class NSolver(object):
                             
                 F_dict[F_labels[i]] = F_temp.norm("l2")
             if(self.comm.Get_rank() == 0 and mode > 0):
-                    print(json.dumps(F_dict, indent=4))
+                    print(json.dumps(F_dict, indent=4))"""
 
             for bc in bcs:
                 bc.apply(B)
@@ -415,7 +415,7 @@ class NSolver(object):
 
                     B = assemble(Ftotal,form_compiler_parameters={"representation":"uflacs"})
 
-                    F_labels = ['F1','F2','F3','F4']
+                    """F_labels = ['F1','F2','F3','F4']
                     F_dict = dict()
                     for i,F in enumerate([F1,F2,F3,F4]):
                         F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
@@ -424,7 +424,7 @@ class NSolver(object):
                                     
                         F_dict[F_labels[i]] = F_temp.norm("l2")
                     if(self.comm.Get_rank() == 0 and mode > 0):
-                        print(json.dumps(F_dict, indent=4))
+                        print(json.dumps(F_dict, indent=4))"""
 
                     for bc in bcs:
                             bc.apply(B)
