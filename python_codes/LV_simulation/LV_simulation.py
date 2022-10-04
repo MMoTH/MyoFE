@@ -525,8 +525,22 @@ class LV_simulation():
                             Function(self.mesh.model['function_spaces']['quad_vectorized_space'])
                         # assign the value of main y-vec to temporary function
                         temp_y_vec.assign(self.mesh.model['functions']['y_vec'])
+                        delta_y_vec = temp_y_vec.vector().array()[:]/10
                         # reset y_vec to 0
-                        self.mesh.model['functions']['y_vec'].vector()[:] = 0
+                        n = 10
+                        for i in range(n):
+                            if self.comm.Get_rank() == 0:
+                                print 'Decrementally removing y_vec at step %d' %(i+1)
+                            self.mesh.model['functions']['y_vec'].vector()[:] = \
+                                self.mesh.model['functions']['y_vec'].vector().array()[:] - delta_y_vec
+                            if self.comm.Get_rank() == 0:
+                                print self.mesh.model['functions']['y_vec'].vector().array()[:]
+                            self.solver.solvenonlinear()
+                            if i+1 == n:
+                                self.mesh.model['functions']['y_vec'].vector()[:] = 0
+                                self.solver.solvenonlinear()
+                                if self.comm.Get_rank() == 0:
+                                    print self.mesh.model['functions']['y_vec'].vector().array()[:]
 
                         if self.comm.Get_rank() == 0: 
                             print 'solve original weak form try 1 after y-vec to be 0'
@@ -693,7 +707,7 @@ class LV_simulation():
                         f.write(self.mesh.model['functions']['s0'], meshname+"/"+"eS")
                         f.write(self.mesh.model['functions']['n0'], meshname+"/"+"eN")
                         f.close()
-                        
+
                         predefined_functions = dict()
                         predefined_functions['facetboundaries'] = self.mesh.model['functions']['facetboundaries']
                         predefined_functions['hsl0'] = self.mesh.model['functions']['hsl0']
@@ -816,9 +830,22 @@ class LV_simulation():
                         self.diastolic_loading(loading_vol)
                        
                         # reset y_vec back to its original value before growth
-                        self.mesh.model['functions']['y_vec'].vector()[:] = \
-                            temp_y_vec.vector().get_local()[:]
+                        for i in range(n):
+                            if self.comm.Get_rank() == 0:
+                                print 'Incrementally reseting y_vec at step %d' %(i+1)
+                            self.mesh.model['functions']['y_vec'].vector()[:] = \
+                                self.mesh.model['functions']['y_vec'].vector().array()[:] + delta_y_vec
+                            if self.comm.Get_rank() == 0:
+                                print self.mesh.model['functions']['y_vec'].vector().array()[:]
+                            self.solver.solvenonlinear()
+                            if i+1 == n:
+                                self.mesh.model['functions']['y_vec'].vector()[:] = \
+                                    temp_y_vec.vector().get_local()[:]
+                                self.solver.solvenonlinear()
+                                if self.comm.Get_rank() == 0:
+                                    print self.mesh.model['functions']['y_vec'].vector().array()[:]
                         # solve with updted y_vec
+                        print 'solving weak form after reseting y_vec back to its original values'
                         self.solver.solvenonlinear()
                         
 
@@ -1373,7 +1400,8 @@ class LV_simulation():
             self.mesh.model['functions']['LVCavityvol'].vol += delta_vol
             #lv_vol = self.mesh.model['functions']['LVCavityvol'].vol
             lv_vol = self.mesh.model['uflforms'].LVcavityvol()
-            print 'Lv vol before solving %f' %lv_vol
+            if self.comm.Get_rank() == 0:
+                print 'Lv vol before solving %f' %lv_vol
             self.solver.solvenonlinear()
             lv_vol = self.mesh.model['uflforms'].LVcavityvol()
             #remained_steps = n_step - (n+1)
