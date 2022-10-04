@@ -14,7 +14,9 @@ from ..dependencies.nsolver import NSolver
 
 class MeshClass():
 
-    def __init__(self,parent_parameters):
+    def __init__(self,parent_parameters,
+                    predefined_mesh=None,
+                    predefined_functions=None):
 
         self.parent_parameters = parent_parameters
         self.hs = self.parent_parameters.hs
@@ -26,15 +28,19 @@ class MeshClass():
         self.model = dict()
         self.data = dict()
 
-        mesh_str = os.path.join(os.getcwd(),mesh_struct['mesh_path'][0])
-      
-        self.model['mesh'] = Mesh()
+        if not predefined_mesh:
+            mesh_str = os.path.join(os.getcwd(),mesh_struct['mesh_path'][0])
         
-         # Read the mesh into the mesh object
-        self.f = HDF5File(mpi_comm_world(), mesh_str, 'r')
-        self.f.read(self.model['mesh'],"ellipsoidal",False)
+            self.model['mesh'] = Mesh()
+            
+            # Read the mesh into the mesh object
+            self.f = HDF5File(mpi_comm_world(), mesh_str, 'r')
+            self.f.read(self.model['mesh'],"ellipsoidal",False)
 
-        # communicator to run in parallel
+           
+        else: 
+            self.model['mesh'] = predefined_mesh
+         # communicator to run in parallel
         self.comm = self.model['mesh'].mpi_comm()
         #print 'comminicator is defined'
         #print self.comm.Get_rank()
@@ -45,7 +51,7 @@ class MeshClass():
         if MPI.rank(self.comm) == 0:
             print 'function spaces are defined'
 
-        self.model['functions'] = self.initialize_functions(mesh_struct)
+        self.model['functions'] = self.initialize_functions(mesh_struct,predefined_functions)
 
         self.model['boundary_conditions'] = self.initialize_boundary_conditions()
 
@@ -133,7 +139,7 @@ class MeshClass():
 
         return fcn_spaces
 
-    def initialize_functions(self, mesh_struct):
+    def initialize_functions(self, mesh_struct,predefined_functions):
 
         functions = dict()
         # create a functions to store which parts of mesh is handled by which core
@@ -144,20 +150,26 @@ class MeshClass():
         half_sarcomere_params = \
             self.parent_parameters.instruction_data['model']['half_sarcomere']
         # mesh function needed later
-        facetboundaries = MeshFunction('size_t', self.model['mesh'], 
+        
+        if not predefined_functions:
+            facetboundaries = MeshFunction('size_t', self.model['mesh'], 
                             self.model['mesh'].topology().dim()-1)
-        self.f.read(facetboundaries, "ellipsoidal"+"/"+"facetboundaries")
+            fiberFS = self.model['function_spaces']["material_coord_system_space"]
 
-        fiberFS = self.model['function_spaces']["material_coord_system_space"]
-        # Create functions to hold material coordinate system
-        f0 = Function(fiberFS)
-        s0 = Function(fiberFS)
-        n0 = Function(fiberFS)
-
-        # Load these in from f
-        self.f.read(f0,"ellipsoidal/eF")
-        self.f.read(s0,"ellipsoidal/eS")
-        self.f.read(n0,"ellipsoidal/eN")
+            # Create functions to hold material coordinate system
+            f0 = Function(fiberFS)
+            s0 = Function(fiberFS)
+            n0 = Function(fiberFS)
+            self.f.read(facetboundaries, "ellipsoidal"+"/"+"facetboundaries")
+            # Load these in from f
+            self.f.read(f0,"ellipsoidal/eF")
+            self.f.read(s0,"ellipsoidal/eS")
+            self.f.read(n0,"ellipsoidal/eN")
+        else: 
+            facetboundaries = predefined_functions['facetboundaries']
+            f0 = predefined_functions['f0']
+            s0 = predefined_functions['s0']
+            n0 = predefined_functions['n0']
 
         # Initializing passive parameters as functions, in the case of introducing
         # heterogeneity later
@@ -179,13 +191,17 @@ class MeshClass():
         hsl_diff_from_reference = Function(self.model['function_spaces']['quadrature_space'])
         hsl_diff_from_reference.vector()[:] = 0.0
 
-        try:
-            self.f.read(hsl0, "ellipsoidal" + "/" + "hsl0")
-        except:
-            hsl0.vector()[:] = self.parent_parameters.hs.data["hs_length"]
+        if not predefined_functions:
+            try:
+                self.f.read(hsl0, "ellipsoidal" + "/" + "hsl0")
+                # close f
+                self.f.close()
+            except:
+                hsl0.vector()[:] = self.parent_parameters.hs.data["hs_length"]
+        else:
+            hsl0 = predefined_functions['hsl0']
         
-        # close f
-        self.f.close()
+        
 
         y_vec   = Function(self.model['function_spaces']['quad_vectorized_space'])
 
@@ -507,7 +523,7 @@ class MeshClass():
         self.F_list.append(F4)
         Ftotal = F1 + F2 + F3 + F4 
 
-        Ftotal_growth = F1 +F2 +  F4
+        Ftotal_growth = F1 + F2 + F3 +  F4
 
         Jac1 = derivative(F1, w, dw)
         Jac2 = derivative(F2, w, dw)
@@ -518,7 +534,7 @@ class MeshClass():
             self.J_list.append(derivative(f, w, dw))
 
         Jac = Jac1 + Jac2 + Jac3 + Jac4 
-        Jac_growth = Jac1 +Jac2 + Jac4
+        Jac_growth = Jac1 + Jac2 + Jac3 + Jac4
 
         if 'pericardial' in self.parent_parameters.instruction_data['mesh']:
             pericardial_bc_struct = self.parent_parameters.instruction_data['mesh']['pericardial']

@@ -72,7 +72,9 @@ class LV_simulation():
             self.mesh.model['functions']['y_vec'].vector().get_local()[:]
 
         self.initialize_dof_mapping()
-
+        if self.comm.Get_rank() == 0:
+            print 'dof mapping on core 0'
+            print self.dofmap
         self.initialize_integer_points()
         """ Create a data structure for holding """
         
@@ -331,6 +333,7 @@ class LV_simulation():
                     # if multiple cores are being used then save
                     # a mesh object to visualize core assignments
                     if self.comm.Get_size()>1:
+                        self.mesh_path_for_mpi = mesh_out_path
                         xdmf = XDMFFile(mesh_out_path+"/mesh_with_mpi" + ".xdmf")
                         xdmf.write(self.mesh.model['functions']['core_ranks'])
                         xdmf.close()
@@ -608,7 +611,15 @@ class LV_simulation():
                             print temp_Fe
                             print 'F after updating Fg'
                             print temp_F
-                            
+                        if self.comm.Get_rank() == 0:
+                            print 'min of Fg'
+                            print temp_Fg.min()
+                            print 'max of Fg'
+                            print temp_Fg.max()
+                            print 'min of Fe'
+                            print temp_Fe.min()
+                            print 'max of Fe'
+                            print temp_Fe.max()
                         # Grow reference configuration
                         self.grow_reference_config()
                         
@@ -682,12 +693,36 @@ class LV_simulation():
                         f.write(self.mesh.model['functions']['s0'], meshname+"/"+"eS")
                         f.write(self.mesh.model['functions']['n0'], meshname+"/"+"eN")
                         f.close()
+                        
+                        predefined_functions = dict()
+                        predefined_functions['facetboundaries'] = self.mesh.model['functions']['facetboundaries']
+                        predefined_functions['hsl0'] = self.mesh.model['functions']['hsl0']
+                        predefined_functions['f0'] = self.mesh.model['functions']['f0']
+                        predefined_functions['s0'] = self.mesh.model['functions']['s0']
+                        predefined_functions['n0'] = self.mesh.model['functions']['n0']
+                        
+                        self.mesh = MeshClass(self,predefined_mesh = self.mesh.model['mesh'],
+                                                predefined_functions = predefined_functions)
 
-                        self.mesh = MeshClass(self)
                         self.solver =  NSolver(self,self.comm)
+
                         self.initialize_dof_mapping()
 
+                        if self.comm.Get_rank() == 0:
+                            print 'dof mapping on core 0'
+                            print self.dofmap
+                        
+                        if self.comm.Get_size()>1:
+                            xdmf = XDMFFile(self.mesh_path_for_mpi +"/mesh_with_mpi_"+ str(self.data['time']) + ".xdmf")
+                            xdmf.write(self.mesh.model['functions']['core_ranks'])
+                            xdmf.close()
+
                         self.initialize_integer_points()
+
+                        rank_id = self.comm.Get_rank()
+                        print '%0.0f integer points have been assigned to core %0.0f'\
+                            %(self.local_n_of_int_points,rank_id)
+
                         
                         self.handle_coordinates_of_geometry()
                         
