@@ -21,7 +21,14 @@
                     "variable": ["aorta_resistance"],
                     "t_start_s": [30],
                     "t_stop_s": [60],
-                    "total_change": [20]
+                    "total_change": [0]
+                },
+		{
+                    "level": ["circulation"],
+                    "variable": ["blood_volume"],
+                    "t_start_s": [5],
+                    "t_stop_s": [7],
+                    "total_change": [-0.5]
                 },
                 {
                     "level": ["baroreflex"],
