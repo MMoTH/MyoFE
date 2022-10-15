@@ -55,13 +55,13 @@
         [
             {
                 "name":["stimulusFS"],
-                "type":["scaler"],
+                "type":["scalar"],
                 "element_type":["DG"],
                 "degree": [1]
             },
             {
                 "name":["scaler"],
-                "type":["scaler"],
+                "type":["scalar"],
                 "element_type":["DG"],
                 "degree": [1]
             },
@@ -79,7 +79,7 @@
             },
             {
                 "name":["quadrature_space"],
-                "type":["scaler"],
+                "type":["scalar"],
                 "element_type":["Quadrature"],
                 "degree": [2]
             }
@@ -324,8 +324,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/base/sim_output/new_test/data.csv"],
-        "mesh_output_path": ["../demos/base/sim_output/new_test/mesh_output"],
+        "output_data_path": ["../demos/base/sim_output/blood_vol_pert/data.csv"],
+        "mesh_output_path": ["../demos/base/sim_output/blood_vol_pert/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
