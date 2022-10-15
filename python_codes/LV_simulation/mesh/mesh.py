@@ -103,9 +103,9 @@ class MeshClass():
         # Now handle if manual elements need to be defined 
         if 'function_spaces' in mesh_struct:
             for fs in mesh_struct['function_spaces']:
-    
+    		print fs['name'][0]
                 #define required finite elements 
-                if fs['type'][0] == 'scaler':
+                if fs['type'][0] == 'scalar':
                     finite_element = \
                         FiniteElement(fs['element_type'][0],self.model['mesh'].ufl_cell(),
                                         degree = fs['degree'][0],quad_scheme="default")
