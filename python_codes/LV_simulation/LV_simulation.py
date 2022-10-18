@@ -500,7 +500,8 @@ class LV_simulation():
                         delta_y_vec = temp_y_vec.vector().array()[:]/10
                         # reset y_vec to 0
                         # before y_vec chcek hs length
-                        hs_l = self.mesh.model['functions']['hsl'].vector().array()[:]
+                        hs_l = project(self.mesh.model['functions']['hsl'], 
+                                self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
                         if self.comm.Get_rank() == 0:
                             print 'hsl before unloading'
                             print hs_l
@@ -827,7 +828,8 @@ class LV_simulation():
                                 if self.comm.Get_rank() == 0:
                                     print self.mesh.model['functions']['y_vec'].vector().array()[:]
                         # solve with updted y_vec
-                        hs_l = self.mesh.model['functions']['hsl'].vector().array()[:]
+                        hs_l = project(self.mesh.model['functions']['hsl'], 
+                                self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
                         if self.comm.Get_rank() == 0:
                             print 'hsl after reloading'
                             print hs_l
