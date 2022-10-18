@@ -421,34 +421,6 @@ class LV_simulation():
                 print(json.dumps(press, indent=4))
                 print(json.dumps(flow, indent=4))
 
-        """for dir in ['fiber','sheet','sheet_normal']:
-            name = 'theta_' + dir
-            temp_name = 'temp_' + name
-            self.mesh.model['functions'][name].vector()[:] = 5
-            
-        Fg = self.mesh.model['functions']['Fg']
-        inv_Fg = inv(Fg)
-                        
-        temp_Fg = project(Fg,self.mesh.model['function_spaces']['tensor_space'],
-                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-        temp_inv_Fg = project(inv_Fg,self.mesh.model['function_spaces']['tensor_space'],
-                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-        Fe_0 = self.mesh.model['functions']['Fe']
-        temp_Fe_0 = project(Fe_0,self.mesh.model['function_spaces']['tensor_space'],
-                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-        if self.comm.Get_rank() == 0:
-            print 'Fg '
-            print temp_Fg
-            print 'inv Fg '
-            print temp_inv_Fg
-            print 'Fe'
-            print temp_Fe_0
-                #print self.
-        for dir in ['fiber','sheet','sheet_normal']:
-            name = 'theta_' + dir
-            temp_name = 'temp_' + name
-            self.mesh.model['functions'][name].vector()[:] = 1"""
-
         temp_vol = self.mesh.model['uflforms'].LVcavityvol()
         if self.comm.Get_rank() == 0:
             print "LV volume: %f" %temp_vol
@@ -527,6 +499,11 @@ class LV_simulation():
                         temp_y_vec.assign(self.mesh.model['functions']['y_vec'])
                         delta_y_vec = temp_y_vec.vector().array()[:]/10
                         # reset y_vec to 0
+                        # before y_vec chcek hs length
+                        hs_l = self.mesh.model['functions']['hsl'].vector().array()[:]
+                        if self.comm.Get_rank() == 0:
+                            print 'hsl before unloading'
+                            print hs_l
                         n = 10
                         for i in range(n):
                             if self.comm.Get_rank() == 0:
@@ -541,6 +518,11 @@ class LV_simulation():
                                 self.solver.solvenonlinear()
                                 if self.comm.Get_rank() == 0:
                                     print self.mesh.model['functions']['y_vec'].vector().array()[:]
+
+                        y_vec = self.mesh.model['functions']['y_vec'].vector().array()[:]
+                        if self.comm.Get_rank() == 0:
+                            print 'y_vec before unloading'
+                            print y_vec
 
                         if self.comm.Get_rank() == 0: 
                             print 'solve original weak form try 1 after y-vec to be 0'
@@ -845,8 +827,16 @@ class LV_simulation():
                                 if self.comm.Get_rank() == 0:
                                     print self.mesh.model['functions']['y_vec'].vector().array()[:]
                         # solve with updted y_vec
+                        hs_l = self.mesh.model['functions']['hsl'].vector().array()[:]
+                        if self.comm.Get_rank() == 0:
+                            print 'hsl after reloading'
+                            print hs_l
                         print 'solving weak form after reseting y_vec back to its original values'
                         self.solver.solvenonlinear()
+                        y_vec = self.mesh.model['functions']['y_vec'].vector().array()[:]
+                        if self.comm.Get_rank() == 0:
+                            print 'y_vec after reloading'
+                            print y_vec
                         
 
 
