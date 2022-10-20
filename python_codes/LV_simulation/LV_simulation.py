@@ -77,7 +77,6 @@ class LV_simulation():
             print self.dofmap
         self.initialize_integer_points()
         """ Create a data structure for holding """
-        
 
         """ Generating arrays for holding half-sarcomere data"""
         # accross the mesh
@@ -97,7 +96,7 @@ class LV_simulation():
             #""" Assign the hs length according to what used in the mesh"""
             self.hs_objs_list[-1].data['hs_length'] = \
                 self.hs_length_list[i]
-        
+
         self.handle_coordinates_of_geometry()
         
         self.handle_apex_contractility(instruction_data)
@@ -422,12 +421,16 @@ class LV_simulation():
                 print(json.dumps(flow, indent=4))
 
         temp_vol = self.mesh.model['uflforms'].LVcavityvol()
+        lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+
         if self.comm.Get_rank() == 0:
             print "LV volume: %f" %temp_vol
             print self.circ.data['v']
-        lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
-        if self.comm.Get_rank() == 0:
             print 'lv_p: %f' %lv_p
+            print 'y_vec in hs class'
+            print self.hs.myof.y
+            
+
             
        
         # Check for baroreflex and implement
@@ -821,8 +824,21 @@ class LV_simulation():
                         """ Generating half-sarcomere object list"""
                         for i in np.arange(self.local_n_of_int_points):
                             #""" Assign the hs length according to what used in the mesh"""
-                            self.hs_objs_list[-1].data['hs_length'] = \
+                            self.hs_objs_list[i].data['hs_length'] = \
                                 self.hs_length_list[i]
+                            self.hs_objs_list[i].myof.y = \
+                                self.hs.myof.y
+                        y_vec = self.mesh.model['functions']['y_vec'].vector().array()[:]
+                        if self.comm.Get_rank() == 0:
+                            print 'y_vec in hs obj'
+                            print self.hs_objs_list[0].myof.y
+                            print 'y_vec in hs class' 
+                            print self.hs.myof.y
+                            
+                        if self.comm.Get_rank() == 0:
+                            print 'y_vec in meshclass'
+                            print y_vec
+
 
                         n_step = 10.0
                         delta_vol = loading_vol / n_step
@@ -996,11 +1012,11 @@ class LV_simulation():
         self.mesh.model['functions']['LVCavityvol'].vol = \
             self.circ.data['v'][-1]
 
-        temp_vol = self.mesh.model['uflforms'].LVcavityvol()
+        """temp_vol = self.mesh.model['uflforms'].LVcavityvol()
         if self.comm.Get_rank() == 0:
             print "LV volume after assigning LVCavityvol:" 
             print temp_vol
-            print self.circ.data['v'][-1]
+            print self.circ.data['v'][-1]"""
 
         self.comm.Barrier()
         #Solve cardiac mechanics weak form
@@ -1009,11 +1025,11 @@ class LV_simulation():
             print 'solving weak form'
         self.solver.solvenonlinear()
         
-        temp_vol = self.mesh.model['uflforms'].LVcavityvol()
+        """temp_vol = self.mesh.model['uflforms'].LVcavityvol()
         if self.comm.Get_rank() == 0:
             print "LV volume after solver:" 
             print temp_vol
-            print self.circ.data['v']-[1]
+            print self.circ.data['v']-[1]"""
         # Start updating variables after solving the weak form 
         # First pressure in circulation
         for i in range(self.circ.model['no_of_compartments']-1):
