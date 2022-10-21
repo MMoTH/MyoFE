@@ -407,7 +407,7 @@ class LV_simulation():
         if self.comm.Get_rank() == 0:
             print '******** NEW TIME STEP ********'
             print (self.data['time'])
-            print 
+            print 'Myocardium Vol is: %f' %self.data['myocardium_vol']
         
             if (self.t_counter % 10 == 0):
                 print('Sim time (s): %.00f  %.0f%% complete' %
@@ -453,6 +453,7 @@ class LV_simulation():
 
 
         if self.gr:
+            
             
             for g in self.prot.growth_activations:
                 # Handle setpoint before growth activation
@@ -951,6 +952,16 @@ class LV_simulation():
                             print 'y_vec after reloading'
                             print y_vec
                         
+                        lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+                        expression_vol = self.mesh.model['functions']['LVCavityvol'].vol 
+                        
+                        if self.comm.Get_rank() == 0: 
+                            print'lv press after reload back to ED'
+                            print lv_p
+                        
+                        # update the LV pressure in circultaion with new mesh 
+                        self.circ.data['p'][-1] = \
+                            0.0075*self.mesh.model['uflforms'].LVcavitypressure()
 
 
         self.data['myocardium_vol'] = \
