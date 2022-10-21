@@ -414,11 +414,11 @@ class LV_simulation():
                     (self.data['time'],
                     100*self.t_counter/self.prot.data['no_of_time_steps']))
 
-                vol, press, flow = self.return_system_values()
+            vol, press, flow = self.return_system_values()
                 
-                print(json.dumps(vol, indent=4))
-                print(json.dumps(press, indent=4))
-                print(json.dumps(flow, indent=4))
+            print(json.dumps(vol, indent=4))
+            print(json.dumps(press, indent=4))
+            print(json.dumps(flow, indent=4))
 
         temp_vol = self.mesh.model['uflforms'].LVcavityvol()
         lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
