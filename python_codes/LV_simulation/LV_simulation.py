@@ -857,16 +857,24 @@ class LV_simulation():
                             # solve hs to update y_vec while we are loading back to ED
                             for j in range(self.local_n_of_int_points):
         
-                                self.hs_objs_list[j].update_simulation(0,self.delta_hs_length_list[j], 
+                                self.hs_objs_list[j].update_simulation(time_step,
+                                                                        self.delta_hs_length_list[j], 
                                                                         activation,
                                                                         self.cb_stress_list[j],
                                                                         self.pass_stress_list[j])
+                                """if self.comm.Get_rank() == 0:
+                                    print 'y_vec from hs obj class while reloading'
+                                    print self.hs_objs_list[j].myof.y"""
                                 self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
                                     self.hs_objs_list[j].myof.y[:]
                                 if j%1000==0 and self.comm.Get_rank() == 0:
                                     print '%.0f%% of integer points are updated' % (100*j/self.local_n_of_int_points)
 
                             self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
+                            y_vec = self.mesh.model['functions']['y_vec'].vector().array()[:]
+                            if self.comm.Get_rank() == 0:
+                                print 'y_vec while reloading'
+                                print y_vec
                             self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
 
                             # Fill the LV with more blood
@@ -896,6 +904,9 @@ class LV_simulation():
                                 self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
                             self.delta_hs_length_list = new_hs_length_list - self.hs_length_list
+                            if self.comm.Get_rank() == 0:
+                                print 'delta hsl' 
+                                print self.delta_hs_length_list
                             self.hs_length_list = new_hs_length_list
                             
                             temp_DG = project(self.mesh.model['functions']['Sff'], 
@@ -982,8 +993,6 @@ class LV_simulation():
                                                 self.cb_stress_list[j],
                                                 self.pass_stress_list[j])
             self.hs_objs_list[j].update_data()
-            
-            
             
             if j%1000==0 and self.comm.Get_rank() == 0:
                 print '%.0f%% of integer points are updated' % (100*j/self.local_n_of_int_points)
