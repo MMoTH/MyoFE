@@ -731,6 +731,8 @@ class LV_simulation():
                         
                         self.handle_hs_visualization_on_mesh()
 
+                        self.circ.mesh = self.mesh
+                        
                         Fg = self.mesh.model['functions']['Fg']
                   
                         Fe = self.mesh.model['functions']['Fe']
