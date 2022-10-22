@@ -676,7 +676,7 @@ class LV_simulation():
                         
                         if self.comm.Get_rank() == 0:
                             print 'Updatin Mesh class'
-                        file_path = os.path.join(self.growth_path,'growth_' + str(self.data['time']) +'.hdf5') 
+                        """file_path = os.path.join(self.growth_path,'growth_' + str(self.data['time']) +'.hdf5') 
                         self.instruction_data['mesh']['mesh_path'][0] = file_path
                         if self.comm.Get_rank() == 0:
                             print 'New mesh object file'
@@ -693,7 +693,7 @@ class LV_simulation():
                         f.write(self.mesh.model['functions']['f0'], meshname+"/"+"eF")
                         f.write(self.mesh.model['functions']['s0'], meshname+"/"+"eS")
                         f.write(self.mesh.model['functions']['n0'], meshname+"/"+"eN")
-                        f.close()
+                        f.close()"""
 
                         predefined_functions = dict()
                         predefined_functions['facetboundaries'] = self.mesh.model['functions']['facetboundaries']
@@ -732,7 +732,7 @@ class LV_simulation():
                         self.handle_hs_visualization_on_mesh()
 
                         self.circ.mesh = self.mesh
-                        
+
                         Fg = self.mesh.model['functions']['Fg']
                   
                         Fe = self.mesh.model['functions']['Fe']
