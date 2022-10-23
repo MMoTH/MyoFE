@@ -467,8 +467,10 @@ class LV_simulation():
                 # Implement growth when is
                 if ((self.t_counter >= g.data['t_start_ind']) and
                         (self.t_counter < g.data['t_stop_ind'])):
+
                     if self.comm.Get_rank() == 0:
                         print 'Growth module is activated'
+                        
                     self.gr.implement_growth(self.end_diastolic,time_step)
                     
                     if self.end_diastolic:
@@ -566,9 +568,7 @@ class LV_simulation():
                             print temp_Fe_0
                             print 'F before updating Fg'
                             print temp_F_0
-                        #len_thetha_fiber_0 = len(self.mesh.model['functions']['theta_fiber'].vector().get_local()[:])
-                        #print 'sheet normal before updating'
-                        #print self.mesh.model['functions']['theta_sheet_normal'].vector().array()[:]
+
                         for dir in ['fiber','sheet','sheet_normal']:
                             name = 'theta_' + dir
                             temp_name = 'temp_' + name
@@ -578,18 +578,6 @@ class LV_simulation():
                             #self.mesh.model['functions'][name].assign(self.mesh.model['functions'][temp_name])
                             self.mesh.model['functions'][name].vector()[:] = \
                                 self.mesh.model['functions'][temp_name].vector().get_local()[:]
-                        #print 'sheet normal after updating'
-                        #print self.mesh.model['functions']['theta_sheet_normal'].vector().array()[:]
-                        #len_thetha_fiber_1 = len(self.mesh.model['functions']['theta_fiber'].vector().get_local()[:])
-                        #self.update_theta_Fg()
-                        #if self.comm.Get_rank() == 0:
-                        #    print self.mesh.model['functions']['theta_fiber'].vector().get_local()[:]
-                        #    print self.mesh.model['functions']['theta_sheet'].vector().get_local()[:]
-                        #    print len_thetha_fiber_0
-                        #    print len_thetha_fiber_1
-                        #for dir in ['fiber','sheet','sheet_normal']:
-                        #    name = 'theta_' + dir
-                        #    self.mesh.model['functions'][name].vector()[:] = 1
 
                         Fg = self.mesh.model['functions']['Fg']
                         inv_Fg = inv(Fg)
@@ -676,24 +664,6 @@ class LV_simulation():
                         
                         if self.comm.Get_rank() == 0:
                             print 'Updatin Mesh class'
-                        """file_path = os.path.join(self.growth_path,'growth_' + str(self.data['time']) +'.hdf5') 
-                        self.instruction_data['mesh']['mesh_path'][0] = file_path
-                        if self.comm.Get_rank() == 0:
-                            print 'New mesh object file'
-                            print self.instruction_data['mesh']['mesh_path'][0]
-
-                        meshname = 'ellipsoidal'
-                        f = HDF5File(mpi_comm_world(),file_path,'w')
-                        f.write(self.mesh.model['mesh'],meshname)
-                        f.close()
-
-                        f = HDF5File(mpi_comm_world(), file_path, 'a') 
-                        f.write(self.mesh.model['functions']['facetboundaries'],meshname+"/"+"facetboundaries")
-                        f.write(self.mesh.model['functions']['hsl0'], meshname+"/"+"hsl0")
-                        f.write(self.mesh.model['functions']['f0'], meshname+"/"+"eF")
-                        f.write(self.mesh.model['functions']['s0'], meshname+"/"+"eS")
-                        f.write(self.mesh.model['functions']['n0'], meshname+"/"+"eN")
-                        f.close()"""
 
                         predefined_functions = dict()
                         predefined_functions['facetboundaries'] = self.mesh.model['functions']['facetboundaries']

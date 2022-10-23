@@ -32,6 +32,13 @@ class growth():
             for c in comp:     
                 self.components.append(growth_component(c,self))
 
+        self.growth_frequency_n = 0
+        if 'growth_frequency_n' in growth_structure:
+            self.growth_frequency_n = \
+                int(growth_structure['growth_frequency_n'][0])
+        
+        self.growth_frequency_n_counter = self.growth_frequency_n
+
 
     def assign_setpoint(self):
 
@@ -68,30 +75,37 @@ class growth():
             comp.data['theta_tracker'].append(comp.data['theta'])
             #comp.return_theta(comp.data['stimulus'],time_step)
             if end_diastolic:
-                if self.comm.Get_rank() == 0:
-                    print('Growth is happening at ED!')
-                
-                # update mean theta per cycle 
-                comp.data['mean_theta'] = \
-                    np.mean(comp.data['theta_tracker'],axis=0)
-                """print 'Max mean theta'
-                print comp.data['mean_theta'].max()
-                print 'Min mean theta'
-                print comp.data['mean_theta'].min()"""
-                # reset the theta tracker
-                comp.data['theta_tracker'] = []
-                # reset stimuli tracker
-                #comp.data['stimulus_tracker'] = []
+                if self.growth_frequency_n_counter == self.growth_frequency_n:
 
-                # Update theta functions to update Fg
-                name = 'temp_theta_' + comp.data['type']
+                    if self.comm.Get_rank() == 0:
+                        print('Growth is happening at ED!')
+                    
+                    # update mean theta per cycle 
+                    comp.data['mean_theta'] = \
+                        np.mean(comp.data['theta_tracker'],axis=0)
+                    """print 'Max mean theta'
+                    print comp.data['mean_theta'].max()
+                    print 'Min mean theta'
+                    print comp.data['mean_theta'].min()"""
+                    # reset the theta tracker
+                    comp.data['theta_tracker'] = []
+                    # reset stimuli tracker
+                    #comp.data['stimulus_tracker'] = []
 
-                self.mesh.model['functions'][name].vector()[:] = \
-                    comp.data['mean_theta']
+                    # Update theta functions to update Fg
+                    name = 'temp_theta_' + comp.data['type']
 
-                if self.comm.Get_rank() == 0:
-                    print comp.data['mean_theta']
-                    print self.mesh.model['functions'][name].vector().get_local()[:]
+                    self.mesh.model['functions'][name].vector()[:] = \
+                        comp.data['mean_theta']
+
+                    if self.comm.Get_rank() == 0:
+                        print comp.data['mean_theta']
+                        print self.mesh.model['functions'][name].vector().get_local()[:]
+
+                    self.growth_frequency_n_counter = 0
+
+                else:
+                    self.growth_frequency_n_counter += 1
 
       
 
