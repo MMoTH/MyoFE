@@ -102,10 +102,6 @@ class growth():
                         print comp.data['mean_theta']
                         print self.mesh.model['functions'][name].vector().get_local()[:]
 
-                    self.growth_frequency_n_counter = 0
-
-                else:
-                    self.growth_frequency_n_counter += 1
 
       
 
