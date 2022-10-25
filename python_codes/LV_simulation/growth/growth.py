@@ -32,6 +32,14 @@ class growth():
             for c in comp:     
                 self.components.append(growth_component(c,self))
 
+        g_obj= self.components[-1]
+        if g_obj.data['type'] == 'fiber':
+            self.data['gr_set_fiber'] = g_obj.data['setpoint']
+        if g_obj.data['type'] == 'sheet':
+            self.data['gr_set_sheet'] = g_obj.data['setpoint']
+        if g_obj.data['type'] == 'sheet_normal':
+            self.data['gr_set_sheet_normal'] = g_obj.data['setpoint']
+        
         self.growth_frequency_n = 0
         if 'growth_frequency_n' in growth_structure:
             self.growth_frequency_n = \
@@ -49,6 +57,13 @@ class growth():
             comp.data['setpoint'] = \
                 np.mean(comp.data['setpoint_tracker'],axis=0)
 
+            if comp.data['type'] == 'fiber':
+                self.data['gr_set_fiber'] = comp.data['setpoint']
+            if comp.data['type'] == 'sheet':
+                self.data['gr_set_sheet'] = comp.data['setpoint']
+            if comp.data['type'] == 'sheet_normal':
+                self.data['gr_set_sheet_normal'] = comp.data['setpoint']
+            
             # reset setpoint_tracker 
             comp.data['setpoint_tracker'] = []
 
@@ -64,7 +79,17 @@ class growth():
         #update mesh class
         self.mesh = self.parent_circulation.mesh
         for comp in self.components:
-        
+            
+            if comp.data['type'] == 'fiber':
+                comp.data['setpoint'] = self.data['gr_set_fiber']
+            if comp.data['type'] == 'sheet':
+                comp.data['setpoint'] = self.data['gr_set_sheet'] 
+            if comp.data['type'] == 'sheet_normal':
+                comp.data['setpoint'] = self.data['gr_set_sheet_normal'] 
+
+            if self.comm.Get_rank() == 0:
+                print 'Printing setpoint data'
+                print comp.data['setpoint']
             # update stimulus signal 
             comp.data['stimulus'] = comp.return_stimulus()
             # update deviation array (for visualization purpose)

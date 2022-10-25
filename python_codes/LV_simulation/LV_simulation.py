@@ -961,20 +961,25 @@ class LV_simulation():
         for p in self.prot.perturbations:
             if (self.t_counter >= p.data['t_start_ind'] and 
                 self.t_counter < p.data['t_stop_ind']):
-                if p.data['level'] == 'circulation':
-                    self.circ.data[p.data['variable']] += \
-                        p.data['increment']
-                elif p.data['level'] == 'baroreflex':
-                    self.br.data[p.data['variable']] += \
-                        p.data['increment']
-                elif p.data['level'] == 'myofilaments':
-                    for j in range(self.local_n_of_int_points):
-                        self.hs_objs_list[j].myof.data[p.data['variable']] +=\
+                if 'increment' in  p.data.keys():
+                    if p.data['level'] == 'circulation':
+                        self.circ.data[p.data['variable']] += \
                             p.data['increment']
-                elif p.data['level'] == 'membranes':
-                    for j in range(self.local_n_of_int_points):
-                        self.hs_objs_list[j].memb.data[p.data['variable']] +=\
+                    elif p.data['level'] == 'baroreflex':
+                        self.br.data[p.data['variable']] += \
                             p.data['increment']
+                    elif p.data['level'] == 'myofilaments':
+                        for j in range(self.local_n_of_int_points):
+                            self.hs_objs_list[j].myof.data[p.data['variable']] +=\
+                                p.data['increment']
+                    elif p.data['level'] == 'membranes':
+                        for j in range(self.local_n_of_int_points):
+                            self.hs_objs_list[j].memb.data[p.data['variable']] +=\
+                                p.data['increment']
+                elif 'precentage_change' in p.data.keys():
+                    if p.data['level'] == 'growth':
+                        self.gr.data[p.data['variable']] = \
+                            self.gr.data[p.data['variable']] * p.data['precentage_change']
         
         # Rubild system arrays
         self.rebuild_from_perturbations()
@@ -1204,9 +1209,9 @@ class LV_simulation():
         if (self.br):
             for f in list(self.br.data.keys()):
                 self.sim_data[f][self.write_counter] = self.br.data[f]
-        if (self.gr):
-            for f in list(self.gr.data.keys()):
-                self.sim_data[f][self.write_counter] = self.gr.data[f]
+        #if (self.gr):
+        #    for f in list(self.gr.data.keys()):
+        #        self.sim_data[f][self.write_counter] = self.gr.data[f]
     
         self.sim_data['write_mode'] = 1
         

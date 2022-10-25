@@ -50,6 +50,9 @@ class perturbation():
         self.data['t_start_ind'] = int(self.data['t_start_s'] / time_step)
         if ('new_value' in perturbation_struct):
             self.data['new_value'] = perturbation_struct['new_value'][0]
+        elif 'precentage_change' in perturbation_struct:
+            self.data['precentage_change'] = perturbation_struct['precentage_change'][0]
+            self.data['t_stop_ind'] = self.data['t_start_ind'] +1
         else:
             self.data['t_stop_s'] = perturbation_struct['t_stop_s'][0]
             self.data['total_change'] = perturbation_struct['total_change'][0]
