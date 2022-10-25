@@ -225,13 +225,15 @@ class MeshClass():
         # define functions for growth 
         if 'growth' in self.parent_parameters.instruction_data['model']:
             # Define theta functions to be used to update Fg later
-            for k in ['theta','temp_theta','stimulus','deviation']:
+            for k in ['theta','temp_theta','theta_vis','stimulus','setpoint','deviation']:
                 for d in ['fiber','sheet', 'sheet_normal']:
                     name = k + '_' + d
                     functions[name] = \
                         Function(self.model['function_spaces']['growth_scalar_FS'])
-                    if k == 'theta' or k == 'temp_theta':
+                    if k == 'theta' or k == 'temp_theta' or 'theta_vis':
                         functions[name].vector()[:] = 1
+                    else:
+                        functions[name].vector()[:] = 0
             # create a temp fenics function to build up Fg
             #theta = Function(self.model['function_spaces']['growth_scalar_FS'])
             #theta = Function(self.model['function_spaces']['quadrature_space'])

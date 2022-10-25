@@ -359,7 +359,17 @@ class LV_simulation():
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'],
                                         form_compiler_parameters={"representation":"uflacs"})
-                        
+
+                        if m in ['theta_vis_fiber','theta_vis_sheet','theta_vis_sheet_normal',
+                                'stimulus_fiber', 'stimulus_sheet', 'stimulus_sheet_normal',
+                                'deviation_fiber', 'deviation_sheet','deviation_sheet_normal',
+                                'setpoint_fiber','setpoint_sheet','setpoint_sheet_normal'] and \
+                                    'growth' in self.instruction_data['model']:
+
+                                temp_obj = project(self.mesh.model['functions'][m],
+                                                self.mesh.model['function_spaces']["scalar"],
+                                                form_compiler_parameters={"representation":"uflacs"})
+
                         if m == 'facetboundaries':
                             xdmf = XDMFFile(mesh_out_path+"/facet_boundaries" + ".xdmf")
                             xdmf.write(self.mesh.model['functions']['facetboundaries'])
@@ -1104,6 +1114,15 @@ class LV_simulation():
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'],
                                         form_compiler_parameters={"representation":"uflacs"})
+                    if m in ['theta_vis_fiber','theta_vis_sheet','theta_vis_sheet_normal',
+                                'stimulus_fiber', 'stimulus_sheet', 'stimulus_sheet_normal',
+                                'deviation_fiber', 'deviation_sheet','deviation_sheet_normal',
+                                'setpoint_fiber','setpoint_sheet','setpoint_sheet_normal'] and \
+                                    'growth' in self.instruction_data['model']:
+
+                            temp_obj = project(self.mesh.model['functions'][m],
+                                                self.mesh.model['function_spaces']["scalar"],
+                                                form_compiler_parameters={"representation":"uflacs"})
 
                     temp_obj.rename(m,'')
                     self.solution_mesh.write(temp_obj,self.data['time'])

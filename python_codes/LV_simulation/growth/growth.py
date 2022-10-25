@@ -67,6 +67,10 @@ class growth():
         
             # update stimulus signal 
             comp.data['stimulus'] = comp.return_stimulus()
+            # update deviation array (for visualization purpose)
+            comp.data['deviation'] = \
+                comp.data['stimulus'] - comp.data['setpoint']
+
             # update theta 
             comp.data['theta'] = comp.return_theta(comp.data['stimulus'],time_step)
             if self.comm.Get_rank() == 0:
@@ -74,6 +78,17 @@ class growth():
             # store theta data for a cardiac cycle
             comp.data['theta_tracker'].append(comp.data['theta'])
             #comp.return_theta(comp.data['stimulus'],time_step)
+
+            # now save values over dolfin functions to visualize
+            for value in ['stimulus','setpoint','deviation']:
+                name = value + '_' + comp.data['type']
+                self.parent_circulation.mesh.model['functions'][name].vector()[:] = \
+                    comp.data[value]
+            # save theta values
+            theta_name = 'theta_vis_' + comp.data['type']
+            self.parent_circulation.mesh.model['functions'][theta_name].vector()[:] = \
+                    comp.data['theta']
+
             if end_diastolic:
                 if self.growth_frequency_n_counter == self.growth_frequency_n:
 
@@ -116,7 +131,7 @@ class growth_component():
             self.data[item] = comp_struct[item][0]
         
         for item in ['stimulus', 'theta', 'theta_tracker',
-                    'setpoint', 'setpoint_tracker']:
+                    'setpoint', 'setpoint_tracker', 'deviation']:
             name = item + '_' + self.data['type']
             #size = len(self.parent.mesh.model['functions'][name].vector().get_local()[:])
             if item == 'theta':
