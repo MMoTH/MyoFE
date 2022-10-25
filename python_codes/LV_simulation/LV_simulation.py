@@ -978,7 +978,7 @@ class LV_simulation():
                                 p.data['increment']
                 elif 'precentage_change' in p.data.keys():
                     if p.data['level'] == 'growth':
-                        self.gr.data[p.data['variable']] = \
+                        self.gr.data[p.data['variable']] += \
                             self.gr.data[p.data['variable']] * p.data['precentage_change']
         
         # Rubild system arrays
