@@ -696,10 +696,10 @@ class LV_simulation():
                                 print 'dof mapping on core 0'
                                 print self.dofmap
                             
-                            if self.comm.Get_size()>1:
+                            """if self.comm.Get_size()>1:
                                 xdmf = XDMFFile(self.mesh_path_for_mpi +"/mesh_with_mpi_"+ str(self.data['time']) + ".xdmf")
                                 xdmf.write(self.mesh.model['functions']['core_ranks'])
-                                xdmf.close()
+                                xdmf.close()"""
 
                             self.initialize_integer_points()
 
