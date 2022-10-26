@@ -493,7 +493,10 @@ class LV_simulation():
                 print(json.dumps(vol, indent=4))
                 print(json.dumps(press, indent=4))
                 print(json.dumps(flow, indent=4))
-
+        
+        # Update circulation and FE function for LV cavity volume
+        self.circ.data['v'] = \
+                self.circ.evolve_volume(time_step, self.circ.data['v'])
         # Check for baroreflex and implement
         if (self.br):
             self.data['baroreflex_active'] = 0
@@ -566,9 +569,7 @@ class LV_simulation():
         self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
         self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
 
-        # Update circulation and FE function for LV cavity volume
-        self.circ.data['v'] = \
-                self.circ.evolve_volume(time_step, self.circ.data['v'])
+        
 
         # Update LV cavity volume fenics function        
         self.mesh.model['functions']['LVCavityvol'].vol = \
