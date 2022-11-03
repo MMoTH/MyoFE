@@ -9,6 +9,8 @@ import numpy as np
 import json
 from dolfin import *
 
+from mechanics import GrowthMechanicsClass
+
 from scipy.integrate import odeint
 
 class growth():
