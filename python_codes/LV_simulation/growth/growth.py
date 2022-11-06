@@ -10,6 +10,7 @@ import json
 from dolfin import *
 
 from mechanics import GrowthMechanicsClass
+from ..dependencies.nsolver import NSolver
 
 from scipy.integrate import odeint
 
@@ -28,6 +29,22 @@ class growth():
         self.data = dict()
 
         self.comm = parent_circulation.comm
+    
+        # create object for the mechanics 
+        predefined_functions = dict()
+        predefined_functions['facetboundaries'] = self.mesh.model['functions']['facetboundaries']
+        predefined_functions['hsl0'] = self.mesh.model['functions']['hsl0']
+        predefined_functions['f0'] = self.mesh.model['functions']['f0']
+        predefined_functions['s0'] = self.mesh.model['functions']['s0']
+        predefined_functions['n0'] = self.mesh.model['functions']['n0']
+        predefined_mesh = self.mesh.model['mesh']
+        #self.mechan = GrowthMechanicsClass(self.parent_circulation,
+        #                                    predefined_mesh=predefined_mesh,
+        #                                    predefined_functions=predefined_functions)
+        
+        # create object for the solver of the growth
+        #self.solver = NSolver(self.parent_circulation,self.mechan,self.comm)
+
         self.components = []
         if 'components' in growth_structure:
             comp = growth_structure['components']
@@ -49,7 +66,8 @@ class growth():
         
         self.growth_frequency_n_counter = self.growth_frequency_n
 
-
+        
+        
     def assign_setpoint(self):
 
         if self.comm.Get_rank() == 0:
@@ -137,16 +155,86 @@ class growth():
                     # Update theta functions to update Fg
                     name = 'temp_theta_' + comp.data['type']
 
-                    self.mesh.model['functions'][name].vector()[:] = \
+                    self.mechan.model['functions'][name].vector()[:] = \
                         comp.data['mean_theta']
 
                     if self.comm.Get_rank() == 0:
                         print comp.data['mean_theta']
-                        print self.mesh.model['functions'][name].vector().get_local()[:]
+                        print self.mechan.model['functions'][name].vector().get_local()[:]
 
+    def grow_reference_config(self):
 
+        # growth the mesh with Fg
+        if self.comm.Get_rank() == 0:
+            print 'Solveing Fg = 0'
+        self.solver.solve_growth()
+        #self.solver.solvenonlinear()
+        Fg = self.mechan.model['functions']['Fg']
+                  
+        Fe = self.mechan.model['functions']['Fe']
+                        #Fg = self.mesh.model['functions']['Fg']
+        temp_Fg = project(Fg,self.mechan.model['function_spaces']['tensor_space'],
+                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        temp_Fe = project(Fe,self.mechan.model['function_spaces']['tensor_space'],
+                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        F = self.mechan.model['functions']['Fmat']
+        temp_F = project(F,self.mechan.model['function_spaces']['tensor_space'],
+                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        vol = assemble(1.0*dx(domain = self.mechan.model['mesh']), form_compiler_parameters={"representation":"uflacs"})
+        #temp_vol = self.mesh.model['uflforms'].LVcavityvol()
+        #if self.comm.Get_rank() == 0:
+        #    print "LV volume: %f" %temp_vol
+        if self.comm.Get_rank() == 0:
+            print 'Fg after solving for growth, but before ALE'
+            print temp_Fg
+            print 'Fe after solving for growth, but before ALE'
+            print temp_Fe
+            print 'F after solving for growth, but before ALE'
+            print temp_F
+            print 'dx before'
+            print vol
+        
+        # move the mesh and build up new reference config
+        (u,p,c11)   = split(self.mechan.model['functions']['w'])
+        print 'u values'
+        print self.mechan.model['functions']['w'].vector().get_local()[:]
+        mesh = self.mechan.model['mesh']
+        if self.comm.Get_rank() == 0:
+            print 'Moving reference mesh'
+        ALE.move(self.mechan.model['mesh'], 
+                project(u, VectorFunctionSpace(self.mechan.model['mesh'], 'CG', 1),
+                form_compiler_parameters={"representation":"uflacs"}))
+        Fg = self.mechan.model['functions']['Fg']
+                  
+        Fe = self.mechan.model['functions']['Fe']
+                        #Fg = self.mesh.model['functions']['Fg']
+        temp_Fg = project(Fg,self.mechan.model['function_spaces']['tensor_space'],
+                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        temp_Fe = project(Fe,self.mechan.model['function_spaces']['tensor_space'],
+                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        F = self.mechan.model['functions']['Fmat']
+        temp_F = project(F,self.mechan.model['function_spaces']['tensor_space'],
+                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        vol = assemble(1.0*dx(domain = self.mechan.model['mesh']), form_compiler_parameters={"representation":"uflacs"})
+        if self.comm.Get_rank() == 0:
+            print 'Fg after solving for growth and after ALE'
+            print temp_Fg
+            print 'Fe after solving for growth and after ALE'
+            print temp_Fe
+            print 'F after solving for growth and after ALE'
+            print temp_F
+            print 'dx after'
+            print vol
       
-
+    def reinitialize_mesh_object_for_growth(self,
+                                            predefined_functions):
+        predefined_mesh = self.mechan.model['mesh']
+        # re-create object for the mechanics 
+        self.mechan = GrowthMechanicsClass(self.parent_circulation,
+                                            predefined_mesh=predefined_mesh,
+                                            predefined_functions=predefined_functions)
+        # create object for the solver of the growth
+        self.solver = NSolver(self.parent_circulation,self.mechan,self.comm)
 class growth_component():
     "Class for a growth component"
 
@@ -178,7 +266,7 @@ class growth_component():
         scalar_fs = self.parent.mesh.model['function_spaces']['growth_scalar_FS']
         total_passive,myofiber_passive = \
                 self.parent.mesh.model['uflforms'].stress(hsl)
-
+        
         if self.data['signal'] == 'myofiber_passive_stress':
             s = project(inner(f0,myofiber_passive*f0),
                             scalar_fs,

@@ -50,8 +50,8 @@ class NSolver(object):
         Ftotal_Gr = self.parameters["Ftotal_gr"]
 
         F1 = self.parameters["F1"]
-        F2 = self.parameters["F2"]
-        F3 = self.parameters["F3"]
+        #F2 = self.parameters["F2"]
+        #F3 = self.parameters["F3"]
         F4 = self.parameters["F4"]
         w = self.parameters["w"]
         bcs = self.parameters["boundary_conditions"]
@@ -93,9 +93,9 @@ class NSolver(object):
             B = assemble(Ftotal_Gr,\
                         form_compiler_parameters={"representation":"uflacs"}\
                                     )
-            F_labels = ['F1','F2','F3','F3_p','F4']
+            F_labels = ['F1','F3_p','F4']
             F_dict = dict()
-            for i,F in enumerate([F1,F2,F3,F3_p,F4]):
+            for i,F in enumerate([F1,F3_p,F4]):
                 F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
                 for bc in bcs:
                     bc.apply(F_temp)
@@ -136,9 +136,9 @@ class NSolver(object):
 
                     B = assemble(Ftotal_Gr,form_compiler_parameters={"representation":"uflacs"})
 
-                    F_labels = ['F1','F2','F3','F3_p','F4']
+                    F_labels = ['F1','F3_p','F4']
                     F_dict = dict()
-                    for i,F in enumerate([F1,F2,F3,F3_p,F4]):
+                    for i,F in enumerate([F1,F3_p,F4]):
                         F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
                         for bc in bcs:
                             bc.apply(F_temp)
@@ -183,8 +183,8 @@ class NSolver(object):
                         if (self.comm.Get_rank() == 0):
                             print "checking F terms"
                         f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
-                        f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
-                        f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
+                        #f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
+                        #f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
                         f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
                 
                         if(self.comm.Get_rank() == 0 and mode > 0):

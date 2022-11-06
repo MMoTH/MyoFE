@@ -44,17 +44,24 @@ class GrowthMechanicsClass():
         self.model['function_spaces'] = self.initialize_function_spaces(mesh_struct)
         
         if MPI.rank(self.comm) == 0:
-            print 'function spaces are defined'
+            print 'function spaces are defined for growth mechanics object!'
 
         self.model['functions'] = self.initialize_functions(mesh_struct,predefined_functions)
+        if MPI.rank(self.comm) == 0:
+            print 'functions are defined for growth mechanics object!'
 
         self.model['boundary_conditions'] = self.initialize_boundary_conditions()
+        if MPI.rank(self.comm) == 0:
+            print 'Boundary conditions are defined for growth mechanics object!'
 
         self.model['Ftotal_gr'], self.model['Jac_gr'], \
         self.model['uflforms'], self.model['solver_params'] = \
             self.create_weak_form()
+        if MPI.rank(self.comm) == 0:
+            print 'Weak form is defined for growth mechanics object!'
 
-    def initialize_function_spaces(self):
+
+    def initialize_function_spaces(self,mesh_struct):
 
         if MPI.rank(self.comm) == 0:
             print "creating necessary function spaces"
@@ -107,6 +114,29 @@ class GrowthMechanicsClass():
         fcn_spaces['solution_space'] = W
         fcn_spaces["quadrature_space"] = Quad
         fcn_spaces["quad_vectorized_space"] = Quad_vectorized_Fspace
+
+        # Now handle if manual elements need to be defined 
+        if 'function_spaces' in mesh_struct:
+            for fs in mesh_struct['function_spaces']:
+    
+                #define required finite elements 
+                if fs['type'][0] == 'scalar':
+                    finite_element = \
+                        FiniteElement(fs['element_type'][0],self.model['mesh'].ufl_cell(),
+                                        degree = fs['degree'][0],quad_scheme="default")
+
+                elif fs['type'][0] == 'vector':
+                    finite_element = \
+                        VectorElement(fs['element_type'][0],self.model['mesh'].ufl_cell(),
+                                        degree = fs['degree'][0],quad_scheme="default")
+                    
+                elif fs['type'][0] == 'tensor':
+                    fcn_spaces[fs['name'][0]] = \
+                        TensorFunctionSpace(self.model['mesh'], fs['element_type'][0],
+                                        degree = fs['degree'][0])
+                # now define function spaces over defined finite elements
+                if not fs['type'][0] == 'tensor':
+                    fcn_spaces[fs['name'][0]] = FunctionSpace(self.model['mesh'],finite_element)
 
         return fcn_spaces
 
@@ -291,7 +321,7 @@ class GrowthMechanicsClass():
         ds = dolfin.ds(subdomain_data = facetboundaries)
         #dx = dolfin.dx(mesh,metadata = {"integration_order":2})
 
-        pendo = self.model['functions']["pendo"]
+        #pendo = self.model['functions']["pendo"]
         LVendoid = self.model['functions']["LVendoid"]
 
         isincomp = True
@@ -318,14 +348,14 @@ class GrowthMechanicsClass():
         Press = Expression(("P"),P=0.0,degree=2)
         self.model['functions']["LVCavityvol"] = LVCavityvol
         self.model['functions']["Press"] = Press
-        """ventricle_params  = {
-            "lv_volconst_variable": pendo,
+        #"lv_volconst_variable": pendo,
+        ventricle_params  = {
             "lv_constrained_vol":LVCavityvol,
             "LVendoid": LVendoid,
             "LVendo_comp": 2,
             "LVepiid": 1
         }
-        params.update(ventricle_params)"""
+        params.update(ventricle_params)
 
         growth_params = dict()
         for n in ['Fg','M1ij','M2ij','M3ij']:
@@ -406,6 +436,8 @@ class GrowthMechanicsClass():
         p_f = interpolate(temp_DG, self.model['function_spaces']['quadrature_space'])
         self.pass_stress_list = p_f.vector().get_local()[:]
         
+        
+
         # For pressure on endo instead of volume bdry condition
         F3_p = Press*inner(n,v)*ds(params['LVendo_comp'])
 
@@ -455,8 +487,9 @@ class GrowthMechanicsClass():
         return Ftotal_growth, Jac_growth, uflforms, solver_params
        
     def initialize_dolfin_functions(self,dolfin_functions_dict,fcn_space):
-
-        print "initializing dolfin functions"
+        
+        if MPI.rank(self.comm) == 0:
+            print "initializing dolfin functions"
         # This function will recursively go through the dolfin_functions_dict and append
         # an initialized dolfin function to the list that exists as the parameter key's value
 
@@ -486,46 +519,6 @@ class GrowthMechanicsClass():
             #print temp_fcn.vector().get_local()
             temp_dict[key].append(temp_fcn)
         return
-
-    def diastolic_filling(self,LV_vol,loading_steps=10):
-        
-        if MPI.rank(self.comm) == 0:
-            print('start to diastolic filling')
-        LV_vol_0 = self.model['functions']['LVCavityvol']
-        LV_vol_0.vol = self.model['uflforms'].LVcavityvol()
-
-        if MPI.rank(self.comm) == 0:
-            print 'diastolic filling to'
-            print LV_vol
-
-        #total_volume_to_load = LV_vol - LV_vol_0.vol
-        total_volume_to_load = LV_vol - self.model['uflforms'].LVcavityvol()
-        volume_increment = total_volume_to_load/loading_steps
-
-        w = self.model['functions']['w']
-        Ftotal = self.model['Ftotal']
-        bcs = self.model['boundary_conditions']
-        Jac = self.model['Jac']
-
-        for i in range (0,loading_steps):
-            if MPI.rank(self.comm) == 0:
-                print 'diastolic filling step is:'
-                print(i)
-                print 'LV vol is:' 
-                print self.model['functions']['LVCavityvol'].vol
-
-            #LV_vol_0.vol += volume_increment
-            self.model['functions']['LVCavityvol'].vol =\
-                self.model['functions']['LVCavityvol'].vol + volume_increment
-
-            solve(Ftotal == 0, w, bcs, J = Jac, form_compiler_parameters={"representation":"uflacs"})
-
-            #self.model['functions']['w'] = w
-            if MPI.rank(self.comm) == 0:
-                print 'pressure for diastolic filling is'
-                print self.model['uflforms'].LVcavitypressure()
-
-        return self.model['functions']
 
     def return_cb_stress(self, delta_hsl):
     
