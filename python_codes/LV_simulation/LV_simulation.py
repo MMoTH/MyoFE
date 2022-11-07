@@ -149,7 +149,7 @@ class LV_simulation():
         # If required, create the vad object
         self.va = []
         
-        self.mesh.model['functions']['LVCavityvol'].vol = \
+        """self.mesh.model['functions']['LVCavityvol'].vol = \
             self.mesh.model['uflforms'].LVcavityvol()
         lv_vol = self.mesh.model['uflforms'].LVcavityvol()
         #lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
@@ -161,7 +161,7 @@ class LV_simulation():
             print "expression vol before starting"
             print expression_vol
                             
-        self.solver.solvenonlinear()
+        self.solver.solvenonlinear()"""
 
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
@@ -394,13 +394,13 @@ class LV_simulation():
                     self.check_output_directory_folder(path = self.output_data_str)
             
         for i in np.arange(self.prot.data['no_of_time_steps']+1):
-            self.implement_time_step(self.prot.data['time_step'])
-            """try:
+            #self.implement_time_step(self.prot.data['time_step'])
+            try:
                 self.implement_time_step(self.prot.data['time_step'])
             except RuntimeError: 
                 print "RuntimeError happend"
                 self.handle_output(output_struct)
-                return"""
+                return
 
 
         # Now build up global data holders for 
@@ -434,8 +434,8 @@ class LV_simulation():
             print "LV volume: %f" %temp_vol
             print self.circ.data['v']
             print 'lv_p: %f' %lv_p
-            print 'y_vec in hs class'
-            print self.hs_objs_list[0].myof.y
+            #print 'y_vec in hs class'
+            #print self.hs_objs_list[0].myof.y
             
 
         # Check for baroreflex and implement
