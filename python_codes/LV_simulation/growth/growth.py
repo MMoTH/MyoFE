@@ -196,8 +196,8 @@ class growth():
         
         # move the mesh and build up new reference config
         (u,p,c11)   = split(self.mechan.model['functions']['w'])
-        print 'u values'
-        print self.mechan.model['functions']['w'].vector().get_local()[:]
+        #print 'u values'
+        #print self.mechan.model['functions']['w'].vector().get_local()[:]
         mesh = self.mechan.model['mesh']
         if self.comm.Get_rank() == 0:
             print 'Moving reference mesh'
