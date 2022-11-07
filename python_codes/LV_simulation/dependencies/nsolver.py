@@ -7,11 +7,12 @@ from .solver import Problem, CustomSolver
 class NSolver(object):
 
 
-    def __init__(self,parent_params,comm):
+    def __init__(self,parent_params,mesh_obj,comm):
 
         self.parent = parent_params
-        self.parameters =  parent_params.mesh.model['solver_params']
-        self.uflforms = parent_params.mesh.model['uflforms']
+        self.mesh_obj = mesh_obj
+        self.parameters =  self.mesh_obj.model['solver_params']
+        self.uflforms = self.mesh_obj.model['uflforms']
         self.isfirstiteration = 0
         self.comm = comm
         
@@ -69,7 +70,7 @@ class NSolver(object):
                                  "maximum_iterations":maxiter}}, 
                                  form_compiler_parameters={"representation":"uflacs"})
 
-            self.parent.mesh.model['functions']['w'] = w
+            self.mesh_obj.model['functions']['w'] = w
         
         else:
 
@@ -158,22 +159,22 @@ class NSolver(object):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
                     
-                    #print self.parent.mesh.model['functions']['incomp'].vector()
-                    #incomp = project(self.parent.mesh.model['functions']['incomp'],
-                    #            self.parent.mesh.model['function_spaces']['tensor_space'])
+                    #print self.mesh_obj.model['functions']['incomp'].vector()
+                    #incomp = project(self.mesh_obj.model['functions']['incomp'],
+                    #            self.mesh_obj.model['function_spaces']['tensor_space'])
 
                     
                     
-                    """hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
-                            self.parent.mesh.model['function_spaces']["quadrature_space"])
-                    #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
+                    """hsl_temp = project(self.mesh_obj.model['functions']['hsl'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"])
+                    #hsl_temp = self.mesh_obj.model['functions']['hsl_old']
                     if np.isnan(hsl_temp.vector().array()).any():
                         print 'nan in hsl'
                     print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f before iteration'%(hsl_temp.vector().array().min(),
                     hsl_temp.vector().array().max(),self.comm.Get_rank())
                     
-                    cb_stress = project(self.parent.mesh.model['functions']['cb_stress'], 
-                            self.parent.mesh.model['function_spaces']["quadrature_space"]).vector().array()
+                    cb_stress = project(self.mesh_obj.model['functions']['cb_stress'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"]).vector().array()
                     print cb_stress
                     print 'rank: %i' %self.comm.Get_rank()"""
                     
@@ -197,9 +198,9 @@ class NSolver(object):
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking hsl\n'
-                        hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
-                            self.parent.mesh.model['function_spaces']["quadrature_space"])
-                        #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
+                        hsl_temp = project(self.mesh_obj.model['functions']['hsl'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"])
+                        #hsl_temp = self.mesh_obj.model['functions']['hsl_old']
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl\n'
                         print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f'%(hsl_temp.vector().array().min(),
@@ -207,33 +208,33 @@ class NSolver(object):
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking y_vec\n'
-                        y_vec_temp = project(self.parent.mesh.model['functions']['y_vec'], 
-                            self.parent.mesh.model['function_spaces']["quad_vectorized_space"])
+                        y_vec_temp = project(self.mesh_obj.model['functions']['y_vec'], 
+                            self.mesh_obj.model['function_spaces']["quad_vectorized_space"])
                         if np.isnan(y_vec_temp.vector().array()).any():
                             print 'nan in y_vec\n'
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking Fmat\n'
-                        temp_F= project(self.parent.mesh.model['functions']['Fmat'],
-                                        self.parent.mesh.model['function_spaces']['tensor_space'])
+                        temp_F= project(self.mesh_obj.model['functions']['Fmat'],
+                                        self.mesh_obj.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_F.vector().array()[:]).any():
                             print 'nan in Fmat\n'
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking J\n'
-                        #print self.parent.mesh.model['functions']['J']
+                        #print self.mesh_obj.model['functions']['J']
                         
                         if (self.comm.Get_rank() == 0):
                             print 'checking E\n'
-                        temp_E= project(self.parent.mesh.model['functions']['E'],
-                                        self.parent.mesh.model['function_spaces']['tensor_space'])
+                        temp_E= project(self.mesh_obj.model['functions']['E'],
+                                        self.mesh_obj.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_E.vector().array()[:]).any():
                             print 'nan in E\n'
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking Sff \n'
-                        temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
-                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                        temp_sff = project(self.mesh_obj.model['functions']['Sff'], 
+                                    FunctionSpace(self.mesh_obj.model['mesh'], "DG", 1), 
                                     form_compiler_parameters={"representation":"uflacs"})
                         if np.isnan(temp_sff.vector().array().astype(float)).any():
                             print 'nan in sff \n'
@@ -241,8 +242,8 @@ class NSolver(object):
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking PK2\n'
-                        temp_PK2 = project(self.parent.mesh.model['functions']['PK2_local'],
-                                self.parent.mesh.model['function_spaces']['tensor_space'])
+                        temp_PK2 = project(self.mesh_obj.model['functions']['PK2_local'],
+                                self.mesh_obj.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_PK2.vector().array()[:]).any():
                             print 'nan in PK2\n'
                             print 'rank in PK2 is: %f \n'%self.comm.Get_rank()
@@ -337,7 +338,7 @@ class NSolver(object):
                                  "maximum_iterations":maxiter}}, 
                                  form_compiler_parameters={"representation":"uflacs"})
 
-            self.parent.mesh.model['functions']['w'] = w
+            self.mesh_obj.model['functions']['w'] = w
                 
         else:
 
@@ -437,22 +438,22 @@ class NSolver(object):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
                     
-                    #print self.parent.mesh.model['functions']['incomp'].vector()
-                    #incomp = project(self.parent.mesh.model['functions']['incomp'],
-                    #            self.parent.mesh.model['function_spaces']['tensor_space'])
+                    #print self.mesh_obj.model['functions']['incomp'].vector()
+                    #incomp = project(self.mesh_obj.model['functions']['incomp'],
+                    #            self.mesh_obj.model['function_spaces']['tensor_space'])
 
                     
                     
-                    """hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
-                            self.parent.mesh.model['function_spaces']["quadrature_space"])
-                    #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
+                    """hsl_temp = project(self.mesh_obj.model['functions']['hsl'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"])
+                    #hsl_temp = self.mesh_obj.model['functions']['hsl_old']
                     if np.isnan(hsl_temp.vector().array()).any():
                         print 'nan in hsl'
                     print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f before iteration'%(hsl_temp.vector().array().min(),
                     hsl_temp.vector().array().max(),self.comm.Get_rank())
                     
-                    cb_stress = project(self.parent.mesh.model['functions']['cb_stress'], 
-                            self.parent.mesh.model['function_spaces']["quadrature_space"]).vector().array()
+                    cb_stress = project(self.mesh_obj.model['functions']['cb_stress'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"]).vector().array()
                     print cb_stress
                     print 'rank: %i' %self.comm.Get_rank()"""
                     
@@ -476,9 +477,9 @@ class NSolver(object):
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking hsl\n'
-                        hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
-                            self.parent.mesh.model['function_spaces']["quadrature_space"])
-                        #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
+                        hsl_temp = project(self.mesh_obj.model['functions']['hsl'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"])
+                        #hsl_temp = self.mesh_obj.model['functions']['hsl_old']
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl\n'
                         print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f'%(hsl_temp.vector().array().min(),
@@ -486,33 +487,33 @@ class NSolver(object):
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking y_vec\n'
-                        y_vec_temp = project(self.parent.mesh.model['functions']['y_vec'], 
-                            self.parent.mesh.model['function_spaces']["quad_vectorized_space"])
+                        y_vec_temp = project(self.mesh_obj.model['functions']['y_vec'], 
+                            self.mesh_obj.model['function_spaces']["quad_vectorized_space"])
                         if np.isnan(y_vec_temp.vector().array()).any():
                             print 'nan in y_vec\n'
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking Fmat\n'
-                        temp_F= project(self.parent.mesh.model['functions']['Fmat'],
-                                        self.parent.mesh.model['function_spaces']['tensor_space'])
+                        temp_F= project(self.mesh_obj.model['functions']['Fmat'],
+                                        self.mesh_obj.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_F.vector().array()[:]).any():
                             print 'nan in Fmat\n'
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking J\n'
-                        #print self.parent.mesh.model['functions']['J']
+                        #print self.mesh_obj.model['functions']['J']
                         
                         if (self.comm.Get_rank() == 0):
                             print 'checking E\n'
-                        temp_E= project(self.parent.mesh.model['functions']['E'],
-                                        self.parent.mesh.model['function_spaces']['tensor_space'])
+                        temp_E= project(self.mesh_obj.model['functions']['E'],
+                                        self.mesh_obj.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_E.vector().array()[:]).any():
                             print 'nan in E\n'
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking Sff \n'
-                        temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
-                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                        temp_sff = project(self.mesh_obj.model['functions']['Sff'], 
+                                    FunctionSpace(self.mesh_obj.model['mesh'], "DG", 1), 
                                     form_compiler_parameters={"representation":"uflacs"})
                         if np.isnan(temp_sff.vector().array().astype(float)).any():
                             print 'nan in sff \n'
@@ -520,8 +521,8 @@ class NSolver(object):
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking PK2\n'
-                        temp_PK2 = project(self.parent.mesh.model['functions']['PK2_local'],
-                                self.parent.mesh.model['function_spaces']['tensor_space'])
+                        temp_PK2 = project(self.mesh_obj.model['functions']['PK2_local'],
+                                self.mesh_obj.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_PK2.vector().array()[:]).any():
                             print 'nan in PK2\n'
                             print 'rank in PK2 is: %f \n'%self.comm.Get_rank()

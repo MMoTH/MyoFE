@@ -65,7 +65,7 @@ class LV_simulation():
         
         # Initialize the solver object 
         #self.solver_params = self.mesh.model['solver_params']
-        self.solver =  NSolver(self,comm)
+        self.solver =  NSolver(self,self.mesh,comm)
 
         self.y_vec = \
             self.mesh.model['functions']['y_vec'].vector().get_local()[:]
@@ -142,9 +142,8 @@ class LV_simulation():
         if 'growth' in instruction_data['model']:
             if self.comm.Get_rank() == 0:
                 print 'Initializing growth module'
-            #self.gr = gr.growth(instruction_data['model']['growth'],
-            #                    self)
-            self.gr = [] 
+            self.gr = gr.growth(instruction_data['model']['growth'],
+                                self)
         else:
             self.gr = [] 
         # If required, create the vad object
@@ -163,7 +162,7 @@ class LV_simulation():
             print expression_vol
                             
         self.solver.solvenonlinear()
-        
+
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 

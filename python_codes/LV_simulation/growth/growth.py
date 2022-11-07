@@ -38,12 +38,12 @@ class growth():
         predefined_functions['s0'] = self.mesh.model['functions']['s0']
         predefined_functions['n0'] = self.mesh.model['functions']['n0']
         predefined_mesh = self.mesh.model['mesh']
-        #self.mechan = GrowthMechanicsClass(self.parent_circulation,
-        #                                    predefined_mesh=predefined_mesh,
-        #                                    predefined_functions=predefined_functions)
+        self.mechan = GrowthMechanicsClass(self.parent_circulation,
+                                            predefined_mesh=predefined_mesh,
+                                            predefined_functions=predefined_functions)
         
         # create object for the solver of the growth
-        #self.solver = NSolver(self.parent_circulation,self.mechan,self.comm)
+        self.solver = NSolver(self.parent_circulation,self.mechan,self.comm)
 
         self.components = []
         if 'components' in growth_structure:
@@ -250,7 +250,7 @@ class growth_component():
             name = item + '_' + self.data['type']
             #size = len(self.parent.mesh.model['functions'][name].vector().get_local()[:])
             if item == 'theta':
-                size = len(self.parent.mesh.model['functions'][name].vector().get_local()[:])
+                size = len(self.parent.mechan.model['functions'][name].vector().get_local()[:])
                 self.data[item] = np.ones(size)
             else:
                 self.data[item] = []
