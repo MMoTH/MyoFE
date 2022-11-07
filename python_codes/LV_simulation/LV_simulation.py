@@ -163,6 +163,8 @@ class LV_simulation():
                             
         self.solver.solvenonlinear()"""
 
+        
+
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 
@@ -436,7 +438,14 @@ class LV_simulation():
             print 'lv_p: %f' %lv_p
             #print 'y_vec in hs class'
             #print self.hs_objs_list[0].myof.y
-            
+        
+        # Update circulation and FE function for LV cavity volume
+        self.circ.data['v'] = \
+                self.circ.evolve_volume(time_step, self.circ.data['v'])
+
+        reg_volumes = self.circ.evolve_regurgitant_volumes(time_step, self.circ.data['v'])
+        self.circ.data['mitral_reg_volume'] = reg_volumes[0]
+        self.circ.data['aortic_reg_volume'] = reg_volumes[-1]
 
         # Check for baroreflex and implement
         if (self.br):
@@ -1004,9 +1013,7 @@ class LV_simulation():
         self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
         self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
 
-        # Update circulation and FE function for LV cavity volume
-        self.circ.data['v'] = \
-                self.circ.evolve_volume(time_step, self.circ.data['v'])
+        
         temp_vol = self.mesh.model['uflforms'].LVcavityvol()
         if self.comm.Get_rank() == 0:
             print "LV volume befor assigning LVCavityvol:" 
