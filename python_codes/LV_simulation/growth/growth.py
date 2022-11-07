@@ -107,9 +107,9 @@ class growth():
             if comp.data['type'] == 'sheet_normal':
                 comp.data['setpoint'] = self.data['gr_set_sheet_normal'] 
 
-            if self.comm.Get_rank() == 0:
-                print 'Printing setpoint data'
-                print comp.data['setpoint']
+            #if self.comm.Get_rank() == 0:
+            #    print 'Printing setpoint data'
+            #    print comp.data['setpoint']
             # update stimulus signal 
             comp.data['stimulus'] = comp.return_stimulus()
             # update deviation array (for visualization purpose)
@@ -118,8 +118,8 @@ class growth():
 
             # update theta 
             comp.data['theta'] = comp.return_theta(comp.data['stimulus'],time_step)
-            if self.comm.Get_rank() == 0:
-                print comp.data['theta']
+            #if self.comm.Get_rank() == 0:
+            #    print comp.data['theta']
             # store theta data for a cardiac cycle
             comp.data['theta_tracker'].append(comp.data['theta'])
             #comp.return_theta(comp.data['stimulus'],time_step)
@@ -158,9 +158,9 @@ class growth():
                     self.mechan.model['functions'][name].vector()[:] = \
                         comp.data['mean_theta']
 
-                    if self.comm.Get_rank() == 0:
-                        print comp.data['mean_theta']
-                        print self.mechan.model['functions'][name].vector().get_local()[:]
+                    #if self.comm.Get_rank() == 0:
+                    #    print comp.data['mean_theta']
+                    #    print self.mechan.model['functions'][name].vector().get_local()[:]
 
     def grow_reference_config(self):
 
