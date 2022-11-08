@@ -215,7 +215,7 @@ class Circulation():
         """ Evolve regurgitant volumes """
 
         reg_volumes = [self.data['mitral_reg_volume'],self.data['aortic_reg_volume']]
-        flows = self.return_flows(v,time_step)
+        flows = self.return_flows(v)
             
         dmrv = flows[-2]
 
