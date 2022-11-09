@@ -242,9 +242,9 @@ class LV_simulation():
         if (self.gr != [] ):
             
             for k in self.gr.data.keys():
-                if k in ['gr_theta_fiber','gr_mean_theta_fiber','gr_stimulus_fiber',
-                        'gr_theta_sheet','gr_mean_theta_sheet','gr_stimulus_sheet',
-                        'gr_theta_sheet_normal','gr_mean_theta_sheet_normal',
+                if k in ['gr_theta_fiber','gr_mean_theta_fiber','gr_stimulus_fiber','gr_set_fiber',
+                        'gr_theta_sheet','gr_mean_theta_sheet','gr_stimulus_sheet','gr_set_sheet',
+                        'gr_theta_sheet_normal','gr_mean_theta_sheet_normal','gr_set_sheet_normal',
                         'gr_stimulus_sheet_normal']:
     
                     self.spatial_gr_data_fields.append(k)
