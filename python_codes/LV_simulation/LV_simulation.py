@@ -187,8 +187,7 @@ class LV_simulation():
         # Add in fields from optional modules
         if (self.br != []):
             data_fields = data_fields + list(self.br.data.keys())
-        if (self.gr != [] ):
-            data_fields = data_fields + list(self.gr.data.keys())
+        
         if (self.va != []):
             data_fields = data_fields + list(self.va.data.keys())
 
@@ -223,6 +222,7 @@ class LV_simulation():
         self.spatial_myof_data_fields = []
         self.spatial_memb_data_fields = []
         self.spatial_hs_data_fields = []
+        self.spatial_gr_data_fields = []
         if spatial_data_fields:
             # create data fileds based on what user has asked
             for sd in spatial_data_fields:
@@ -239,9 +239,20 @@ class LV_simulation():
                                                 #'n_bound']
             self.spatial_memb_data_fields = list(self.hs.memb.data.keys())#['Ca_cytosol','Ca_SR']
 
+        if (self.gr != [] ):
+            
+            for k in self.gr.data.keys():
+                if k in ['gr_theta_fiber','gr_mean_theta_fiber','gr_stimulus_fiber',
+                        'gr_theta_sheet','gr_mean_theta_sheet','gr_stimulus_sheet',
+                        'gr_theta_sheet_normal','gr_mean_theta_sheet_normal',
+                        'gr_stimulus_sheet_normal']:
+    
+                    self.spatial_gr_data_fields.append(k)
+
         data_field = self.spatial_hs_data_fields +\
                         self.spatial_myof_data_fields+\
-                            self.spatial_memb_data_fields
+                        self.spatial_memb_data_fields+ \
+                        self.spatial_gr_data_fields
         if in_average:
             spatial_data = pd.DataFrame()
             data_field.append('time')
@@ -1237,6 +1248,12 @@ class LV_simulation():
                 for h in self.hs_objs_list:
                     data_field.append(h.memb.data[f]) 
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+            
+            if self.gr:
+                for f in list(self.spatial_gr_data_fields):
+                    data_field = self.gr.data[f]
+                    self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+
         else:
             for f in self.spatial_hs_data_fields:
                 data_field = []
@@ -1261,6 +1278,10 @@ class LV_simulation():
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
                 #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
                 #    self.data['time']
+            if self.gr:
+                for f in self.spatial_gr_data_fields:
+                    data_field = self.gr.data[f]
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
     def check_output_directory_folder(self, path=""):
         """ Check output folder"""

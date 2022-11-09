@@ -51,13 +51,25 @@ class growth():
             for c in comp:     
                 self.components.append(growth_component(c,self))
 
-        g_obj= self.components[-1]
-        if g_obj.data['type'] == 'fiber':
-            self.data['gr_set_fiber'] = g_obj.data['setpoint']
-        if g_obj.data['type'] == 'sheet':
-            self.data['gr_set_sheet'] = g_obj.data['setpoint']
-        if g_obj.data['type'] == 'sheet_normal':
-            self.data['gr_set_sheet_normal'] = g_obj.data['setpoint']
+                g_obj= self.components[-1]
+                if g_obj.data['type'] == 'fiber':
+                    self.data['gr_set_fiber'] = g_obj.data['setpoint']
+                    self.data['gr_theta_fiber'] = g_obj.data['theta']
+                    self.data['gr_mean_theta_fiber'] = g_obj.data['mean_theta']
+                    self.data['gr_stimulus_fiber'] = \
+                        np.zeros(len(self.data['gr_theta_fiber']))
+                if g_obj.data['type'] == 'sheet':
+                    self.data['gr_set_sheet'] = g_obj.data['setpoint']
+                    self.data['gr_theta_sheet'] = g_obj.data['theta']
+                    self.data['gr_mean_theta_sheet'] = g_obj.data['mean_theta']
+                    self.data['gr_stimulus_sheet'] = \
+                        np.zeros(len(self.data['gr_theta_fiber']))
+                if g_obj.data['type'] == 'sheet_normal':
+                    self.data['gr_set_sheet_normal'] = g_obj.data['setpoint']
+                    self.data['gr_theta_sheet_normal'] = g_obj.data['theta']
+                    self.data['gr_mean_theta_sheet_normal'] = g_obj.data['mean_theta']
+                    self.data['gr_stimulus_sheet_normal'] = \
+                        np.zeros(len(self.data['gr_theta_fiber']))
         
         self.growth_frequency_n = 0
         if 'growth_frequency_n' in growth_structure:
@@ -66,7 +78,10 @@ class growth():
         
         self.growth_frequency_n_counter = self.growth_frequency_n
 
-        
+        # handle data for visualization plots
+
+
+
         
     def assign_setpoint(self):
 
@@ -133,7 +148,8 @@ class growth():
             theta_name = 'theta_vis_' + comp.data['type']
             self.parent_circulation.mesh.model['functions'][theta_name].vector()[:] = \
                     comp.data['theta']
-
+            
+            
             if end_diastolic:
                 if self.growth_frequency_n_counter == self.growth_frequency_n:
 
@@ -162,6 +178,19 @@ class growth():
                     #    print comp.data['mean_theta']
                     #    print self.mechan.model['functions'][name].vector().get_local()[:]
 
+            if comp.data['type'] == 'fiber':
+                self.data['gr_theta_fiber'] = comp.data['theta']
+                self.data['gr_mean_theta_fiber'] = comp.data['mean_theta']
+                self.data['gr_stimulus_fiber'] = comp.data['stimulus']
+            if comp.data['type'] == 'sheet':
+                self.data['gr_theta_sheet'] = comp.data['theta']
+                self.data['gr_mean_theta_sheet'] = comp.data['mean_theta']
+                self.data['gr_stimulus_sheet'] = comp.data['stimulus']
+            if comp.data['type'] == 'sheet_normal':
+                self.data['gr_theta_sheet_normal'] = comp.data['theta']
+                self.data['gr_mean_theta_sheet_normal'] = comp.data['mean_theta']
+                self.data['gr_stimulus_sheet_normal'] = comp.data['stimulus']
+            
     def grow_reference_config(self):
 
         # growth the mesh with Fg
