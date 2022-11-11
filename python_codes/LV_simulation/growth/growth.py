@@ -53,20 +53,25 @@ class growth():
 
                 g_obj= self.components[-1]
                 if g_obj.data['type'] == 'fiber':
-                    self.data['gr_set_fiber'] = g_obj.data['setpoint']
                     self.data['gr_theta_fiber'] = g_obj.data['theta']
+                    self.data['gr_set_fiber'] =  \
+                        np.zeros(len(self.data['gr_theta_fiber']))
                     self.data['gr_mean_theta_fiber'] = g_obj.data['mean_theta']
                     self.data['gr_stimulus_fiber'] = \
                         np.zeros(len(self.data['gr_theta_fiber']))
+
                 if g_obj.data['type'] == 'sheet':
-                    self.data['gr_set_sheet'] = g_obj.data['setpoint']
                     self.data['gr_theta_sheet'] = g_obj.data['theta']
+                    self.data['gr_set_sheet'] = \
+                        np.zeros(len(self.data['gr_theta_fiber']))
                     self.data['gr_mean_theta_sheet'] = g_obj.data['mean_theta']
                     self.data['gr_stimulus_sheet'] = \
                         np.zeros(len(self.data['gr_theta_fiber']))
+
                 if g_obj.data['type'] == 'sheet_normal':
-                    self.data['gr_set_sheet_normal'] = g_obj.data['setpoint']
                     self.data['gr_theta_sheet_normal'] = g_obj.data['theta']
+                    self.data['gr_set_sheet_normal'] = \
+                        np.zeros(len(self.data['gr_theta_fiber']))
                     self.data['gr_mean_theta_sheet_normal'] = g_obj.data['mean_theta']
                     self.data['gr_stimulus_sheet_normal'] = \
                         np.zeros(len(self.data['gr_theta_fiber']))
@@ -171,8 +176,8 @@ class growth():
                     # Update theta functions to update Fg
                     name = 'temp_theta_' + comp.data['type']
 
-                    self.mechan.model['functions'][name].vector()[:] = \
-                        comp.data['mean_theta']
+                    #self.mechan.model['functions'][name].vector()[:] = \
+                    #    comp.data['mean_theta']
 
                     #if self.comm.Get_rank() == 0:
                     #    print comp.data['mean_theta']
