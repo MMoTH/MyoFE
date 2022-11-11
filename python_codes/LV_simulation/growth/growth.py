@@ -178,8 +178,8 @@ class growth():
                     # Update theta functions to update Fg
                     name = 'temp_theta_' + comp.data['type']
 
-                    #self.mechan.model['functions'][name].vector()[:] = \
-                    #    comp.data['mean_theta']
+                    self.mechan.model['functions'][name].vector()[:] = \
+                        comp.data['mean_theta']
 
                     #if self.comm.Get_rank() == 0:
                     #    print comp.data['mean_theta']
@@ -348,10 +348,12 @@ class growth_component():
         
         if s-setpoint>=0:
             dthetha = \
-                    1/tau*(self.data['theta_max'] - y)/range_theta * (s - setpoint)
+                    1/tau*(self.data['theta_max'] - y)/range_theta *\
+                         (s - setpoint)/np.amax([1])
         else:
             dthetha = \
-                    1/tau*(y - self.data['theta_min'])/range_theta * (s - setpoint)
+                    1/tau*(y - self.data['theta_min'])/range_theta *\
+                         (s - setpoint)/np.amax([1])
         return dthetha
 
     def store_setpoint(self):
