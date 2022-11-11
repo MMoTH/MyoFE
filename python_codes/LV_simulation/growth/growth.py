@@ -7,7 +7,9 @@ Created on Thu July 31 18:58:51 2022
 
 import numpy as np
 import json
+from scipy.integrate import odeint
 from dolfin import *
+
 
 from mechanics import GrowthMechanicsClass
 from ..dependencies.nsolver import NSolver
@@ -318,32 +320,38 @@ class growth_component():
     def return_theta(self,stimulus,time_step):
 
         """ Update thetha values for Fg"""
-        s_set = self.data['setpoint']
+        #setpoint = self.data['setpoint']
         theta_old = self.data['theta']
         theta_new = np.zeros(len(theta_old))
+
+        
         for i,s in enumerate(stimulus):
             t_0 = theta_old[i]
 
-            dtheta = self.return_theta_dot(t_0,s,s_set[i])
-            
-            theta_new[i] = t_0 + dtheta*time_step
+            #dtheta = self.return_theta_dot(t_0,s,s_set[i])
+            setpoint = self.data['setpoint'][i]
+            sol = odeint(self.return_theta_dot, t_0, 
+                        [0,time_step],
+                        args = ((s,setpoint)))
+            #theta_new[i] = t_0 + dtheta*time_step
+            theta_new[i] = sol[-1].item()
             
         
         return theta_new
 
-    def return_theta_dot(self,theta,s,set):
+    def return_theta_dot(self,y,t,s,setpoint):
 
         """ Return rate of change of theta"""
         # theta merges to thta_max if s > set and vice versa.
         tau = float(self.data['tau'])
         range_theta = self.data['theta_max'] - self.data['theta_min']
         
-        if s-set>=0:
+        if s-setpoint>=0:
             dthetha = \
-                    1/tau*(self.data['theta_max'] - theta)/range_theta * (s - set)
+                    1/tau*(self.data['theta_max'] - y)/range_theta * (s - setpoint)
         else:
             dthetha = \
-                    1/tau*(theta - self.data['theta_min'])/range_theta * (s - set)
+                    1/tau*(y - self.data['theta_min'])/range_theta * (s - setpoint)
         return dthetha
 
     def store_setpoint(self):
