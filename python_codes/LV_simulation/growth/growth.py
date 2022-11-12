@@ -82,11 +82,14 @@ class growth():
         if 'growth_frequency_n' in growth_structure:
             self.growth_frequency_n = \
                 int(growth_structure['growth_frequency_n'][0])
+        # allow 1 cardiac cycle at the begining of growth to happen 
+        # in order to store setpoint data
+        #self.growth_frequency_n_counter = self.growth_frequency_n - 1
         
-        self.growth_frequency_n_counter = self.growth_frequency_n
-
+        self.growth_frequency_n_counter = self.growth_frequency_n 
+        #self.first_growth_step = 1 
         # handle data for visualization plots
-
+        
 
 
         
@@ -349,11 +352,11 @@ class growth_component():
         if s-setpoint>=0:
             dthetha = \
                     1/tau*(self.data['theta_max'] - y)/range_theta *\
-                         (s - setpoint)/np.amax([1])
+                         (s - setpoint)/np.amax([np.abs(setpoint),1])
         else:
             dthetha = \
                     1/tau*(y - self.data['theta_min'])/range_theta *\
-                         (s - setpoint)/np.amax([1])
+                         (s - setpoint)/np.amax([np.abs(setpoint),1])
         return dthetha
 
     def store_setpoint(self):

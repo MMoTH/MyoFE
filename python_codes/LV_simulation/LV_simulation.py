@@ -478,12 +478,16 @@ class LV_simulation():
                   self.mesh.data[p]
 
         if self.gr:            
-            
+            self.data['growth_active'] = 0
             for g in self.prot.growth_activations:
                 # Handle setpoint before growth activation
                 if ((self.t_counter >= g.data['t_start_ind']/2) and
                         (self.t_counter < g.data['t_start_ind'])):
                     self.gr.store_setpoint()
+
+                #if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n -1 and \
+                #        self.gr.first_growth_step:
+                #    self.gr.store_setpoint()
 
                 if self.t_counter == g.data['t_start_ind']:
                     self.gr.assign_setpoint()
@@ -491,6 +495,10 @@ class LV_simulation():
                 # Implement growth when is
                 if ((self.t_counter >= g.data['t_start_ind']) and
                         (self.t_counter < g.data['t_stop_ind'])):
+                    
+                    #if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n -1 and \
+                    #    self.gr.first_growth_step:
+                    #    self.gr.store_setpoint()
 
                     if self.comm.Get_rank() == 0:
                         print 'Growth module is activated'
