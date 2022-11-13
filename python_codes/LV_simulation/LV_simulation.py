@@ -478,7 +478,7 @@ class LV_simulation():
                   self.mesh.data[p]
 
         if self.gr:            
-            self.data['growth_active'] = 0
+            #self.data['growth_active'] = 0
             for g in self.prot.growth_activations:
                 # Handle setpoint before growth activation
                 if ((self.t_counter >= g.data['t_start_ind']/2) and
