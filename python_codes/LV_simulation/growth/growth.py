@@ -84,7 +84,7 @@ class growth():
                 int(growth_structure['growth_frequency_n'][0])
         # allow 1 cardiac cycle at the begining of growth to happen 
         # in order to store setpoint data
-        self.growth_frequency_n_counter = self.growth_frequency_n - 2
+        self.growth_frequency_n_counter = self.growth_frequency_n
         
         #self.growth_frequency_n_counter = self.growth_frequency_n 
         #self.first_growth_step = 1 
