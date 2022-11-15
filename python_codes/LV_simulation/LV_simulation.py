@@ -496,14 +496,17 @@ class LV_simulation():
 
                 if self.t_counter == g.data['t_start_ind']:
                     self.gr.data['gr_start_active'] = 1
-                    self.gr.data['gr_active'] = 1
+                    self.gr.data['gr_active'] = 0
+                    self.gr.initial_gr_cycle_counter = 1
                     #self.gr.assign_setpoint()
                     
                 
-                if self.gr.data['gr_start_active'] and \
-                    self.gr.growth_frequency_n_counter == 0:
-                    self.gr.data['gr_start_active'] = 0
+                #if self.gr.data['gr_start_active'] and \
+                #    self.gr.growth_frequency_n_counter == 0:
+                #    self.gr.data['gr_start_active'] = 0
 
+                if self.gr.initial_gr_cycle_counter > self.gr.initial_gr_cycles:
+                    self.gr.data['gr_start_active'] = 0
 
 
                 # Implement growth when is
@@ -518,16 +521,24 @@ class LV_simulation():
                         print 'Growth module is activated'
                     
                     self.gr.data['gr_setpoint_active'] = 0
-                    if self.gr.data['gr_start_active'] and \
-                        self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n - 1:
+                    if self.gr.initial_gr_cycle_counter == self.gr.initial_gr_cycles - 1:
                         self.gr.data['gr_setpoint_active'] = 1
-                    self.gr.store_setpoint(self.gr.data['gr_setpoint_active'])
+                    #if self.gr.data['gr_start_active'] and \
+                    #    self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n - 1:
+                    #    self.gr.data['gr_setpoint_active'] = 1
+                        self.gr.store_setpoint(self.gr.data['gr_setpoint_active'])
+                        if self.end_diastolic:
+                            self.gr.assign_setpoint()
+                            self.gr.data['gr_active'] = 1
 
-                    if self.gr.data['gr_setpoint_active'] and \
-                        self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
-                        self.gr.data['gr_setpoint_active'] = 0
-                        self.gr.data['gr_active'] = 1
-                        self.gr.assign_setpoint()
+                    else: 
+                         self.gr.data['gr_setpoint_active'] = 0
+
+                    #if self.gr.data['gr_setpoint_active'] and \
+                    #    self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
+                    #    self.gr.data['gr_setpoint_active'] = 0
+                    #    self.gr.data['gr_active'] = 1
+                    #    self.gr.assign_setpoint()
                     
                     self.gr.data['gr_theta_active'] = 0
                     if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
@@ -538,7 +549,8 @@ class LV_simulation():
                     
                     if self.end_diastolic:
 
-                        if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
+                        if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n and\
+                             self.gr.initial_gr_cycle_counter >= self.initial_gr_cycles:
                             # store cavity volume before growth to reload back to this vol
                             ED_vol = self.mesh.model['uflforms'].LVcavityvol()
                             if self.comm.Get_rank() == 0:
@@ -1001,6 +1013,8 @@ class LV_simulation():
                         
                         else:
                             self.gr.growth_frequency_n_counter += 1
+                        
+                        self.gr.initial_gr_cycle_counter += 1
 
 
         self.data['myocardium_vol'] = \

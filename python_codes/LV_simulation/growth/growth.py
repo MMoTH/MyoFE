@@ -89,7 +89,8 @@ class growth():
         #self.growth_frequency_n_counter = self.growth_frequency_n 
         #self.first_growth_step = 1 
         # handle data for visualization plots
-
+        self.initial_gr_cycle_counter = 1
+        self.initial_gr_cycles = 3
         # handle activations 
         self.data['gr_start_active'] = 0
         self.data['gr_active'] = 0
