@@ -188,6 +188,11 @@ class LV_simulation():
         if (self.br != []):
             data_fields = data_fields + list(self.br.data.keys())
         
+        if self.gr: 
+            for f in list(self.gr.data.keys()):
+                if f.split('_')[-1] == 'active':
+                    data_fields.append(f)
+
         if (self.va != []):
             data_fields = data_fields + list(self.va.data.keys())
 
@@ -481,16 +486,25 @@ class LV_simulation():
             #self.data['growth_active'] = 0
             for g in self.prot.growth_activations:
                 # Handle setpoint before growth activation
-                if ((self.t_counter >= g.data['t_start_ind']/2) and
-                        (self.t_counter < g.data['t_start_ind'])):
-                    self.gr.store_setpoint()
+                #if ((self.t_counter >= g.data['t_start_ind']/2) and
+                #        (self.t_counter < g.data['t_start_ind'])):
+                    #self.gr.store_setpoint()
 
                 #if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n -1 and \
                 #        self.gr.first_growth_step:
                 #    self.gr.store_setpoint()
 
                 if self.t_counter == g.data['t_start_ind']:
-                    self.gr.assign_setpoint()
+                    self.gr.data['gr_start_active'] = 1
+                    self.gr.data['gr_active'] = 1
+                    #self.gr.assign_setpoint()
+                    
+                
+                if self.gr.data['gr_start_active'] and \
+                    self.gr.growth_frequency_n_counter == 0:
+                    self.gr.data['gr_start_active'] = 0
+
+
 
                 # Implement growth when is
                 if ((self.t_counter >= g.data['t_start_ind']) and
@@ -502,6 +516,23 @@ class LV_simulation():
 
                     if self.comm.Get_rank() == 0:
                         print 'Growth module is activated'
+                    
+                    self.gr.data['gr_setpoint_active'] = 0
+                    if self.gr.data['gr_start_active'] and \
+                        self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n - 1:
+                        self.gr.data['gr_setpoint_active'] = 1
+                    self.gr.store_setpoint(self.gr.data['gr_setpoint_active'])
+
+                    if self.gr.data['gr_setpoint_active'] and \
+                        self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
+                        self.gr.data['gr_setpoint_active'] = 0
+                        self.gr.data['gr_active'] = 1
+                        self.gr.assign_setpoint()
+                    
+                    self.gr.data['gr_theta_active'] = 0
+                    if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
+                        self.gr.data['gr_theta_active'] = 1
+
 
                     self.gr.implement_growth(self.end_diastolic,time_step)
                     
@@ -1225,9 +1256,10 @@ class LV_simulation():
         if (self.br):
             for f in list(self.br.data.keys()):
                 self.sim_data[f][self.write_counter] = self.br.data[f]
-        #if (self.gr):
-        #    for f in list(self.gr.data.keys()):
-        #        self.sim_data[f][self.write_counter] = self.gr.data[f]
+        if (self.gr):
+            for f in list(self.gr.data.keys()):
+                if f not in self.spatial_gr_data_fields:
+                    self.sim_data[f][self.write_counter] = self.gr.data[f]
     
         self.sim_data['write_mode'] = 1
         

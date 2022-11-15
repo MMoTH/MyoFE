@@ -84,11 +84,19 @@ class growth():
                 int(growth_structure['growth_frequency_n'][0])
         # allow 1 cardiac cycle at the begining of growth to happen 
         # in order to store setpoint data
-        #self.growth_frequency_n_counter = self.growth_frequency_n - 1
+        #self.growth_frequency_n_counter = self.growth_frequency_n - 2
         
         self.growth_frequency_n_counter = self.growth_frequency_n 
         #self.first_growth_step = 1 
         # handle data for visualization plots
+
+        # handle activations 
+        self.data['gr_start_active'] = 0
+        self.data['gr_active'] = 0
+        self.data['gr_setpoint_active'] = 0
+        self.data['gr_theta_active'] = 0
+
+
         
 
 
@@ -114,92 +122,96 @@ class growth():
 
         return 
     
-    def store_setpoint(self):
+    def store_setpoint(self,store_active):
         """ Store setpoint data before growth activation """
-        for comp in self.components:
-            comp.store_setpoint()
+        if store_active:
+            for comp in self.components:
+                comp.store_setpoint()
 
     def implement_growth(self,end_diastolic,time_step):
-        # First update the stimulus and theta for each growth type
-        #update mesh class
-        self.mesh = self.parent_circulation.mesh
-        for comp in self.components:
-            
-            if comp.data['type'] == 'fiber':
-                comp.data['setpoint'] = self.data['gr_set_fiber']
-            if comp.data['type'] == 'sheet':
-                comp.data['setpoint'] = self.data['gr_set_sheet'] 
-            if comp.data['type'] == 'sheet_normal':
-                comp.data['setpoint'] = self.data['gr_set_sheet_normal'] 
+        
+        if self.data['gr_active']:
+            # First update the stimulus and theta for each growth type
+            #update mesh class
+            self.mesh = self.parent_circulation.mesh
+            for comp in self.components:
+                
+                if comp.data['type'] == 'fiber':
+                    comp.data['setpoint'] = self.data['gr_set_fiber']
+                if comp.data['type'] == 'sheet':
+                    comp.data['setpoint'] = self.data['gr_set_sheet'] 
+                if comp.data['type'] == 'sheet_normal':
+                    comp.data['setpoint'] = self.data['gr_set_sheet_normal'] 
 
-            #if self.comm.Get_rank() == 0:
-            #    print 'Printing setpoint data'
-            #    print comp.data['setpoint']
-            # update stimulus signal 
-            comp.data['stimulus'] = comp.return_stimulus()
-            # update deviation array (for visualization purpose)
-            comp.data['deviation'] = \
-                comp.data['stimulus'] - comp.data['setpoint']
+                #if self.comm.Get_rank() == 0:
+                #    print 'Printing setpoint data'
+                #    print comp.data['setpoint']
+                # update stimulus signal 
+                comp.data['stimulus'] = comp.return_stimulus()
+                # update deviation array (for visualization purpose)
+                comp.data['deviation'] = \
+                    comp.data['stimulus'] - comp.data['setpoint']
 
-            # update theta 
-            comp.data['theta'] = comp.return_theta(comp.data['stimulus'],time_step)
-            #if self.comm.Get_rank() == 0:
-            #    print comp.data['theta']
-            # store theta data for a cardiac cycle
-            comp.data['theta_tracker'].append(comp.data['theta'])
-            #comp.return_theta(comp.data['stimulus'],time_step)
+                # update theta 
+                comp.data['theta'] = comp.return_theta(comp.data['stimulus'],time_step)
+                #if self.comm.Get_rank() == 0:
+                #    print comp.data['theta']
+                if self.data['gr_theta_active']:
+                    # store theta data for a cardiac cycle
+                    comp.data['theta_tracker'].append(comp.data['theta'])
+                #comp.return_theta(comp.data['stimulus'],time_step)
 
-            # now save values over dolfin functions to visualize
-            for value in ['stimulus','setpoint','deviation']:
-                name = value + '_' + comp.data['type']
-                self.parent_circulation.mesh.model['functions'][name].vector()[:] = \
-                    comp.data[value]
-            # save theta values
-            theta_name = 'theta_vis_' + comp.data['type']
-            self.parent_circulation.mesh.model['functions'][theta_name].vector()[:] = \
-                    comp.data['theta']
-            
-            
-            if end_diastolic:
-                if self.growth_frequency_n_counter == self.growth_frequency_n:
+                # now save values over dolfin functions to visualize
+                for value in ['stimulus','setpoint','deviation']:
+                    name = value + '_' + comp.data['type']
+                    self.parent_circulation.mesh.model['functions'][name].vector()[:] = \
+                        comp.data[value]
+                # save theta values
+                theta_name = 'theta_vis_' + comp.data['type']
+                self.parent_circulation.mesh.model['functions'][theta_name].vector()[:] = \
+                        comp.data['theta']
+                
+                
+                if end_diastolic:
+                    if self.growth_frequency_n_counter == self.growth_frequency_n:
 
-                    if self.comm.Get_rank() == 0:
-                        print('Growth is happening at ED!')
-                    
-                    # update mean theta per cycle 
-                    comp.data['mean_theta'] = \
-                        np.mean(comp.data['theta_tracker'],axis=0)
-                    """print 'Max mean theta'
-                    print comp.data['mean_theta'].max()
-                    print 'Min mean theta'
-                    print comp.data['mean_theta'].min()"""
-                    # reset the theta tracker
-                    comp.data['theta_tracker'] = []
-                    # reset stimuli tracker
-                    #comp.data['stimulus_tracker'] = []
+                        if self.comm.Get_rank() == 0:
+                            print('Growth is happening at ED!')
+                        
+                        # update mean theta per cycle 
+                        comp.data['mean_theta'] = \
+                            np.mean(comp.data['theta_tracker'],axis=0)
+                        """print 'Max mean theta'
+                        print comp.data['mean_theta'].max()
+                        print 'Min mean theta'
+                        print comp.data['mean_theta'].min()"""
+                        # reset the theta tracker
+                        comp.data['theta_tracker'] = []
+                        # reset stimuli tracker
+                        #comp.data['stimulus_tracker'] = []
 
-                    # Update theta functions to update Fg
-                    name = 'temp_theta_' + comp.data['type']
+                        # Update theta functions to update Fg
+                        name = 'temp_theta_' + comp.data['type']
 
-                    self.mechan.model['functions'][name].vector()[:] = \
-                        comp.data['mean_theta']
+                        self.mechan.model['functions'][name].vector()[:] = \
+                            comp.data['mean_theta']
 
-                    #if self.comm.Get_rank() == 0:
-                    #    print comp.data['mean_theta']
-                    #    print self.mechan.model['functions'][name].vector().get_local()[:]
+                        #if self.comm.Get_rank() == 0:
+                        #    print comp.data['mean_theta']
+                        #    print self.mechan.model['functions'][name].vector().get_local()[:]
 
-            if comp.data['type'] == 'fiber':
-                self.data['gr_theta_fiber'] = comp.data['theta']
-                self.data['gr_mean_theta_fiber'] = comp.data['mean_theta']
-                self.data['gr_stimulus_fiber'] = comp.data['stimulus']
-            if comp.data['type'] == 'sheet':
-                self.data['gr_theta_sheet'] = comp.data['theta']
-                self.data['gr_mean_theta_sheet'] = comp.data['mean_theta']
-                self.data['gr_stimulus_sheet'] = comp.data['stimulus']
-            if comp.data['type'] == 'sheet_normal':
-                self.data['gr_theta_sheet_normal'] = comp.data['theta']
-                self.data['gr_mean_theta_sheet_normal'] = comp.data['mean_theta']
-                self.data['gr_stimulus_sheet_normal'] = comp.data['stimulus']
+                if comp.data['type'] == 'fiber':
+                    self.data['gr_theta_fiber'] = comp.data['theta']
+                    self.data['gr_mean_theta_fiber'] = comp.data['mean_theta']
+                    self.data['gr_stimulus_fiber'] = comp.data['stimulus']
+                if comp.data['type'] == 'sheet':
+                    self.data['gr_theta_sheet'] = comp.data['theta']
+                    self.data['gr_mean_theta_sheet'] = comp.data['mean_theta']
+                    self.data['gr_stimulus_sheet'] = comp.data['stimulus']
+                if comp.data['type'] == 'sheet_normal':
+                    self.data['gr_theta_sheet_normal'] = comp.data['theta']
+                    self.data['gr_mean_theta_sheet_normal'] = comp.data['mean_theta']
+                    self.data['gr_stimulus_sheet_normal'] = comp.data['stimulus']
             
     def grow_reference_config(self):
 
