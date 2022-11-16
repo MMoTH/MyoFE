@@ -550,7 +550,7 @@ class LV_simulation():
                     if self.end_diastolic:
 
                         if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n and\
-                             self.gr.initial_gr_cycle_counter >= self.initial_gr_cycles:
+                             self.gr.initial_gr_cycle_counter >= self.gr.initial_gr_cycles:
                             # store cavity volume before growth to reload back to this vol
                             ED_vol = self.mesh.model['uflforms'].LVcavityvol()
                             if self.comm.Get_rank() == 0:
