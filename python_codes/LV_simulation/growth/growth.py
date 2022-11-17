@@ -134,9 +134,10 @@ class growth():
     def implement_growth(self,end_diastolic,time_step):
         
         if self.data['gr_active']:
-            # First update the stimulus and theta for each growth type
-            #update mesh class
+            # First update mesh class
             self.mesh = self.parent_circulation.mesh
+
+            # Then,update the stimulus and theta for each growth type
             for comp in self.components:
                 
                 if comp.data['type'] == 'fiber':
@@ -182,8 +183,8 @@ class growth():
                             print('Growth is happening at ED!')
                         
                         # update mean theta per cycle 
-                        comp.data['mean_theta'] = \
-                            np.mean(comp.data['theta_tracker'],axis=0)
+                        #comp.data['mean_theta'] = \
+                        #    np.mean(comp.data['theta_tracker'],axis=0)
                         """print 'Max mean theta'
                         print comp.data['mean_theta'].max()
                         print 'Min mean theta'
@@ -363,16 +364,18 @@ class growth_component():
         # theta merges to thta_max if s > set and vice versa.
         tau = float(self.data['tau'])
         range_theta = self.data['theta_max'] - self.data['theta_min']
-        
+        set_component = (s - setpoint)/np.amax([np.abs(setpoint),1])
         if s-setpoint>=0:
-            dthetha = \
-                    1/tau*(self.data['theta_max'] - y)/range_theta *\
-                         (s - setpoint)/np.amax([np.abs(setpoint),1])
+            #dthetha = \
+            #        1/tau*(self.data['theta_max'] - y)/range_theta *\
+            #             (s - setpoint)/np.amax([np.abs(setpoint),1])
+            dtheta = (set_component/tau)*(self.data['theta_max'] - y)/range_theta
         else:
-            dthetha = \
-                    1/tau*(y - self.data['theta_min'])/range_theta *\
-                         (s - setpoint)/np.amax([np.abs(setpoint),1])
-        return dthetha
+            #dthetha = \
+            #        1/tau*(y - self.data['theta_min'])/range_theta *\
+            #             (s - setpoint)/np.amax([np.abs(setpoint),1])
+            dtheta = (set_component/tau)*(y - self.data['theta_min'])/range_theta
+        return dtheta
 
     def store_setpoint(self):
         """ Store setpoint data before growth activation """
