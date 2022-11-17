@@ -539,7 +539,7 @@ class LV_simulation():
                     #    self.gr.data['gr_setpoint_active'] = 0
                     #    self.gr.data['gr_active'] = 1
                     #    self.gr.assign_setpoint()
-                    if self.comm.Get_rank() == 0:
+                    """if self.comm.Get_rank() == 0:
                         print 'initial_gr_cycle_counter'
                         print self.gr.initial_gr_cycle_counter
                         print 'initial_gr_cycles'
@@ -547,16 +547,16 @@ class LV_simulation():
                         print 'self.gr.growth_frequency_n_counter'
                         print self.gr.growth_frequency_n_counter
                         print 'self.gr.growth_frequency_n'
-                        print self.gr.growth_frequency_n
+                        print self.gr.growth_frequency_n"""
                     
                     self.gr.data['gr_theta_active'] = 0
                     if self.gr.initial_gr_cycle_counter >= (self.gr.initial_gr_cycles - 1) and \
                         self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
-                        print 'True for theta'
+                        #print 'True for theta'
                         self.gr.data['gr_theta_active'] = 1
-                    if self.comm.Get_rank() == 0:
-                        print 'gr_theta_active'
-                        print self.gr.data['gr_theta_active']
+                    #if self.comm.Get_rank() == 0:
+                        #print 'gr_theta_active'
+                        #print self.gr.data['gr_theta_active']
 
                     self.gr.implement_growth(self.end_diastolic,time_step)
                     
