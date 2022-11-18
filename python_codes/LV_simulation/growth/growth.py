@@ -183,8 +183,8 @@ class growth():
                             print('Growth is happening at ED!')
                         
                         # update mean theta per cycle 
-                        #comp.data['mean_theta'] = \
-                        #    np.mean(comp.data['theta_tracker'],axis=0)
+                        comp.data['mean_theta'] = \
+                            np.mean(comp.data['theta_tracker'],axis=0)
                         """print 'Max mean theta'
                         print comp.data['mean_theta'].max()
                         print 'Min mean theta'
