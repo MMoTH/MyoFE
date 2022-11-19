@@ -1,14 +1,14 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [10],
+        "no_of_time_steps": [30000],
         "time_step": [0.001],
         "baroreflex": 
         {
             "activations": [
                 {
-                    "t_start_s": [50],
-                    "t_stop_s": [400]
+                    "t_start_s": [500],
+                    "t_stop_s": [4000]
                 }
             ]
         },
@@ -17,7 +17,7 @@
             "activations": 
             [
                 {
-                    "t_start_s": [0.005],
+                    "t_start_s": [8],
                     "t_stop_s": [400]
                 }
             ]
@@ -34,10 +34,10 @@
                     "total_change": [0]
                 },
                 {
-                    "level": ["baroreflex"],
-                    "variable": ["baro_b_setpoint"],
-                    "t_start_s": [5],
-                    "t_stop_s": [10],
+                    "level": ["circulation"],
+                    "variable": ["mitral_insufficiency_conductance"],
+                    "t_start_s": [400],
+		    "t_stop_s":[700],
                     "total_change": [0]
                 }
             ]
@@ -47,8 +47,8 @@
     },
     "heart_rate": {
         "t_active_period": [0.003],
-        "t_quiescent_period": [0.005],
-        "t_first_activation": [0.01]
+        "t_quiescent_period": [0.92],
+        "t_first_activation": [0.1]
     },
     "mesh":
     {
@@ -333,13 +333,14 @@
         },
         "growth":
         {
+	    "growth_frequency_n":[2],
             "components":
             [
                 {
                     "type": ["fiber"],
                     "signal": ["myofiber_passive_stress"],
-                    "tau": [10],
-                    "theta_max": [2],
+                    "tau": [100],
+                    "theta_max": [1.5],
                     "theta_min": [0.5]
                 }
             ]
@@ -347,8 +348,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/base/sim_output/growth_test/data.csv"],
-        "mesh_output_path": ["../demos/base/sim_output/growth_test/mesh_output"],
+        "output_data_path": ["../demos/base/sim_output/growth_base_margin/data.csv"],
+        "mesh_output_path": ["../demos/base/sim_output/growth_base_margin/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -359,11 +360,15 @@
             "k_3",
             "k_on",
             "k_act",
-            "k_serca"
+            "k_serca",
+	    "theta_vis_fiber",
+	    "deviation_fiber",
+	    "stimulus_fiber",
+	    "setpoint_fiber"
         ],
-        "growth_mesh_path": ["../demos/base/sim_output/growth_test/mesh_output"],     
+        "growth_mesh_path": ["../demos/base/sim_output/growth_base_margin/mesh_output"],     
         "dumping_spatial_in_average":[true],
-        "frequency_n": [1]
+        "frequency_n": [10]
         
         
     }
