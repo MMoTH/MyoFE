@@ -927,9 +927,9 @@ class LV_simulation():
         radius = []
         for i,p in enumerate(self.z_coord):
             radius.append(self.return_spherical_radius(x_m,y_m,z_m,
-                                parent_circ.x_coord[i],
-                                parent_circ.y_coord[i],
-                                parent_circ.z_coord[i]))
+                                self.x_coord[i],
+                                self.y_coord[i],
+                                self.z_coord[i]))
         radius = np.array(radius)
 
         local_points_r = np.zeros(self.local_n_of_int_points)
