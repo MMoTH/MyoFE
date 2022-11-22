@@ -269,6 +269,14 @@ class LV_simulation():
         self.gr = []
         # If required, create the vad object
         self.va = []
+        
+        self.infarct = 0
+        if 'infarct' in instruction_data['mesh']:
+            if self.comm.Get_rank() == 0:
+                print 'Initializing infarct module'
+            self.infarct = 1
+            self.remote_regions, self.border_zone_regions = \
+                handle_infarct(instruction_data['mesh']['infarct'])
 
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
@@ -532,7 +540,38 @@ class LV_simulation():
                     for j in range(self.local_n_of_int_points):
                         self.hs_objs_list[j].memb.data[p.data['variable']] +=\
                             p.data['increment']
-        
+        if self.infarct: 
+            for i in self.prot.infarct_activation:
+                if (self.t_counter >= i.data['t_start_ind'] and 
+                    self.t_counter < i.data['t_stop_ind']):
+                    if self.infarct_model['level']== 'myofilaments':
+                        for r in self.remote_regions:
+                            self.hs_objs_list[r].myof.data[self.infarct_model['variable']] +=\
+                                i.data['infarct_increment']
+
+                            #print self.hs_objs_list[r].myof.data[self.infarct.model['variable']]
+                        
+                        for b in self.border_zone_regions:
+                            self.hs_objs_list[b].myof.data[self.infarct_model['variable']] +=\
+                                i.data['boundary_zone_increment']
+
+                    elif self.infarct_model['level'] == 'membranes':
+                        for r in self.remote_regions:
+                            self.hs_objs_list[r].memb.data[self.infarct_model['variable']] +=\
+                                i.data['infarct_increment']
+                        for b in self.border_zone_regions:
+                            self.hs_objs_list[b].memb.data[self.infarct_model['variable']] +=\
+                                i.data['boundary_zone_increment']
+        for p in ['k_1','k_3','k_on'] :
+            for i, h in enumerate(self.hs_objs_list):
+                self.mesh.data[p][i] = h.myof.data[p]
+            self.mesh.model['functions'][p].vector()[:] = \
+                  self.mesh.data[p]
+        for p in ['k_act','k_serca']:
+            for i, h in enumerate(self.hs_objs_list):
+                self.mesh.data[p][i] = h.memb.data[p]
+            self.mesh.model['functions'][p].vector()[:] = \
+                  self.mesh.data[p]
         # Rubild system arrays
         self.rebuild_from_perturbations()
         # Proceed time
@@ -864,4 +903,42 @@ class LV_simulation():
     def return_spherical_radius(self,xc,yc,zc,x,y,z):
 
         return ((xc-x)**2+(yc-y)**2+(zc-z)**2)**0.5 
+    
 
+
+    def handle_infarct(self,infarct_struct):
+
+        self.infarct_model = dict()
+        for inf in infarct_struct.keys():
+            self.infarct_model[inf] = infarct_struct[inf][0]
+
+        #define the initial point of infarcted region 
+        y_m = 0
+        z_m = self.z_coord.min() * self.infarct_model['z_ratio']
+        z_m_upper = z_m * 0.99
+        z_m_lower = z_m * 1.01
+
+        x_mid_vent_slice = \
+            self.x_coord[np.where((self.z_coord>=z_m_lower)&\
+                        (self.z_coord<=z_m_upper))]
+        x_m = x_mid_vent_slice.max()
+
+
+        radius = []
+        for i,p in enumerate(self.z_coord):
+            radius.append(self.return_spherical_radius(x_m,y_m,z_m,
+                                parent_circ.x_coord[i],
+                                parent_circ.y_coord[i],
+                                parent_circ.z_coord[i]))
+        radius = np.array(radius)
+
+        local_points_r = np.zeros(self.local_n_of_int_points)
+        for i,j in enumerate(self.dofmap):
+            local_points_r[i] = radius[j]
+
+        remote_regions = np.where(local_points_r<=self.infarct_model['infarct_radius'])[0]
+        border_zone_regions = \
+            np.where((local_points_r >= self.infarct_model['infarct_radius']) &\
+                    (local_points_r <= self.infarct_model['boundary_zone_radius']))[0]
+        
+        return remote_regions, border_zone_regions
