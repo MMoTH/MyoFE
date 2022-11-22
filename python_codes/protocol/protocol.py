@@ -14,7 +14,7 @@ class protocol():
 
         prot = protocol_struct
         for p in list(prot.keys()):
-            if not p in ['baroreflex','perturbation','infarct']:
+            if not p in ['baroreflex','perturbation','growth','infarct']:
                 self.data[p] = prot[p][0]
 
         self.perturbations = []
