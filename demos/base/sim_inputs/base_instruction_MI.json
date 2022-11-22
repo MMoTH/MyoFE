@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [10],
+        "no_of_time_steps": [20],
         "time_step": [0.001],
         "baroreflex": 
         {
@@ -12,23 +12,13 @@
                 }
             ]
         },
-        "growth":
-        {
-            "activations": 
-            [
-                {
-                    "t_start_s": [8],
-                    "t_stop_s": [400]
-                }
-            ]
-        },
         "infarct":
         {
             "activations":
             [
                 {
                     "t_start_s": [0.005],
-                    "t_stop_s": [0.006],
+                    "t_stop_s": [0.01],
                     "infarct_total_change": [-100],
                     "boundary_zone_total_change": [-60]
                 }
@@ -350,20 +340,6 @@
                     }
                 ]
             }
-        },
-        "growth":
-        {
-	    "growth_frequency_n":[2],
-            "components":
-            [
-                {
-                    "type": ["fiber"],
-                    "signal": ["myofiber_passive_stress"],
-                    "tau": [100],
-                    "theta_max": [1.5],
-                    "theta_min": [0.5]
-                }
-            ]
         }
     },
     "output_handler":
