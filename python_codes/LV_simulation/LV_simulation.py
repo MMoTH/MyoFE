@@ -276,7 +276,7 @@ class LV_simulation():
                 print 'Initializing infarct module'
             self.infarct = 1
             self.remote_regions, self.border_zone_regions = \
-                handle_infarct(instruction_data['mesh']['infarct'])
+                self.handle_infarct(instruction_data['mesh']['infarct'])
 
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
