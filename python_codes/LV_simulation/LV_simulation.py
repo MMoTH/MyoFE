@@ -449,7 +449,7 @@ class LV_simulation():
                             temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scalar"])
 
-                        if m in ['k_1','k_3','k_on','k_act','k_serca']:
+                        if m in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density']:
                             temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scalar"])
                         if m == 'active_stress':
@@ -562,7 +562,7 @@ class LV_simulation():
                         for b in self.border_zone_regions:
                             self.hs_objs_list[b].memb.data[self.infarct_model['variable']] +=\
                                 i.data['boundary_zone_increment']
-        for p in ['k_1','k_3','k_on'] :
+        for p in ['k_1','k_3','k_on','cb_number_density'] :
             for i, h in enumerate(self.hs_objs_list):
                 self.mesh.data[p][i] = h.myof.data[p]
             self.mesh.model['functions'][p].vector()[:] = \
@@ -678,7 +678,7 @@ class LV_simulation():
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scalar"])
                     
-                    if m in ['k_1','k_3','k_on','k_act','k_serca']:
+                    if m in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density']:
                             temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scalar"])
                     if m == 'active_stress':
