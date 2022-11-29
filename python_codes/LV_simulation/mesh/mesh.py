@@ -365,6 +365,7 @@ class MeshClass():
 
         self.model['functions']['k_cb'].vector()[:] = self.hs.myof.data['k_cb']
         self.model['functions']['cb_number_density'].vector()[:] = self.hs.myof.data['cb_number_density']
+        self.model['functions']['x_ps'].vector()[:] = self.hs.myof.data['x_ps']
         
         cb_stress = self.return_cb_stress(delta_hsl)
 
