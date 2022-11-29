@@ -362,7 +362,10 @@ class MeshClass():
                     (self.hs.myof.x + self.hs.myof.data['x_ps'] +
                         (self.hs.myof.implementation['filament_compliance_factor'] *
                         delta_hsl)))"""
-                        
+        self.model['functions']['k_cb'] = Function(self.model['function_spaces']['quadrature_space'])
+        self.model['functions']['cb_number_density'] = Function(self.model['function_spaces']['quadrature_space'])
+        self.model['functions']['k_cb'].vector()[:] = self.hs.myof.data['k_cb']
+        self.model['functions']['cb_number_density'].vector()[:] = self.hs.myof.data['cb_number_density']              
         cb_stress = self.return_cb_stress(delta_hsl)
 
         xfiber_fraction = 0
@@ -543,8 +546,8 @@ class MeshClass():
             
             bin_pops = self.y_split[2 + np.arange(0, self.hs.myof.no_of_x_bins)]
             cb_stress = \
-                self.hs.myof.data['cb_number_density'] * \
-                self.hs.myof.data['k_cb'] * 1e-9 * \
+                self.model['functions']['cb_number_density'] * \
+                self.model['functions']['k_cb'] * 1e-9 * \
                 np.sum(bin_pops *
                     (self.hs.myof.x + self.hs.myof.data['x_ps'] +
                         (self.hs.myof.implementation['filament_compliance_factor'] *
