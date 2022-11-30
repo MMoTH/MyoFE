@@ -562,16 +562,7 @@ class LV_simulation():
                         for b in self.border_zone_regions:
                             self.hs_objs_list[b].memb.data[self.infarct_model['variable']] +=\
                                 i.data['boundary_zone_increment']
-        for p in ['k_1','k_3','k_on','cb_number_density'] :
-            for i, h in enumerate(self.hs_objs_list):
-                self.mesh.data[p][i] = h.myof.data[p]
-            self.mesh.model['functions'][p].vector()[:] = \
-                  self.mesh.data[p]
-        for p in ['k_act','k_serca']:
-            for i, h in enumerate(self.hs_objs_list):
-                self.mesh.data[p][i] = h.memb.data[p]
-            self.mesh.model['functions'][p].vector()[:] = \
-                  self.mesh.data[p]
+        
         # Rubild system arrays
         self.rebuild_from_perturbations()
         # Proceed time
@@ -583,7 +574,12 @@ class LV_simulation():
             print 'Solving MyoSim ODEs across the mesh'
         start = time.time()
         for j in range(self.local_n_of_int_points):
-        
+            
+            for p in ['k_1','k_3','k_on','cb_number_density'] :
+                self.mesh.data[p][j] = self.hs_objs_list[j].myof.data[p]
+            for p in ['k_act','k_serca']:
+                self.mesh.data[p][i] = self.hs_objs_list[j].memb.data[p]
+
             self.hs_objs_list[j].update_simulation(time_step, 
                                                 self.delta_hs_length_list[j], 
                                                 activation,
@@ -598,7 +594,11 @@ class LV_simulation():
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
                 self.hs_objs_list[j].myof.y[:]
         end =time.time()
-
+        
+        for p in ['k_1','k_3','k_on','cb_number_density','k_act','k_serca'] :
+            self.mesh.model['functions'][p].vector()[:] = \
+                  self.mesh.data[p]
+                
         if self.comm.Get_rank() == 0:
             print 'Required time for solving myosim was'
             t = end-start 
