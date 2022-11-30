@@ -580,7 +580,7 @@ class LV_simulation():
             for p in ['k_1','k_3','k_on','cb_number_density'] :
                 self.mesh.data[p][j] = self.hs_objs_list[j].myof.data[p]
             for p in ['k_act','k_serca']:
-                self.mesh.data[p][i] = self.hs_objs_list[j].memb.data[p]
+                self.mesh.data[p][j] = self.hs_objs_list[j].memb.data[p]
 
             self.hs_objs_list[j].update_simulation(time_step, 
                                                 self.delta_hs_length_list[j], 
