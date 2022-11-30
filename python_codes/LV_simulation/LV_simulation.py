@@ -224,7 +224,7 @@ class LV_simulation():
         # assign the values from the half-sarcomere isntances
         # to spatial variables that baroreflex can regulate
         # (for visualizaton purpose)
-        for p in ['k_1','k_3','k_on'] :
+        for p in ['k_1','k_3','k_on','cb_number_density','k_cb] :
             for i, h in enumerate(self.hs_objs_list):
                 self.mesh.data[p][i] = h.myof.data[p]
             self.mesh.model['functions'][p].vector()[:] = \
@@ -271,6 +271,8 @@ class LV_simulation():
         self.va = []
         
         self.infarct = 0
+        self.remote_regions = [] 
+        self.border_zone_regions = []
         if 'infarct' in instruction_data['mesh']:
             if self.comm.Get_rank() == 0:
                 print 'Initializing infarct module'
