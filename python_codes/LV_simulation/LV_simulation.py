@@ -277,8 +277,7 @@ class LV_simulation():
             if self.comm.Get_rank() == 0:
                 print 'Initializing infarct module'
             self.infarct = 1
-            self.remote_regions, self.border_zone_regions = \
-                self.handle_infarct(instruction_data['mesh']['infarct'])
+            
 
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
@@ -546,6 +545,9 @@ class LV_simulation():
             for i in self.prot.infarct_activation:
                 if (self.t_counter >= i.data['t_start_ind'] and 
                     self.t_counter < i.data['t_stop_ind']):
+                    if self.t_counter == i.data['t_start_ind']:
+                        self.remote_regions, self.border_zone_regions = \
+                            self.handle_infarct(instruction_data['mesh']['infarct'])
                     if self.infarct_model['level']== 'myofilaments':
                         for r in self.remote_regions:
                             self.hs_objs_list[r].myof.data[self.infarct_model['variable']] +=\
