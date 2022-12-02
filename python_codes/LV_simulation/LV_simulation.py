@@ -547,7 +547,7 @@ class LV_simulation():
                     self.t_counter < i.data['t_stop_ind']):
                     if self.t_counter == i.data['t_start_ind']:
                         self.remote_regions, self.border_zone_regions = \
-                            self.handle_infarct(instruction_data['mesh']['infarct'])
+                            self.handle_infarct(self.instruction_data['mesh']['infarct'])
                     if self.infarct_model['level']== 'myofilaments':
                         for r in self.remote_regions:
                             self.hs_objs_list[r].myof.data[self.infarct_model['variable']] +=\
