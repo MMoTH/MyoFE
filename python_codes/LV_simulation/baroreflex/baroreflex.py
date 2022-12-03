@@ -82,17 +82,21 @@ class baroreflex():
                     self.parent_circulation.hr.data[bc.data['variable']] = y
 
             if (bc.data['level'] == 'membranes'):
-                h = self.parent_circulation.hs_objs_list[bc.data['index']]
-                h.memb.data[bc.data['variable']] = y
-                self.parent_circulation.mesh.data[bc.data['variable']][bc.data['index']] = y 
+                if not (bc.data['index'] in self.parent_circulation.remote_regions or \
+                       bc.data['index'] in self.parent_circulation.border_zone_regions):
+                    h = self.parent_circulation.hs_objs_list[bc.data['index']]
+                    h.memb.data[bc.data['variable']] = y
+                #self.parent_circulation.mesh.data[bc.data['variable']][bc.data['index']] = y 
                 """for i, h in enumerate(self.parent_circulation.hs_objs_list):
                     h.memb.data[bc.data['variable']] = y
                     self.parent_circulation.mesh.data[bc.data['variable']][i] = y """
                 #self.parent_circulation.hs.memb.data[bc.data['variable']] = y
             if (bc.data['level'] == 'myofilaments'):
-                h = self.parent_circulation.hs_objs_list[bc.data['index']]
-                h.myof.data[bc.data['variable']] = y
-                self.parent_circulation.mesh.data[bc.data['variable']][bc.data['index']] = y
+                if not (bc.data['index'] in self.parent_circulation.remote_regions or \
+                       bc.data['index'] in self.parent_circulation.border_zone_regions):
+                    h = self.parent_circulation.hs_objs_list[bc.data['index']]
+                    h.myof.data[bc.data['variable']] = y
+                #self.parent_circulation.mesh.data[bc.data['variable']][bc.data['index']] = y
                 """for i, h in enumerate(self.parent_circulation.hs_objs_list):
                     h.myof.data[bc.data['variable']] = y
                     self.parent_circulation.mesh.data[bc.data['variable']][i] = y"""
