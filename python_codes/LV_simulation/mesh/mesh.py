@@ -225,12 +225,13 @@ class MeshClass():
         (v,q,qendo,v11)   = TestFunctions(self.model['function_spaces']['solution_space'])
         
         if 'growth' in self.parent_parameters.instruction_data['model']:
-            for k in ['theta','temp_theta','theta_vis','stimulus','setpoint','deviation']:
+            for k in ['theta','temp_theta','local_theta_vis',
+                    'global_theta_vis','stimulus','setpoint','deviation']:
                 for d in ['fiber','sheet', 'sheet_normal']:
                     name = k + '_' + d
                     functions[name] = \
                         Function(self.model['function_spaces']['growth_scalar_FS'])
-                    if k == 'theta' or k == 'temp_theta' or 'theta_vis':
+                    if k in ['theta','temp_theta','local_theta_vis','global_theta_vis']:
                         functions[name].vector()[:] = 1
                     else:
                         functions[name].vector()[:] = 0

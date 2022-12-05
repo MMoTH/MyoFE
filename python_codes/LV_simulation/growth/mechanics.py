@@ -220,12 +220,12 @@ class GrowthMechanicsClass():
         (v,q,v11)   = TestFunctions(self.model['function_spaces']['solution_space'])
         
         # define functions for growth 
-        for k in ['theta','temp_theta','theta_vis','stimulus','setpoint','deviation']:
+        for k in ['theta','temp_theta']:
             for d in ['fiber','sheet', 'sheet_normal']:
                 name = k + '_' + d
                 functions[name] = \
                     Function(self.model['function_spaces']['growth_scalar_FS'])
-                if k == 'theta' or k == 'temp_theta' or 'theta_vis':
+                if k in  ['theta','temp_theta']:
                     functions[name].vector()[:] = 1
                 else:
                     functions[name].vector()[:] = 0
