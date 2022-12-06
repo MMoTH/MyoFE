@@ -57,12 +57,12 @@ class growth():
                 # applying perturbations 
                 g_obj= self.components[-1]
 
-                for param in ['local_theta','global_theta','setpoint','stimulus']:
+                for param in ['local_theta','global_theta','setpoint','stimulus','deviation']:
                     name = 'gr_' + param + '_'+  g_obj.data['type']
                     if param not in ['local_theta','global_theta']:
-                        theta_name = 'local_theta' + '_' + g_obj.data['type']
+                        theta_name = 'local_theta' #+ '_' + g_obj.data['type']
                         self.data[name] = g_obj.data[param] = \
-                            np.zeros(g_obj.data[theta_name])
+                            np.zeros(len(g_obj.data[theta_name]))
                     else:
                         self.data[name] = g_obj.data[param]
 
@@ -119,7 +119,7 @@ class growth():
             comp.data['setpoint'] = \
                 np.mean(comp.data['setpoint_tracker'],axis=0)
 
-            set_name = 'gr_setpoint' +  comp.data['type']
+            set_name = 'gr_setpoint' + '_' +  comp.data['type']
             self.data[set_name] = comp.data['setpoint']
             
             
@@ -149,14 +149,14 @@ class growth():
                     comp.data['setpoint'] = self.data['gr_set_sheet'] 
                 if comp.data['type'] == 'sheet_normal':
                     comp.data['setpoint'] = self.data['gr_set_sheet_normal']"""
-                set_name = 'gr_setpoint' +  comp.data['type']
+                set_name = 'gr_setpoint' + '_' +  comp.data['type']
                 self.data[set_name] = comp.data['setpoint']
                 #if self.comm.Get_rank() == 0:
                 #    print 'Printing setpoint data'
                 #    print comp.data['setpoint']
                 # update stimulus signal 
                 if self.data['gr_stimulus_active']:
-                    comp.store_stimuli_data()
+                    comp.store_stimulus()
                     #comp.data['stimulus_tracker'] = comp.store_stimulus()
                 #comp.data['stimulus'] = comp.store_stimulus()
                 # update deviation array (for visualization purpose)
@@ -228,7 +228,7 @@ class growth():
                         #if self.comm.Get_rank() == 0:
                         #    print comp.data['mean_theta']
                         #    print self.mechan.model['functions'][name].vector().get_local()[:]
-                for param in ['local_theta','global_theta','setpoint','stimulus']:
+                for param in ['local_theta','global_theta','setpoint','stimulus','deviation']:
                     name = 'gr_' + param + '_'+  comp.data['type']
                     self.data[name] = comp.data[param]
 

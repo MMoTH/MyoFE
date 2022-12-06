@@ -108,8 +108,14 @@ class LV_simulation():
         rank_id = self.comm.Get_rank()
         print '%0.0f integer points have been assigned to core %0.0f'\
              %(self.local_n_of_int_points,rank_id)
-        local_element_num = self.mesh.model['mesh'].num_cells()
-        print 'Mesh contains %0.0f elements' %(self.comm.reduce(local_element_num))
+        self.local_n_of_elements = self.mesh.model['mesh'].num_cells()
+        self.global_n_of_elements = \
+            self.comm.reduce(self.local_n_of_elements)
+        # Then broadcast to all other cores
+        self.global_n_of_elements = \
+            self.comm.bcast(self.global_n_of_elements)
+        if self.comm.Get_rank() == 0:
+            print 'Mesh contains %0.0f elements' %(self.global_n_of_elements)
         """ Create a circulatory system object"""
         circ_struct = instruction_data['model']['circulation']
         self.circ = circ(circ_struct,self.mesh)
@@ -251,10 +257,10 @@ class LV_simulation():
         if (self.gr != [] ):
             
             for k in self.gr.data.keys():
-                if k in ['gr_theta_fiber','gr_mean_theta_fiber','gr_stimulus_fiber','gr_set_fiber',
-                        'gr_theta_sheet','gr_mean_theta_sheet','gr_stimulus_sheet','gr_set_sheet',
-                        'gr_theta_sheet_normal','gr_mean_theta_sheet_normal','gr_set_sheet_normal',
-                        'gr_stimulus_sheet_normal']:
+                if k in ['gr_local_theta_fiber','gr_global_theta_fiber','gr_stimulus_fiber','gr_setpoint_fiber','gr_deviation_fiber',
+                        'gr_local_theta_sheet','gr_global_theta_sheet','gr_stimulus_sheet','gr_setpoint_sheet','gr_deviation_sheet',
+                        'gr_local_sheet_normal','gr_global_theta_sheet_normal','gr_setpoint_sheet_normal',
+                        'gr_stimulus_sheet_normal','gr_deviation_sheet_normal',]:
     
                     self.spatial_gr_data_fields.append(k)
 
