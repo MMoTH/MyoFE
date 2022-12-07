@@ -496,47 +496,26 @@ class LV_simulation():
         if self.gr:            
             #self.data['growth_active'] = 0
             for g in self.prot.growth_activations:
-                # Handle setpoint before growth activation
-                #if ((self.t_counter >= g.data['t_start_ind']/2) and
-                #        (self.t_counter < g.data['t_start_ind'])):
-                    #self.gr.store_setpoint()
-
-                #if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n -1 and \
-                #        self.gr.first_growth_step:
-                #    self.gr.store_setpoint()
 
                 if self.t_counter == g.data['t_start_ind']:
                     self.gr.data['gr_start_active'] = 1
                     self.gr.data['gr_active'] = 0
                     self.gr.initial_gr_cycle_counter = 1
-                    #self.gr.assign_setpoint()
-                    
-                
-                #if self.gr.data['gr_start_active'] and \
-                #    self.gr.growth_frequency_n_counter == 0:
-                #    self.gr.data['gr_start_active'] = 0
 
                 if self.gr.initial_gr_cycle_counter > self.gr.initial_gr_cycles:
                     self.gr.data['gr_start_active'] = 0
-
 
                 # Implement growth when is
                 if ((self.t_counter >= g.data['t_start_ind']) and
                         (self.t_counter < g.data['t_stop_ind'])):
                     
-                    #if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n -1 and \
-                    #    self.gr.first_growth_step:
-                    #    self.gr.store_setpoint()
-
                     if self.comm.Get_rank() == 0:
                         print 'Growth module is activated'
                     
                     self.gr.data['gr_setpoint_active'] = 0
                     if self.gr.initial_gr_cycle_counter == self.gr.initial_gr_cycles - 1:
                         self.gr.data['gr_setpoint_active'] = 1
-                    #if self.gr.data['gr_start_active'] and \
-                    #    self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n - 1:
-                    #    self.gr.data['gr_setpoint_active'] = 1
+
                         self.gr.store_setpoint(self.gr.data['gr_setpoint_active'])
                         if self.end_diastolic:
                             self.gr.assign_setpoint()
@@ -545,29 +524,11 @@ class LV_simulation():
                     else: 
                          self.gr.data['gr_setpoint_active'] = 0
 
-                    #if self.gr.data['gr_setpoint_active'] and \
-                    #    self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
-                    #    self.gr.data['gr_setpoint_active'] = 0
-                    #    self.gr.data['gr_active'] = 1
-                    #    self.gr.assign_setpoint()
-                    """if self.comm.Get_rank() == 0:
-                        print 'initial_gr_cycle_counter'
-                        print self.gr.initial_gr_cycle_counter
-                        print 'initial_gr_cycles'
-                        print self.gr.initial_gr_cycles
-                        print 'self.gr.growth_frequency_n_counter'
-                        print self.gr.growth_frequency_n_counter
-                        print 'self.gr.growth_frequency_n'
-                        print self.gr.growth_frequency_n"""
-                    
                     self.gr.data['gr_stimulus_active'] = 0
                     if self.gr.initial_gr_cycle_counter >= (self.gr.initial_gr_cycles - 1) and \
                         self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
                         #print 'True for theta'
                         self.gr.data['gr_stimulus_active'] = 1
-                    #if self.comm.Get_rank() == 0:
-                        #print 'gr_stimulus_active'
-                        #print self.gr.data['gr_stimulus_active']
 
                     self.gr.implement_growth(self.end_diastolic,time_step)
                     
@@ -576,7 +537,7 @@ class LV_simulation():
                         if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n and\
                              self.gr.initial_gr_cycle_counter >= self.gr.initial_gr_cycles:
 
-                            print 'True for growth' 
+                            #print 'True for growth' 
                             # store cavity volume before growth to reload back to this vol
                             ED_vol = self.mesh.model['uflforms'].LVcavityvol()
                             if self.comm.Get_rank() == 0:
@@ -594,11 +555,7 @@ class LV_simulation():
                             F_0 = self.gr.mechan.model['functions']['Fmat']
                             temp_F_0 = project(F_0,self.gr.mechan.model['function_spaces']['tensor_space'],
                                                 form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-                            #temp_Fg_0  = Fg_0.vector().get_local()[:]
-                            #print Fg_0
-                            #if self.comm.Get_rank() == 0:
-                            #    print 'solving before growing'
-                            #self.solver.solvenonlinear()
+
                             if self.comm.Get_rank() == 0:
                                 print 'Fg before updating Fg'
                                 print temp_Fg_0
@@ -606,13 +563,10 @@ class LV_simulation():
                                 print temp_Fe_0
                                 print 'F before updating Fg'
                                 print temp_F_0
+
                             for dir in ['fiber','sheet','sheet_normal']:
                                 name = 'theta_' + dir
                                 temp_name = 'temp_' + name
-                                #if np.isnan(self.mesh.model['functions'][temp_name].vector().array()).any():
-                                #    print 'nan in theta\n'
-                                
-                                #self.mesh.model['functions'][name].assign(self.mesh.model['functions'][temp_name])
                                 self.gr.mechan.model['functions'][name].vector()[:] = \
                                     self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
 
@@ -647,20 +601,7 @@ class LV_simulation():
                             # Grow reference configuration
                             self.gr.grow_reference_config()
                             #self.grow_reference_config()
-                            
-                            """sol = self.mesh.model['functions']['w'].vector().array()[:] 
-                            if self.comm.Get_rank() == 0:
-                                print 'Checking solution after growth'
-                                print sol
-                            # check if the pressure is zero 
-                            temp_lv_vol = \
-                                self.mesh.model['uflforms'].LVcavityvol()
-                            if self.comm.Get_rank() == 0:
-                                print 'Ref LV vol after growth: %f' %temp_lv_vol
-                            lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
-                            if self.comm.Get_rank() == 0:
-                                print 'lv_p: %f' %lv_p"""
-                                
+
                             # reset Fg = 1
                             for dir in ['fiber','sheet','sheet_normal']:
                                 name = 'theta_' + dir
@@ -704,13 +645,6 @@ class LV_simulation():
 
                             self.circ.mesh = self.mesh
                         # check if the pressure is zero 
-                            """temp_lv_vol = \
-                                self.mesh.model['uflforms'].LVcavityvol()
-                            if self.comm.Get_rank() == 0:
-                                print 'Ref LV vol after reseting theta: %f' %temp_lv_vol
-                            lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
-                            if self.comm.Get_rank() == 0:
-                                print 'lv_p: %f' %lv_p"""
                             #update LV vol expression 
                             #self.mesh.model['functions']['LVCavityvol'].vol = \
                             #    self.mesh.model['uflforms'].LVcavityvol()
@@ -769,23 +703,6 @@ class LV_simulation():
                             self.reference_LV_vol = \
                                 self.mesh.model['uflforms'].LVcavityvol()
                             
-                            #ref_LV_vol = self.reference_LV_vol
-                            #lv_cavity_vol = self.mesh.model['uflforms'].LVcavityvol()
-                            #lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
-                            #expression_vol = self.mesh.model['functions']['LVCavityvol'].vol 
-                            
-                            """if self.comm.Get_rank() == 0: 
-                                print 'loading volume is: %f' %loading_vol
-                                print 'Ref vol is: %f' %self.reference_LV_vol
-                                print 'LV vol at ED %f' %ED_vol
-                                print "expression vol "
-                                print expression_vol
-                                print 'lv_cavity_vol'
-                                print lv_cavity_vol
-                                print'lv press'
-                                print lv_p"""
-                        
-
                             self.mesh.model['functions']['LVCavityvol'].vol = \
                                 self.mesh.model['uflforms'].LVcavityvol()
                             lv_vol = self.mesh.model['uflforms'].LVcavityvol()
@@ -800,7 +717,6 @@ class LV_simulation():
                                 #print'lv press'
                                 #print lv_p
                             self.solver.solvenonlinear()
-
 
                             lv_vol = self.mesh.model['uflforms'].LVcavityvol()
                             lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
@@ -928,20 +844,7 @@ class LV_simulation():
                             #self.diastolic_loading(loading_vol)
                         
                             # reset y_vec back to its original value before growth
-                            """for i in range(n):
-                                if self.comm.Get_rank() == 0:
-                                    print 'Incrementally reseting y_vec at step %d' %(i+1)
-                                self.mesh.model['functions']['y_vec'].vector()[:] = \
-                                    self.mesh.model['functions']['y_vec'].vector().array()[:] + delta_y_vec
-                                if self.comm.Get_rank() == 0:
-                                    print self.mesh.model['functions']['y_vec'].vector().array()[:]
-                                self.solver.solvenonlinear()
-                                if i+1 == n:
-                                    self.mesh.model['functions']['y_vec'].vector()[:] = \
-                                        temp_y_vec.vector().get_local()[:]
-                                    self.solver.solvenonlinear()
-                                    if self.comm.Get_rank() == 0:
-                                        print self.mesh.model['functions']['y_vec'].vector().array()[:]"""
+
                             # solve with updted y_vec
                             hs_l = project(self.mesh.model['functions']['hsl'], 
                                     self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]

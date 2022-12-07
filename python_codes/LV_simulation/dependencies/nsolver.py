@@ -42,7 +42,7 @@ class NSolver(object):
         abs_tol = self.solver_params["abs_tol"]
         rel_tol = self.solver_params["rel_tol"]
         maxiter = self.solver_params["max_iter"]
-        debugging_mode = self.solver_params["debugging_mode"]
+        debugging_mode = True#self.solver_params["debugging_mode"]
         mode = self.parameters["mode"]
 
         w = self.parameters["w"]
