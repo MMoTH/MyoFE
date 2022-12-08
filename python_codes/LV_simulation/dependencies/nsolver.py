@@ -199,7 +199,8 @@ class NSolver(object):
                         if (self.comm.Get_rank() == 0):
                             print 'checking hsl\n'
                         hsl_temp = project(self.mesh_obj.model['functions']['hsl'], 
-                            self.mesh_obj.model['function_spaces']["quadrature_space"])
+                            self.mesh_obj.model['function_spaces']["quadrature_space"],
+                            form_compiler_parameters={"representation":"uflacs"})
                         #hsl_temp = self.mesh_obj.model['functions']['hsl_old']
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl\n'
@@ -209,14 +210,16 @@ class NSolver(object):
                         if (self.comm.Get_rank() == 0):
                             print 'checking y_vec\n'
                         y_vec_temp = project(self.mesh_obj.model['functions']['y_vec'], 
-                            self.mesh_obj.model['function_spaces']["quad_vectorized_space"])
+                            self.mesh_obj.model['function_spaces']["quad_vectorized_space"],
+                            form_compiler_parameters={"representation":"uflacs"})
                         if np.isnan(y_vec_temp.vector().array()).any():
                             print 'nan in y_vec\n'
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking Fmat\n'
                         temp_F= project(self.mesh_obj.model['functions']['Fmat'],
-                                        self.mesh_obj.model['function_spaces']['tensor_space'])
+                                        self.mesh_obj.model['function_spaces']['tensor_space'],
+                                        form_compiler_parameters={"representation":"uflacs"})
                         if np.isnan(temp_F.vector().array()[:]).any():
                             print 'nan in Fmat\n'
 
@@ -227,7 +230,8 @@ class NSolver(object):
                         if (self.comm.Get_rank() == 0):
                             print 'checking E\n'
                         temp_E= project(self.mesh_obj.model['functions']['E'],
-                                        self.mesh_obj.model['function_spaces']['tensor_space'])
+                                        self.mesh_obj.model['function_spaces']['tensor_space'],
+                                        form_compiler_parameters={"representation":"uflacs"})
                         if np.isnan(temp_E.vector().array()[:]).any():
                             print 'nan in E\n'
 
@@ -243,7 +247,8 @@ class NSolver(object):
                         if (self.comm.Get_rank() == 0):
                             print 'checking PK2\n'
                         temp_PK2 = project(self.mesh_obj.model['functions']['PK2_local'],
-                                self.mesh_obj.model['function_spaces']['tensor_space'])
+                                self.mesh_obj.model['function_spaces']['tensor_space'], 
+                                    form_compiler_parameters={"representation":"uflacs"})
                         if np.isnan(temp_PK2.vector().array()[:]).any():
                             print 'nan in PK2\n'
                             print 'rank in PK2 is: %f \n'%self.comm.Get_rank()
