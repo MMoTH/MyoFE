@@ -493,6 +493,136 @@ class LV_simulation():
                 self.mesh.model['functions'][p].vector()[:] = \
                   self.mesh.data[p]
 
+        
+
+
+        self.data['myocardium_vol'] = \
+            assemble(1.0*dx(domain = self.mesh.model['mesh']), 
+                    form_compiler_parameters={"representation":"uflacs"})
+        # check for any perturbation
+        for p in self.prot.perturbations:
+            if (self.t_counter >= p.data['t_start_ind'] and 
+                self.t_counter < p.data['t_stop_ind']):
+                if 'increment' in  p.data.keys():
+                    if p.data['level'] == 'circulation':
+                        self.circ.data[p.data['variable']] += \
+                            p.data['increment']
+                    elif p.data['level'] == 'baroreflex':
+                        self.br.data[p.data['variable']] += \
+                            p.data['increment']
+                    elif p.data['level'] == 'myofilaments':
+                        for j in range(self.local_n_of_int_points):
+                            self.hs_objs_list[j].myof.data[p.data['variable']] +=\
+                                p.data['increment']
+                    elif p.data['level'] == 'membranes':
+                        for j in range(self.local_n_of_int_points):
+                            self.hs_objs_list[j].memb.data[p.data['variable']] +=\
+                                p.data['increment']
+                elif 'precentage_change' in p.data.keys():
+                    if p.data['level'] == 'growth':
+                        self.gr.data[p.data['variable']] += \
+                            self.gr.data[p.data['variable']] * p.data['precentage_change']
+
+        # Rubild system arrays
+        self.rebuild_from_perturbations()
+        # Proceed time
+        (activation, new_beat,self.end_diastolic) = \
+            self.hr.implement_time_step(time_step)
+
+        if self.comm.Get_rank() == 0:
+            # Solve MyoSim ODEs across the mesh
+            print 'Solving MyoSim ODEs across the mesh'
+        start = time.time()
+        for j in range(self.local_n_of_int_points):
+        
+            self.hs_objs_list[j].update_simulation(time_step, 
+                                                self.delta_hs_length_list[j], 
+                                                activation,
+                                                self.cb_stress_list[j],
+                                                self.pass_stress_list[j])
+            self.hs_objs_list[j].update_data()
+            
+            if j%1000==0 and self.comm.Get_rank() == 0:
+                print '%.0f%% of integer points are updated' % (100*j/self.local_n_of_int_points)
+            self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
+                self.hs_objs_list[j].myof.y[:]
+        end =time.time()
+
+        if self.comm.Get_rank() == 0:
+            print 'Required time for solving myosim was'
+            t = end-start 
+            print t
+
+        # Now update fenics FE for population array (y_vec) and hs_length
+        self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
+        self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
+
+        
+        temp_vol = self.mesh.model['uflforms'].LVcavityvol()
+        if self.comm.Get_rank() == 0:
+            print "LV volume befor assigning LVCavityvol:" 
+            print temp_vol
+            print self.circ.data['v']
+        # Update LV cavity volume fenics function        
+        self.mesh.model['functions']['LVCavityvol'].vol = \
+            self.circ.data['v'][-1]
+
+        """temp_vol = self.mesh.model['uflforms'].LVcavityvol()
+        if self.comm.Get_rank() == 0:
+            print "LV volume after assigning LVCavityvol:" 
+            print temp_vol
+            print self.circ.data['v'][-1]"""
+
+        self.comm.Barrier()
+        #Solve cardiac mechanics weak form
+        #--------------------------------
+        if self.comm.Get_rank() == 0:
+            print 'solving weak form'
+        self.solver.solvenonlinear()
+        
+        """temp_vol = self.mesh.model['uflforms'].LVcavityvol()
+        if self.comm.Get_rank() == 0:
+            print "LV volume after solver:" 
+            print temp_vol
+            print self.circ.data['v']-[1]"""
+        # Start updating variables after solving the weak form 
+        # First pressure in circulation
+        for i in range(self.circ.model['no_of_compartments']-1):
+            self.circ.data['p'][i] = (self.circ.data['v'][i] - self.circ.data['s'][i]) / \
+                    self.circ.data['compliance'][i]
+        # 0.0075 is for converting to mm Hg
+        self.circ.data['p'][-1] = \
+                0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+
+        # Then update FE function for cross-bridge stress, hs_length, and passive stress
+        # across the mesh
+        self.cb_stress_list = project(self.mesh.model['functions']['cb_stress'],
+                                self.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
+
+        self.mesh.model['functions']['hsl_old'].vector()[:] = \
+            project(self.mesh.model['functions']['hsl'], 
+            self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+
+        new_hs_length_list = \
+            project(self.mesh.model['functions']['hsl'], 
+            self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+
+        self.delta_hs_length_list = new_hs_length_list - self.hs_length_list
+        self.hs_length_list = new_hs_length_list
+        
+        temp_DG = project(self.mesh.model['functions']['Sff'], 
+                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+                    form_compiler_parameters={"representation":"uflacs"})
+
+        p_f = interpolate(temp_DG, self.mesh.model['function_spaces']["quadrature_space"])
+        self.pass_stress_list = p_f.vector().get_local()[:]
+        
+        # Convert negative passive stress in half-sarcomeres to 0
+        self.pass_stress_list[self.pass_stress_list<0] = 0
+    
+        self.comm.Barrier()
+        # Update sim data for non-spatial variables on root core (i.e. 0)
+
         if self.gr:            
             #self.data['growth_active'] = 0
             for g in self.prot.growth_activations:
@@ -571,9 +701,8 @@ class LV_simulation():
                                     self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
 
                             Fg = self.gr.mechan.model['functions']['Fg']
-                            inv_Fg = inv(Fg)
                             Fe = self.gr.mechan.model['functions']['Fe']
-                            #Fg = self.mesh.model['functions']['Fg']
+
                             temp_Fg = project(Fg,self.gr.mechan.model['function_spaces']['tensor_space'],
                                                 form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
                             temp_Fe = project(Fe,self.gr.mechan.model['function_spaces']['tensor_space'],
@@ -716,7 +845,7 @@ class LV_simulation():
                                 print expression_vol
                                 #print'lv press'
                                 #print lv_p
-                            self.solver.solvenonlinear()
+                            #self.solver.solvenonlinear()
 
                             lv_vol = self.mesh.model['uflforms'].LVcavityvol()
                             lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
@@ -874,134 +1003,6 @@ class LV_simulation():
                             self.gr.growth_frequency_n_counter += 1
                         
                         self.gr.initial_gr_cycle_counter += 1
-
-
-        self.data['myocardium_vol'] = \
-            assemble(1.0*dx(domain = self.mesh.model['mesh']), 
-                    form_compiler_parameters={"representation":"uflacs"})
-        # check for any perturbation
-        for p in self.prot.perturbations:
-            if (self.t_counter >= p.data['t_start_ind'] and 
-                self.t_counter < p.data['t_stop_ind']):
-                if 'increment' in  p.data.keys():
-                    if p.data['level'] == 'circulation':
-                        self.circ.data[p.data['variable']] += \
-                            p.data['increment']
-                    elif p.data['level'] == 'baroreflex':
-                        self.br.data[p.data['variable']] += \
-                            p.data['increment']
-                    elif p.data['level'] == 'myofilaments':
-                        for j in range(self.local_n_of_int_points):
-                            self.hs_objs_list[j].myof.data[p.data['variable']] +=\
-                                p.data['increment']
-                    elif p.data['level'] == 'membranes':
-                        for j in range(self.local_n_of_int_points):
-                            self.hs_objs_list[j].memb.data[p.data['variable']] +=\
-                                p.data['increment']
-                elif 'precentage_change' in p.data.keys():
-                    if p.data['level'] == 'growth':
-                        self.gr.data[p.data['variable']] += \
-                            self.gr.data[p.data['variable']] * p.data['precentage_change']
-
-        # Rubild system arrays
-        self.rebuild_from_perturbations()
-        # Proceed time
-        (activation, new_beat,self.end_diastolic) = \
-            self.hr.implement_time_step(time_step)
-
-        if self.comm.Get_rank() == 0:
-            # Solve MyoSim ODEs across the mesh
-            print 'Solving MyoSim ODEs across the mesh'
-        start = time.time()
-        for j in range(self.local_n_of_int_points):
-        
-            self.hs_objs_list[j].update_simulation(time_step, 
-                                                self.delta_hs_length_list[j], 
-                                                activation,
-                                                self.cb_stress_list[j],
-                                                self.pass_stress_list[j])
-            self.hs_objs_list[j].update_data()
-            
-            if j%1000==0 and self.comm.Get_rank() == 0:
-                print '%.0f%% of integer points are updated' % (100*j/self.local_n_of_int_points)
-            self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
-                self.hs_objs_list[j].myof.y[:]
-        end =time.time()
-
-        if self.comm.Get_rank() == 0:
-            print 'Required time for solving myosim was'
-            t = end-start 
-            print t
-
-        # Now update fenics FE for population array (y_vec) and hs_length
-        self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
-        self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
-
-        
-        temp_vol = self.mesh.model['uflforms'].LVcavityvol()
-        if self.comm.Get_rank() == 0:
-            print "LV volume befor assigning LVCavityvol:" 
-            print temp_vol
-            print self.circ.data['v']
-        # Update LV cavity volume fenics function        
-        self.mesh.model['functions']['LVCavityvol'].vol = \
-            self.circ.data['v'][-1]
-
-        """temp_vol = self.mesh.model['uflforms'].LVcavityvol()
-        if self.comm.Get_rank() == 0:
-            print "LV volume after assigning LVCavityvol:" 
-            print temp_vol
-            print self.circ.data['v'][-1]"""
-
-        self.comm.Barrier()
-        #Solve cardiac mechanics weak form
-        #--------------------------------
-        if self.comm.Get_rank() == 0:
-            print 'solving weak form'
-        self.solver.solvenonlinear()
-        
-        """temp_vol = self.mesh.model['uflforms'].LVcavityvol()
-        if self.comm.Get_rank() == 0:
-            print "LV volume after solver:" 
-            print temp_vol
-            print self.circ.data['v']-[1]"""
-        # Start updating variables after solving the weak form 
-        # First pressure in circulation
-        for i in range(self.circ.model['no_of_compartments']-1):
-            self.circ.data['p'][i] = (self.circ.data['v'][i] - self.circ.data['s'][i]) / \
-                    self.circ.data['compliance'][i]
-        # 0.0075 is for converting to mm Hg
-        self.circ.data['p'][-1] = \
-                0.0075*self.mesh.model['uflforms'].LVcavitypressure()
-
-        # Then update FE function for cross-bridge stress, hs_length, and passive stress
-        # across the mesh
-        self.cb_stress_list = project(self.mesh.model['functions']['cb_stress'],
-                                self.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
-
-        self.mesh.model['functions']['hsl_old'].vector()[:] = \
-            project(self.mesh.model['functions']['hsl'], 
-            self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
-
-        new_hs_length_list = \
-            project(self.mesh.model['functions']['hsl'], 
-            self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
-
-        self.delta_hs_length_list = new_hs_length_list - self.hs_length_list
-        self.hs_length_list = new_hs_length_list
-        
-        temp_DG = project(self.mesh.model['functions']['Sff'], 
-                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
-                    form_compiler_parameters={"representation":"uflacs"})
-
-        p_f = interpolate(temp_DG, self.mesh.model['function_spaces']["quadrature_space"])
-        self.pass_stress_list = p_f.vector().get_local()[:]
-        
-        # Convert negative passive stress in half-sarcomeres to 0
-        self.pass_stress_list[self.pass_stress_list<0] = 0
-    
-        self.comm.Barrier()
-        # Update sim data for non-spatial variables on root core (i.e. 0)
 
         self.update_data(time_step)
         if self.t_counter%self.dumping_data_frequency == 0:
