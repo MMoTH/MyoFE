@@ -699,6 +699,7 @@ class LV_simulation():
                                 temp_name = 'temp_' + name
                                 self.gr.mechan.model['functions'][name].vector()[:] = 1.01#\
                                     #self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
+                                print self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
 
                             Fg = self.gr.mechan.model['functions']['Fg']
                             Fe = self.gr.mechan.model['functions']['Fe']
@@ -718,15 +719,15 @@ class LV_simulation():
                                 print temp_Fe
                                 print 'F after updating Fg'
                                 print temp_F
-                            if self.comm.Get_rank() == 0:
-                                print 'min of Fg'
-                                print temp_Fg.min()
-                                print 'max of Fg'
-                                print temp_Fg.max()
-                                print 'min of Fe'
-                                print temp_Fe.min()
-                                print 'max of Fe'
-                                print temp_Fe.max()
+                            #if self.comm.Get_rank() == 0:
+                            print 'min of Fg'
+                            print temp_Fg.min()
+                            print 'max of Fg'
+                            print temp_Fg.max()
+                            print 'min of Fe'
+                            print temp_Fe.min()
+                            print 'max of Fe'
+                            print temp_Fe.max()
                             # Grow reference configuration
                             self.gr.grow_reference_config()
                             #self.grow_reference_config()
