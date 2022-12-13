@@ -271,7 +271,7 @@ class LV_simulation():
         self.va = []
         
         self.infarct = 0
-        self.remote_regions = [] 
+        self.infarct_regions = [] 
         self.border_zone_regions = []
         if 'infarct' in instruction_data['mesh']:
             if self.comm.Get_rank() == 0:
@@ -546,10 +546,10 @@ class LV_simulation():
                 if (self.t_counter >= i.data['t_start_ind'] and 
                     self.t_counter < i.data['t_stop_ind']):
                     if self.t_counter == i.data['t_start_ind']:
-                        self.remote_regions, self.border_zone_regions = \
+                        self.infarct_regions, self.border_zone_regions = \
                             self.handle_infarct(self.instruction_data['mesh']['infarct'])
                     if self.infarct_model['level']== 'myofilaments':
-                        for r in self.remote_regions:
+                        for r in self.infarct_regions:
                             self.hs_objs_list[r].myof.data[self.infarct_model['variable']] +=\
                                 i.data['infarct_increment']
 
@@ -560,7 +560,7 @@ class LV_simulation():
                                 i.data['boundary_zone_increment']
 
                     elif self.infarct_model['level'] == 'membranes':
-                        for r in self.remote_regions:
+                        for r in self.infarct_regions:
                             self.hs_objs_list[r].memb.data[self.infarct_model['variable']] +=\
                                 i.data['infarct_increment']
                         for b in self.border_zone_regions:
@@ -789,8 +789,12 @@ class LV_simulation():
                 self.data['time']
             for f in list(self.spatial_hs_data_fields):
                 data_field = []
-                for h in self.hs_objs_list:
-                    data_field.append(h.data[f]) 
+                for i,h in enumerate(self.hs_objs_list):
+                    if f in ['cb_stress']:
+                        if not (i in self.infarct_regions or i in self.border_zone_regions):
+                            data_field.append(h.data[f]) 
+                    else:
+                        data_field.append(h.data[f]) 
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
             for f in list( self.spatial_myof_data_fields):
@@ -940,9 +944,9 @@ class LV_simulation():
         for i,j in enumerate(self.dofmap):
             local_points_r[i] = radius[j]
 
-        remote_regions = np.where(local_points_r<=self.infarct_model['infarct_radius'])[0]
+        infarct_regions = np.where(local_points_r<=self.infarct_model['infarct_radius'])[0]
         border_zone_regions = \
             np.where((local_points_r >= self.infarct_model['infarct_radius']) &\
                     (local_points_r <= self.infarct_model['boundary_zone_radius']))[0]
         
-        return remote_regions, border_zone_regions
+        return infarct_regions, border_zone_regions
