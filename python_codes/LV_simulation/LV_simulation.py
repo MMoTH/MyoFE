@@ -697,9 +697,11 @@ class LV_simulation():
                             for dir in ['fiber','sheet','sheet_normal']:
                                 name = 'theta_' + dir
                                 temp_name = 'temp_' + name
-                                self.gr.mechan.model['functions'][name].vector()[:] = \
-                                    self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
-                                print self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
+                                local_theta = self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
+                                self.gr.mechan.model['functions'][name].vector()[:] = local_theta
+                                   
+                                    #self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
+                                #print self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
 
                             Fg = self.gr.mechan.model['functions']['Fg']
                             Fe = self.gr.mechan.model['functions']['Fe']
