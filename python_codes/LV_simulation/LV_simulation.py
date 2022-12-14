@@ -722,6 +722,10 @@ class LV_simulation():
                                 print 'F after updating Fg'
                                 print temp_F
 
+                            min_theta = self.gr.data['gr_local_theta_fiber'].min()
+                            max_theta = self.gr.data['gr_local_theta_fiber'].max()
+                            
+
                             min_Fg = temp_Fg.min()
                             max_Fg = temp_Fg.max()
                             min_Fe = temp_Fe.min()
@@ -732,17 +736,27 @@ class LV_simulation():
                                 self.comm.send(min_Fe,dest = 0,tag = 12)
                                 self.comm.send(max_Fe,dest = 0,tag = 13)
 
+                                self.comm.send(min_theta,dest = 0,tag = 14)
+                                self.comm.send(max_theta,dest = 0,tag = 15)
+
                             if self.comm.Get_rank() == 0:
                                 min_Fg_array = [temp_Fg.min()]
-                                
                                 max_Fg_array = [temp_Fg.max()]
                                 min_Fe_array = [temp_Fe.min()]
                                 max_Fe_array = [temp_Fe.max()]
+
+                                min_theta_array = [self.gr.data['gr_local_theta_fiber'].min()]
+                                max_theta_array = [self.gr.data['gr_local_theta_fiber'].max()]
+
                                 for i in range(1,self.comm.Get_size()):
                                     min_Fg_array.append(self.comm.recv(source = i, tag = 10))
                                     max_Fg_array.append(self.comm.recv(source = i, tag = 11))
                                     min_Fe_array.append(self.comm.recv(source = i, tag = 12))
                                     max_Fe_array.append(self.comm.recv(source = i, tag = 13))
+
+                                    min_theta_array.append(self.comm.recv(source = i, tag = 14))
+                                    max_theta_array.append(self.comm.recv(source = i, tag = 15))
+
                             if self.comm.Get_rank() == 0:
                                 print 'min of Fg'
                                 print np.array(min_Fg_array).min()
@@ -752,6 +766,11 @@ class LV_simulation():
                                 print np.array(min_Fe_array).min()
                                 print 'max of Fe'
                                 print np.array(max_Fe_array).max()
+
+                                print 'min of theta'
+                                print np.array(min_theta_array).min()
+                                print 'max of theta'
+                                print np.array(max_theta_array).max()
                             # Grow reference configuration
                             self.gr.grow_reference_config()
                             #self.grow_reference_config()
