@@ -756,7 +756,8 @@ class LV_simulation():
 
                                     min_theta_array.append(self.comm.recv(source = i, tag = 14))
                                     max_theta_array.append(self.comm.recv(source = i, tag = 15))
-
+                            rank_of_min = 0
+                            rank_of_max = 0
                             if self.comm.Get_rank() == 0:
                                 print 'min of Fg'
                                 print np.array(min_Fg_array).min()
@@ -767,10 +768,48 @@ class LV_simulation():
                                 print 'max of Fe'
                                 print np.array(max_Fe_array).max()
 
+                                rank_of_min = np.argmin(min_theta_array)
+                                rank_of_max = np.argmax(max_theta_array)
+                                print 'argmin of theta:core id'
+                                print rank_of_min
+                                print 'argmax of theta: core id'
+                                print rank_of_max
                                 print 'min of theta'
                                 print np.array(min_theta_array).min()
                                 print 'max of theta'
                                 print np.array(max_theta_array).max()
+
+                               
+                            rank_of_min = self.comm.bcast(rank_of_min,root=0)
+                            rank_of_max = self.comm.bcast(rank_of_max,root=0)
+
+                            if self.comm.Get_rank() == rank_of_min:
+
+                                index = np.argmin(self.gr.data['gr_local_theta_fiber'])
+                                report_dict = dict()
+                                report_dict['Type'] = 'Min Theta'
+                                report_dict['Rank'] = self.comm.Get_rank()
+                                report_dict['int_point'] = index
+                                report_dict['deviation'] = self.gr.data['gr_deviation_fiber'][index]
+                                report_dict['global_theta'] = self.gr.data['gr_global_theta_fiber'][index]
+                                report_dict['local_theta'] = self.gr.data['gr_local_theta_fiber'][index]
+                                print(json.dumps(report_dict, indent=4))
+                                
+                            
+                            if self.comm.Get_rank() == rank_of_max:
+
+                                index = np.argmin(self.gr.data['gr_local_theta_fiber'])
+                                report_dict = dict()
+                                report_dict['Type'] = 'Max Theta'
+                                report_dict['Rank'] = self.comm.Get_rank()
+                                report_dict['int_point'] = index
+                                report_dict['deviation'] = self.gr.data['gr_deviation_fiber'][index]
+                                report_dict['global_theta'] = self.gr.data['gr_global_theta_fiber'][index]
+                                report_dict['local_theta'] = self.gr.data['gr_local_theta_fiber'][index]
+                                print(json.dumps(report_dict, indent=4))
+
+                                
+                            
                             # Grow reference configuration
                             self.gr.grow_reference_config()
                             #self.grow_reference_config()
