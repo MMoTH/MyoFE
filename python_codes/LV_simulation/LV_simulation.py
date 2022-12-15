@@ -788,10 +788,12 @@ class LV_simulation():
             self.local_spatial_sim_data.at[self.write_counter,'time'] = \
                 self.data['time']
             for f in list(self.spatial_hs_data_fields):
+                print f
                 data_field = []
                 for i,h in enumerate(self.hs_objs_list):
                     if f in ['cb_stress']:
                         if not (i in self.infarct_regions or i in self.border_zone_regions):
+                            print i
                             data_field.append(h.data[f]) 
                     else:
                         data_field.append(h.data[f]) 
