@@ -793,6 +793,8 @@ class LV_simulation():
                                 report_dict['deviation'] = self.gr.data['gr_deviation_fiber'][index]
                                 report_dict['global_theta'] = self.gr.data['gr_global_theta_fiber'][index]
                                 report_dict['local_theta'] = self.gr.data['gr_local_theta_fiber'][index]
+                                report_dict['stimulus'] = self.gr.data['gr_stimulus_fiber'][index]
+                                report_dict['setpoint'] = self.gr.data['gr_setpoint_fiber'][index]
                                 print(json.dumps(report_dict, indent=4))
                                 
                             
@@ -806,6 +808,8 @@ class LV_simulation():
                                 report_dict['deviation'] = self.gr.data['gr_deviation_fiber'][index]
                                 report_dict['global_theta'] = self.gr.data['gr_global_theta_fiber'][index]
                                 report_dict['local_theta'] = self.gr.data['gr_local_theta_fiber'][index]
+                                report_dict['stimulus'] = self.gr.data['gr_stimulus_fiber'][index]
+                                report_dict['setpoint'] = self.gr.data['gr_setpoint_fiber'][index]
                                 print(json.dumps(report_dict, indent=4))
 
                                 
