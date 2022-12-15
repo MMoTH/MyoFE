@@ -171,7 +171,7 @@ class Circulation():
 
         # Tidy up negative values
         y = sol.y[:, -1]
-
+        y[-2] = y[-2] + (self.data['blood_volume'] - np.sum(y))
         return y 
 
     def return_flows(self,v):

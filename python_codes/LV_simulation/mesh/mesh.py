@@ -103,9 +103,9 @@ class MeshClass():
         # Now handle if manual elements need to be defined 
         if 'function_spaces' in mesh_struct:
             for fs in mesh_struct['function_spaces']:
-    
+    		print fs['name'][0]
                 #define required finite elements 
-                if fs['type'][0] == 'scaler':
+                if fs['type'][0] == 'scalar':
                     finite_element = \
                         FiniteElement(fs['element_type'][0],self.model['mesh'].ufl_cell(),
                                         degree = fs['degree'][0],quad_scheme="default")
@@ -178,7 +178,7 @@ class MeshClass():
         y_vec   = Function(self.model['function_spaces']['quad_vectorized_space'])
 
         # Create function for myosim params that baroreflex regulates
-        for p in ['k_1','k_3','k_on','k_act','k_serca']:
+        for p in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density','k_cb','x_ps']:
             functions[p] = Function(self.model['function_spaces']['quadrature_space'])
             
             self.data[p] = project(functions[p],self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
@@ -362,7 +362,11 @@ class MeshClass():
                     (self.hs.myof.x + self.hs.myof.data['x_ps'] +
                         (self.hs.myof.implementation['filament_compliance_factor'] *
                         delta_hsl)))"""
-                        
+
+        self.model['functions']['k_cb'].vector()[:] = self.hs.myof.data['k_cb']
+        self.model['functions']['cb_number_density'].vector()[:] = self.hs.myof.data['cb_number_density']
+        self.model['functions']['x_ps'].vector()[:] = self.hs.myof.data['x_ps']
+        
         cb_stress = self.return_cb_stress(delta_hsl)
 
         xfiber_fraction = 0
@@ -543,10 +547,10 @@ class MeshClass():
             
             bin_pops = self.y_split[2 + np.arange(0, self.hs.myof.no_of_x_bins)]
             cb_stress = \
-                self.hs.myof.data['cb_number_density'] * \
-                self.hs.myof.data['k_cb'] * 1e-9 * \
+                self.model['functions']['cb_number_density'] * \
+                self.model['functions']['k_cb'] * 1e-9 * \
                 np.sum(bin_pops *
-                    (self.hs.myof.x + self.hs.myof.data['x_ps'] +
+                    (self.hs.myof.x + self.model['functions']['x_ps'] +
                         (self.hs.myof.implementation['filament_compliance_factor'] *
                         delta_hsl)))
             return cb_stress
@@ -557,13 +561,13 @@ class MeshClass():
             post_ind = 2 + self.hs.myof.no_of_x_bins + np.arange(0, self.hs.myof.no_of_x_bins)
             
             cb_stress = \
-                self.hs.myof.data['cb_number_density'] * self.hs.myof.data['k_cb'] * 1e-9 * \
+                self.model['functions']['cb_number_density'] * self.model['functions']['k_cb'] * 1e-9 * \
                     (np.sum(self.y_split[pre_ind] *
                             (self.hs.myof.x + 
                             (self.hs.myof.implementation['filament_compliance_factor']
                             * delta_hsl))) +
                     np.sum(self.y_split[post_ind] * \
-                            (self.hs.myof.x + self.hs.myof.data['x_ps'] +
+                            (self.hs.myof.x + self.model['functions']['x_ps'] +
                             (self.hs.myof.implementation['filament_compliance_factor'] *
                             delta_hsl))))
 
