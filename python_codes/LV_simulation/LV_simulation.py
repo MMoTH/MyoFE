@@ -788,7 +788,6 @@ class LV_simulation():
             self.local_spatial_sim_data.at[self.write_counter,'time'] = \
                 self.data['time']
             for f in list(self.spatial_hs_data_fields):
-                print f
                 data_field = []
                 for i,h in enumerate(self.hs_objs_list):
                     data_field.append(h.data[f]) 
