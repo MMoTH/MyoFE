@@ -791,12 +791,7 @@ class LV_simulation():
                 print f
                 data_field = []
                 for i,h in enumerate(self.hs_objs_list):
-                    if f in ['cb_stress']:
-                        if not (i in self.infarct_regions or i in self.border_zone_regions):
-                            print i
-                            data_field.append(h.data[f]) 
-                    else:
-                        data_field.append(h.data[f]) 
+                    data_field.append(h.data[f]) 
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
             for f in list( self.spatial_myof_data_fields):
