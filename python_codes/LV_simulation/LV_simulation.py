@@ -340,6 +340,9 @@ class LV_simulation():
         if spatial_data_fields:
             # create data fileds based on what user has asked
             for sd in spatial_data_fields:
+                if sd['level'][0] == 'half_sarcomeres':
+                    for f in sd['fields']:
+                        self.spatial_hs_data_fields.append(f)   
                 if sd['level'][0] == 'myofilaments':
                     for f in sd['fields']:
                         self.spatial_myof_data_fields.append(f)
@@ -382,8 +385,8 @@ class LV_simulation():
         self.spatial_data_to_mean = False
         self.dumping_data_frequency = 1
         if output_struct:
-            if 'spatial_data_fileds' in output_struct:
-                spatial_data_fields = output_struct['spatial_data_fileds']
+            if 'spatial_data_fields' in output_struct:
+                spatial_data_fields = output_struct['spatial_data_fields']
             if 'dumping_spatial_in_average' in output_struct:
                 if output_struct['dumping_spatial_in_average'][0] == True:
                     self.spatial_data_to_mean = True
