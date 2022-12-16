@@ -791,6 +791,13 @@ class LV_simulation():
                                     report_dict['local_theta'] = self.gr.data['gr_local_theta_' +  comp.data['type']][index]
                                     report_dict['stimulus'] = self.gr.data['gr_stimulus_'+comp.data['type']][index]
                                     report_dict['setpoint'] = self.gr.data['gr_setpoint_'+comp.data['type']][index]
+                                    dofmap = self.dofmap[index]
+                                    report_dict['dofmap'] = dofmap
+                                    report_dict['x_ccord'] = self.x_coord[dofmap]
+                                    report_dict['y_ccord'] = self.y_coord[dofmap]
+                                    report_dict['z_ccord'] = self.z_coord[dofmap]
+
+
                                     print(json.dumps(report_dict, indent=4))
                                     
                                 if self.comm.Get_rank() == rank_of_max:
@@ -805,6 +812,11 @@ class LV_simulation():
                                     report_dict['local_theta'] = self.gr.data['gr_local_theta_' +  comp.data['type']][index]
                                     report_dict['stimulus'] = self.gr.data['gr_stimulus_'+comp.data['type']][index]
                                     report_dict['setpoint'] = self.gr.data['gr_setpoint_'+comp.data['type']][index]
+                                    dofmap = self.dofmap[index]
+                                    report_dict['dofmap'] = dofmap
+                                    report_dict['x_ccord'] = self.x_coord[dofmap]
+                                    report_dict['y_ccord'] = self.y_coord[dofmap]
+                                    report_dict['z_ccord'] = self.z_coord[dofmap]
                                     print(json.dumps(report_dict, indent=4))
 
                                 
