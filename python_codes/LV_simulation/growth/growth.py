@@ -47,6 +47,15 @@ class growth():
         # create object for the solver of the growth
         self.solver = NSolver(self.parent_circulation,self.mechan,self.comm)
 
+        for dir in ['fiber','sheet','sheet_normal']:
+            for param in ['local_theta','global_theta','setpoint','stimulus','deviation']:
+                name = 'gr_' + param + '_'+  dir
+                size =  len(self.mechan.model['functions']['theta_'+dir].vector().get_local()[:])
+                if param not in ['local_theta','global_theta']:
+                    self.data[name] = np.zeros(size)
+                else:
+                    self.data[name] = np.ones(size)
+
         self.components = []
         if 'components' in growth_structure:
             comp = growth_structure['components']
@@ -56,15 +65,15 @@ class growth():
                 # define some global parameters useful for plotting and 
                 # applying perturbations 
                 g_obj= self.components[-1]
+                print g_obj.data['type']
 
-                for param in ['local_theta','global_theta','setpoint','stimulus','deviation']:
+                """for param in ['local_theta','global_theta','setpoint','stimulus','deviation']:
                     name = 'gr_' + param + '_'+  g_obj.data['type']
+                    size =  len(self.mechan.model['functions']['theta_' +g_obj.data['type'] ].vector().get_local()[:])
                     if param not in ['local_theta','global_theta']:
-                        theta_name = 'local_theta' #+ '_' + g_obj.data['type']
-                        self.data[name] = g_obj.data[param] = \
-                            np.zeros(len(g_obj.data[theta_name]))
+                        self.data[name] = np.zeros(size)
                     else:
-                        self.data[name] = g_obj.data[param]
+                        self.data[name] = np.ones(size)"""
 
         # handle data for visualization plots
         self.initial_gr_cycle_counter = 1
@@ -92,7 +101,9 @@ class growth():
             #assign setpoint to be mean of setpoint tracker
             comp.data['setpoint'] = \
                 np.mean(comp.data['setpoint_tracker'],axis=0)
-
+            if self.comm.Get_rank() == 0: 
+                print 'len setpoint tracker before reseting'
+                print len(comp.data['setpoint_tracker'])
             set_name = 'gr_setpoint' + '_' +  comp.data['type']
             self.data[set_name] = comp.data['setpoint']
             
@@ -117,7 +128,7 @@ class growth():
             for comp in self.components:
    
                 set_name = 'gr_setpoint' + '_' +  comp.data['type']
-                self.data[set_name] = comp.data['setpoint']
+                comp.data['setpoint'] = self.data[set_name] 
 
                 # update stimulus signal 
                 if self.data['gr_stimulus_active']:
@@ -142,6 +153,9 @@ class growth():
                         
                         comp.data['stimulus'] = \
                             np.mean(comp.data['stimulus_tracker'],axis=0)
+                        if self.comm.Get_rank() == 0: 
+                            print 'len stimulus_tracker before reseting'
+                            print len(comp.data['stimulus_tracker'])
                         comp.data['stimulus_tracker'] = []
 
                         comp.data['deviation'] = \
@@ -250,21 +264,49 @@ class growth_component():
         self.data = dict()
         for item in comp_struct:
             self.data[item] = comp_struct[item][0]
-        
+        theta_name = 'theta' + '_' + self.data['type']
+        size = len(self.parent.mechan.model['functions'][theta_name].vector().get_local()[:])
         for item in ['stimulus','stimulus_tracker',
                     'local_theta', 'global_theta',
                     'setpoint', 'setpoint_tracker', 
                     'deviation']:
-            name = item + '_' + self.data['type']
-            #size = len(self.parent.mesh.model['functions'][name].vector().get_local()[:])
             if item  in ['local_theta','global_theta']:
-                name = 'theta' + '_' + self.data['type']
-                size = len(self.parent.mechan.model['functions'][name].vector().get_local()[:])
                 self.data[item] = np.ones(size)
+            elif item  in ['stimulus','setpoint','deviation']:
+                self.data[item] = np.zeros(size)
             else:
                 self.data[item] = []
         
+    def return_local_theta(self,global_theta,stimulus,setpoint):
+        """ Update local thetha values wrt previous growth step"""
+
+        local_theta = np.ones(len(global_theta))
+        if self.parent.comm.Get_rank() == 0:
+            print 'local_theta'
+            print local_theta
+        for i,s in enumerate(stimulus):
+            theta_g = global_theta[i]
+            set_p = setpoint[i]
+            dtheta = self.return_delta_theta(theta_g,s,set_p)
+            local_theta[i] += dtheta
+        if self.parent.comm.Get_rank() == 0:
+            print 'local_theta new'
+            print local_theta
+        return local_theta
     
+    def return_delta_theta(self,global_theta,s,setpoint):
+        """ Return delta local theta"""
+        # theta merges to thta_max if s > set and vice versa.
+        tau = float(self.data['tau'])
+        range_theta = self.data['theta_max'] - self.data['theta_min']
+        set_component = (s - setpoint)/np.amax([np.abs(setpoint),1])
+        if s-setpoint>=0:
+            dtheta = (set_component/tau)*(self.data['theta_max'] - global_theta)/range_theta
+        else:
+
+            dtheta = (set_component/tau)*(global_theta - self.data['theta_min'])/range_theta
+        return dtheta
+
     def store_stimulus(self):
 
         if self.parent.comm.Get_rank() == 0:
@@ -290,36 +332,46 @@ class growth_component():
                         form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
         
         self.data['stimulus_tracker'].append(s)
+        if self.parent.comm.Get_rank() == 0: 
+            print 'stimulus_tracker'
+            print self.data['stimulus_tracker']
+            print 'len setpoint'
+            print len(s)
 
         return s
-    
-    def return_local_theta(self,global_theta,stimulus,setpoint):
-        """ Update local thetha values wrt previous growth step"""
-        
-       
-        local_theta = np.ones(len(global_theta))
-        
-        for i,s in enumerate(stimulus):
-            theta_g = global_theta[i]
-            set_p = setpoint[i]
-            dtheta = self.return_delta_theta(theta_g,s,set_p)
-            local_theta[i] += dtheta
-        
-        return local_theta
-    
-    def return_delta_theta(self,global_theta,s,setpoint):
-        """ Return delta local theta"""
-        # theta merges to thta_max if s > set and vice versa.
-        tau = float(self.data['tau'])
-        range_theta = self.data['theta_max'] - self.data['theta_min']
-        set_component = (s - setpoint)/np.amax([np.abs(setpoint),1])
-        if s-setpoint>=0:
-            dtheta = (set_component/tau)*(self.data['theta_max'] - global_theta)/range_theta
-        else:
 
-            dtheta = (set_component/tau)*(global_theta - self.data['theta_min'])/range_theta
-        return dtheta
+    def store_setpoint(self):
+        """ Store setpoint data before growth activation """
         
+        if self.parent.comm.Get_rank() == 0:
+            print 'Storing setpoint data!'
+
+        hsl = self.parent.mesh.model['functions']['hsl']
+        f0 = self.parent.mesh.model['functions']['f0']
+        scalar_fs = self.parent.mesh.model['function_spaces']['growth_scalar_FS']
+        total_passive,myofiber_passive = \
+                self.parent.mesh.model['uflforms'].stress(hsl)
+
+        if self.data['signal'] == 'myofiber_passive_stress':
+            set = project(inner(f0,myofiber_passive*f0),
+                            scalar_fs,
+                            form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
+        if self.data['signal'] == 'total_stress':
+            active_stress = self.parent.mesh.model['functions']['Pactive']
+            total_stress = total_passive + active_stress
+            inner_p = inner(f0,total_stress*f0)
+
+            set = project(inner_p,scalar_fs,
+                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
+
+        self.data['setpoint_tracker'].append(set)
+        if self.parent.comm.Get_rank() == 0: 
+            print 'setpoint tracker'
+            print self.data['setpoint_tracker']
+            print 'len setpoint'
+            print len(set)
+
+
     """def return_theta(self,stimulus,time_step):
 
         
@@ -360,32 +412,5 @@ class growth_component():
             #             (s - setpoint)/np.amax([np.abs(setpoint),1])
             dtheta = (set_component/tau)*(y - self.data['theta_min'])/range_theta
         return dtheta"""
-
-    def store_setpoint(self):
-        """ Store setpoint data before growth activation """
-        
-        if self.parent.comm.Get_rank() == 0:
-            print 'Storing setpoint data!'
-
-        hsl = self.parent.mesh.model['functions']['hsl']
-        f0 = self.parent.mesh.model['functions']['f0']
-        scalar_fs = self.parent.mesh.model['function_spaces']['growth_scalar_FS']
-        total_passive,myofiber_passive = \
-                self.parent.mesh.model['uflforms'].stress(hsl)
-
-        if self.data['signal'] == 'myofiber_passive_stress':
-            set = project(inner(f0,myofiber_passive*f0),
-                            scalar_fs,
-                            form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
-        if self.data['signal'] == 'total_stress':
-            active_stress = self.parent.mesh.model['functions']['Pactive']
-            total_stress = total_passive + active_stress
-            inner_p = inner(f0,total_stress*f0)
-
-            set = project(inner_p,scalar_fs,
-                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
-
-        self.data['setpoint_tracker'].append(set)
-
         
 
