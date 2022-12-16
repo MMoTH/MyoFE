@@ -721,7 +721,7 @@ class LV_simulation():
                                 print temp_Fe
                                 print 'F after updating Fg'
                                 print temp_F
-
+                            """============================== """
                             #do stuff for printing Fg and Fe
                             min_Fg = temp_Fg.min()
                             max_Fg = temp_Fg.max()
@@ -762,14 +762,14 @@ class LV_simulation():
                                 max_theta = self.gr.data[theta_name].max()
                                 j= 14 + n
                                 if self.comm.Get_rank() != 0:
-                                    self.comm.send(min_theta,dest = 0,tag = j)
-                                    self.comm.send(max_theta,dest = 0,tag = j+1)
+                                    self.comm.send(min_theta,dest = 0,tag = j+1)
+                                    self.comm.send(max_theta,dest = 0,tag = j+2)
                                 if self.comm.Get_rank() == 0:
                                     min_theta_array = [self.gr.data[theta_name].min()]
                                     max_theta_array = [self.gr.data[theta_name].max()]
                                     for i in range(1,self.comm.Get_size()):
-                                        min_theta_array.append(self.comm.recv(source = i, tag = j))
-                                        max_theta_array.append(self.comm.recv(source = i, tag = j+1))
+                                        min_theta_array.append(self.comm.recv(source = i, tag = j+1))
+                                        max_theta_array.append(self.comm.recv(source = i, tag = j+2))
                                 
                                 rank_of_min = 0
                                 rank_of_max = 0
@@ -792,16 +792,15 @@ class LV_simulation():
                                     report_dict['stimulus'] = self.gr.data['gr_stimulus_'+comp.data['type']][index]
                                     report_dict['setpoint'] = self.gr.data['gr_setpoint_'+comp.data['type']][index]
                                     dofmap = self.dofmap[index]
-                                    report_dict['dofmap'] = dofmap
+                                    #report_dict['dofmap'] = dofmap
                                     report_dict['x_ccord'] = self.x_coord[dofmap]
                                     report_dict['y_ccord'] = self.y_coord[dofmap]
                                     report_dict['z_ccord'] = self.z_coord[dofmap]
 
-
                                     print(json.dumps(report_dict, indent=4))
                                     
                                 if self.comm.Get_rank() == rank_of_max:
-                                    index = np.argmin(self.gr.data['gr_local_theta_fiber'])
+                                    index = np.argmin(self.gr.data[theta_name])
                                     report_dict = dict()
                                     report_dict['Type'] = 'Max Theta'
                                     report_dict['direction'] = comp.data['type']
@@ -813,14 +812,42 @@ class LV_simulation():
                                     report_dict['stimulus'] = self.gr.data['gr_stimulus_'+comp.data['type']][index]
                                     report_dict['setpoint'] = self.gr.data['gr_setpoint_'+comp.data['type']][index]
                                     dofmap = self.dofmap[index]
-                                    report_dict['dofmap'] = dofmap
+                                    #report_dict['dofmap'] = dofmap
                                     report_dict['x_ccord'] = self.x_coord[dofmap]
                                     report_dict['y_ccord'] = self.y_coord[dofmap]
                                     report_dict['z_ccord'] = self.z_coord[dofmap]
+                                    
                                     print(json.dumps(report_dict, indent=4))
 
+                                n_of_min_theta = len(self.gr.data[theta_name][self.gr.data[theta_name]<0.5])
+                                n_of_max_theta = len(self.gr.data[theta_name][self.gr.data[theta_name]>1.5])
+                                if self.comm.Get_rank() != 0:
+                                    self.comm.send(n_of_min_theta,dest = 0,tag = j+3)
+                                    self.comm.send(n_of_max_theta,dest = 0,tag = j+4)
+                                if self.comm.Get_rank() == 0:
+                                    n_min_theta_array = [n_of_min_theta]
+                                    n_max_theta_array = [n_of_max_theta]
+                                    for i in range(1,self.comm.Get_size()):
+                                        n_min_theta_array.append(self.comm.recv(source = i, tag = j+3))
+                                        n_max_theta_array.append(self.comm.recv(source = i, tag = j+4))
+                                    print 'n_min_theta_array'
+                                    print n_min_theta_array
+                                    print 'n_max_theta_array'
+                                    print n_max_theta_array
+
+                                n_total_min_theta = self.comm.reduce(n_of_min_theta)
+                                n_total_max_theta = self.comm.reduce(n_of_max_theta)
+
+                                n_total_min_theta = self.comm.bcast(n_total_min_theta)
+                                n_total_max_theta = self.comm.bcast(n_total_max_theta)
+                                if self.comm.Get_rank() == 0:
+                                    print 'n_total_min_theta'
+                                    print n_total_min_theta
+                                    print 'n_total_max_theta'
+                                    print n_total_max_theta
                                 
-                            
+                                
+                            """============================== """
                             # Grow reference configuration
                             self.gr.grow_reference_config()
                             #self.grow_reference_config()
