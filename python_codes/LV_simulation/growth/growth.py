@@ -101,9 +101,7 @@ class growth():
             #assign setpoint to be mean of setpoint tracker
             comp.data['setpoint'] = \
                 np.mean(comp.data['setpoint_tracker'],axis=0)
-            if self.comm.Get_rank() == 0: 
-                print 'len setpoint tracker before reseting'
-                print len(comp.data['setpoint_tracker'])
+            
             set_name = 'gr_setpoint' + '_' +  comp.data['type']
             self.data[set_name] = comp.data['setpoint']
             
@@ -116,7 +114,9 @@ class growth():
         """ Store setpoint data before growth activation """
         if store_active:
             for comp in self.components:
-                comp.store_setpoint()
+                s = comp.return_signal()
+                comp.data['setpoint_tracker'].append(s)
+                #comp.store_setpoint()
 
     def implement_growth(self,end_diastolic,time_step):
         
@@ -132,7 +132,9 @@ class growth():
 
                 # update stimulus signal 
                 if self.data['gr_stimulus_active']:
-                    comp.store_stimulus()
+                    s = comp.return_signal()
+                    comp.data['stimulus_tracker'].append(s)
+                    #comp.store_stimulus()
 
                 # now save values over dolfin functions to visualize
                 for value in ['stimulus','setpoint','deviation']:
@@ -332,11 +334,11 @@ class growth_component():
                         form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
         
         self.data['stimulus_tracker'].append(s)
-        if self.parent.comm.Get_rank() == 0: 
+        """if self.parent.comm.Get_rank() == 0: 
             print 'stimulus_tracker'
             print self.data['stimulus_tracker']
             print 'len setpoint'
-            print len(s)
+            print len(s)"""
 
         return s
 
@@ -365,11 +367,34 @@ class growth_component():
                             form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
 
         self.data['setpoint_tracker'].append(set)
-        if self.parent.comm.Get_rank() == 0: 
-            print 'setpoint tracker'
-            print self.data['setpoint_tracker']
-            print 'len setpoint'
-            print len(set)
+    
+    def return_signal(self):
+        """ Calculate stimulus instantaneous signal  """
+        
+        if self.parent.comm.Get_rank() == 0:
+            print 'r\Returning stimulus signal!'
+
+        hsl = self.parent.mesh.model['functions']['hsl']
+        f0 = self.parent.mesh.model['functions']['f0']
+        scalar_fs = self.parent.mesh.model['function_spaces']['growth_scalar_FS']
+        total_passive,myofiber_passive = \
+                self.parent.mesh.model['uflforms'].stress(hsl)
+
+        if self.data['signal'] == 'myofiber_passive_stress':
+            s = project(inner(f0,myofiber_passive*f0),
+                            scalar_fs,
+                            form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
+        if self.data['signal'] == 'total_stress':
+            active_stress = self.parent.mesh.model['functions']['Pactive']
+            total_stress = total_passive + active_stress
+            inner_p = inner(f0,total_stress*f0)
+
+            s = project(inner_p,scalar_fs,
+                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
+
+        return s
+
+     
 
 
     """def return_theta(self,stimulus,time_step):
