@@ -271,14 +271,18 @@ class LV_simulation():
         if in_average:
             spatial_data = pd.DataFrame()
             data_field.append('time')
+            data_field = data_field + ['Sff','Sff_gr']
 
             for f in data_field:
                 s = pd.Series(data=np.zeros(rows), name=f)
                 spatial_data = pd.concat([spatial_data, s], axis=1)
                 #spatial_data[f]['time'] = pd.Series()
+            
         else:
             spatial_data = dict()
             for f in data_field:
+                spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
+            for f in ['Sff','Sff_gr']:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
                 #spatial_data[f]['time'] = pd.Series(0)
         if self.comm.Get_rank() == 0:
@@ -619,10 +623,34 @@ class LV_simulation():
         
         # Convert negative passive stress in half-sarcomeres to 0
         self.pass_stress_list[self.pass_stress_list<0] = 0
-    
+
         self.comm.Barrier()
         # Update sim data for non-spatial variables on root core (i.e. 0)
+        # check Sff
+        if self.comm.Get_rank() == 0:
+            print 'Checking Sff values'
+        Sff = project(self.mesh.model['functions']['Sff'], 
+                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        #print Sff
+        neg_sff = np.array(Sff[Sff<0])
+        num_of_neg_sff = len(neg_sff)
+        self.data['Sff'] = Sff
+        print 'Core: %d, num of points with negative Sff:%d' %(self.comm.Get_rank(),num_of_neg_sff)
 
+        # check Sff signal in growth
+        hsl = self.mesh.model['functions']['hsl']
+        f0 = self.mesh.model['functions']['f0']
+        scalar_fs = self.mesh.model['function_spaces']['growth_scalar_FS']
+        total_passive,myofiber_passive = \
+                self.mesh.model['uflforms'].stress(hsl)
+        Sff_gr = project(inner(f0,myofiber_passive*f0),
+                            scalar_fs,
+                            form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
+        neg_sff_gr = np.array(Sff_gr[Sff_gr<0])
+        num_of_neg_sff_gr = len(neg_sff_gr)
+        self.data['Sff_gr'] = Sff_gr
+        print 'Core: %d, num of points with negative Sff_gr:%d' %(self.comm.Get_rank(),num_of_neg_sff_gr)
         if self.gr:            
             #self.data['growth_active'] = 0
             for g in self.prot.growth_activations:
@@ -1241,7 +1269,8 @@ class LV_simulation():
 
 
         for f in list(self.data.keys()):
-            self.sim_data[f][self.write_counter] = self.data[f]
+            if f not in ['Sff','Sff_gr']:
+                self.sim_data[f][self.write_counter] = self.data[f]
         for f in list(self.circ.data.keys()):
             if (f not in ['p', 'v', 's', 'compliance', 'resistance',
                             'inertance', 'f']):
@@ -1289,6 +1318,10 @@ class LV_simulation():
                 for f in list(self.spatial_gr_data_fields):
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+            
+            for f in ['Sff','Sff_gr']:
+                data_field = self.data[f]
+                self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
         else:
             for f in self.spatial_hs_data_fields:
@@ -1318,6 +1351,10 @@ class LV_simulation():
                 for f in self.spatial_gr_data_fields:
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+            
+            for f in ['Sff','Sff_gr']:
+                data_field = self.data[f]
+                self.local_spatial_sim_data.iloc[self.write_counter] = data_field
 
     def check_output_directory_folder(self, path=""):
         """ Check output folder"""
@@ -1491,6 +1528,9 @@ class LV_simulation():
         xc = 0.0
         yc = 0.0
         zc = self.z_coord.min()
+        if self.comm.Get_rank()==0:
+            print 'Z of apex:'
+            print zc
 
         # then calculate the distance of all gaussian points wrt apex
         self.apex_r = []
