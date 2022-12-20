@@ -1364,7 +1364,7 @@ class LV_simulation():
             
             for f in ['Sff','Sff_gr','sff_mean']:
                 data_field = self.data[f]
-                self.local_spatial_sim_data.iloc[self.write_counter] = data_field
+                self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
     def check_output_directory_folder(self, path=""):
         """ Check output folder"""
