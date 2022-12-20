@@ -173,7 +173,11 @@ class LV_simulation():
                             
         self.solver.solvenonlinear()"""
 
-        
+        self.sff_tracker = []
+        Sff = project(self.mesh.model['functions']['Sff'], 
+                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        self.data['sff_mean']= Sff
 
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
@@ -271,7 +275,7 @@ class LV_simulation():
         if in_average:
             spatial_data = pd.DataFrame()
             data_field.append('time')
-            data_field = data_field + ['Sff','Sff_gr']
+            data_field = data_field + ['Sff','Sff_gr','sff_mean']
 
             for f in data_field:
                 s = pd.Series(data=np.zeros(rows), name=f)
@@ -282,7 +286,7 @@ class LV_simulation():
             spatial_data = dict()
             for f in data_field:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
-            for f in ['Sff','Sff_gr']:
+            for f in ['Sff','Sff_gr','sff_mean']:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
                 #spatial_data[f]['time'] = pd.Series(0)
         if self.comm.Get_rank() == 0:
@@ -651,6 +655,12 @@ class LV_simulation():
         num_of_neg_sff_gr = len(neg_sff_gr)
         self.data['Sff_gr'] = Sff_gr
         print 'Core: %d, num of points with negative Sff_gr:%d' %(self.comm.Get_rank(),num_of_neg_sff_gr)
+
+        self.sff_tracker.append(self.data['Sff_gr'])
+        if self.end_diastolic:
+            self.data['sff_mean'] = np.mean(self.sff_tracker,axis=0)
+            self.sff_tracker = []
+
         if self.gr:            
             #self.data['growth_active'] = 0
             for g in self.prot.growth_activations:
@@ -1269,7 +1279,7 @@ class LV_simulation():
 
 
         for f in list(self.data.keys()):
-            if f not in ['Sff','Sff_gr']:
+            if f not in ['Sff','Sff_gr','sff_mean']:
                 self.sim_data[f][self.write_counter] = self.data[f]
         for f in list(self.circ.data.keys()):
             if (f not in ['p', 'v', 's', 'compliance', 'resistance',
@@ -1319,7 +1329,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
             
-            for f in ['Sff','Sff_gr']:
+            for f in ['Sff','Sff_gr','sff_mean']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
@@ -1352,7 +1362,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             
-            for f in ['Sff','Sff_gr']:
+            for f in ['Sff','Sff_gr','sff_mean']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data.iloc[self.write_counter] = data_field
 
