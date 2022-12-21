@@ -656,7 +656,7 @@ class LV_simulation():
         self.data['Sff_gr'] = Sff_gr
         print 'Core: %d, num of points with negative Sff_gr:%d' %(self.comm.Get_rank(),num_of_neg_sff_gr)
 
-        self.sff_tracker.append(self.data['Sff_gr'])
+        self.sff_tracker.append(Sff)
         if self.end_diastolic:
             self.data['sff_mean'] = np.mean(self.sff_tracker,axis=0)
             self.sff_tracker = []
