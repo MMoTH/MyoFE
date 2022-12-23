@@ -456,6 +456,7 @@ class MeshClass():
          
         self.model['functions']['PK2_local'],self.model['functions']['incomp'] = \
             uflforms.passivestress(self.model['functions']["hsl"])
+        self.model['functions']['total_stress'] = Pactive + self.model['functions']["total_passive_PK2"]
 
         #F2 = inner(Fmat*Pactive, grad(v))*dx
         F2 = inner(F*Pactive, grad(v))*dx

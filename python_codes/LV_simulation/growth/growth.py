@@ -374,22 +374,24 @@ class growth_component():
         if self.parent.comm.Get_rank() == 0:
             print 'r\Returning stimulus signal!'
 
-        hsl = self.parent.mesh.model['functions']['hsl']
+        """hsl = self.parent.mesh.model['functions']['hsl']
         f0 = self.parent.mesh.model['functions']['f0']
         scalar_fs = self.parent.mesh.model['function_spaces']['growth_scalar_FS']
         total_passive,myofiber_passive = \
-                self.parent.mesh.model['uflforms'].stress(hsl)
+                self.parent.mesh.model['uflforms'].stress(hsl)"""
 
         if self.data['signal'] == 'myofiber_passive_stress':
-            s = project(inner(f0,myofiber_passive*f0),
-                            scalar_fs,
+            s = project(inner(self.parent.mesh.model['functions']['f0'],
+                            self.parent.mesh.model['functions']['Sff']*self.parent.mesh.model['functions']['f0']),
+                            self.parent.mesh.model['function_spaces']['growth_scalar_FS'],
                             form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
         if self.data['signal'] == 'total_stress':
-            active_stress = self.parent.mesh.model['functions']['Pactive']
-            total_stress = total_passive + active_stress
-            inner_p = inner(f0,total_stress*f0)
+            #active_stress = self.parent.mesh.model['functions']['Pactive']
+            #total_stress = total_passive + active_stress
+            inner_p = inner(self.parent.mesh.model['functions']['f0'],
+                        self.parent.mesh.model['functions']['total_stress']*self.parent.mesh.model['functions']['f0'])
 
-            s = project(inner_p,scalar_fs,
+            s = project(inner_p,self.parent.mesh.model['function_spaces']['growth_scalar_FS'],
                             form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
 
         return s
