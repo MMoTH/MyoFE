@@ -65,7 +65,6 @@ class growth():
                 # define some global parameters useful for plotting and 
                 # applying perturbations 
                 g_obj= self.components[-1]
-                print g_obj.data['type']
 
                 """for param in ['local_theta','global_theta','setpoint','stimulus','deviation']:
                     name = 'gr_' + param + '_'+  g_obj.data['type']

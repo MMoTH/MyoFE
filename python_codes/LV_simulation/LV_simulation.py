@@ -178,7 +178,10 @@ class LV_simulation():
                     FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
                     form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
         self.data['sff_mean']= Sff
-        self.data['myofiber_stretch'] = project(self.mesh.model['functions']['myofiber_stretch'], 
+        self.data['hsl'] = project(self.mesh.model['functions']['hsl'], 
+                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        self.data['hsl0'] = project(self.mesh.model['functions']['hsl0'], 
                     FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
                     form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
         
@@ -281,7 +284,7 @@ class LV_simulation():
         if in_average:
             spatial_data = pd.DataFrame()
             data_field.append('time')
-            data_field = data_field + ['Sff','sff_mean','myofiber_stretch','alpha_f']
+            data_field = data_field + ['Sff','sff_mean','hsl0','alpha_f']
 
             for f in data_field:
                 s = pd.Series(data=np.zeros(rows), name=f)
@@ -292,7 +295,7 @@ class LV_simulation():
             spatial_data = dict()
             for f in data_field:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
-            for f in ['Sff','sff_mean','myofiber_stretch','alpha_f']:
+            for f in ['Sff','sff_mean','hsl0','alpha_f']:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
                 #spatial_data[f]['time'] = pd.Series(0)
         if self.comm.Get_rank() == 0:
@@ -659,18 +662,21 @@ class LV_simulation():
             self.sff_tracker = []
 
         # check myofiber stretch
-        myo_stretch = project(self.mesh.model['functions']['myofiber_stretch'], 
+        hsl0 = project(self.mesh.model['functions']['hsl0'], 
                     FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
                     form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
         alpha_f = project(self.mesh.model['functions']['alpha_f'], 
                     FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
                     form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-        self.data['myofiber_stretch'] = myo_stretch
+        self.data['hsl0'] = hsl0
+        self.data['hsl'] = new_hs_length_list
         self.data['alpha_f'] = alpha_f
         if self.comm.Get_rank() == 0:
             print 'Checking myofiber stretch'
-            print 'Myofiber stretch:'
-            print myo_stretch
+            print 'hsl:'
+            print new_hs_length_list
+            print 'hsl0:'
+            print hsl0
             print 'alpha_f:'
             print alpha_f 
             print 'Sff:'
@@ -1294,7 +1300,7 @@ class LV_simulation():
 
 
         for f in list(self.data.keys()):
-            if f not in ['Sff','sff_mean','myofiber_stretch','alpha_f']:
+            if f not in ['Sff','sff_mean','hsl0','hsl','alpha_f']:
                 self.sim_data[f][self.write_counter] = self.data[f]
         for f in list(self.circ.data.keys()):
             if (f not in ['p', 'v', 's', 'compliance', 'resistance',
@@ -1344,7 +1350,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
             
-            for f in ['Sff','sff_mean','myofiber_stretch','alpha_f']:
+            for f in ['Sff','sff_mean','hsl0','alpha_f']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
@@ -1377,7 +1383,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             
-            for f in ['Sff','sff_mean','myofiber_stretch','alpha_f']:
+            for f in ['Sff','sff_mean','hsl0','alpha_f']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
