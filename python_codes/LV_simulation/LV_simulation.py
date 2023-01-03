@@ -178,7 +178,13 @@ class LV_simulation():
                     FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
                     form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
         self.data['sff_mean']= Sff
-
+        self.data['myofiber_stretch'] = project(self.mesh.model['functions']['myofiber_stretch'], 
+                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        
+        self.data['alpha_f'] = project(self.mesh.model['functions']['alpha_f'], 
+                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 
@@ -275,7 +281,7 @@ class LV_simulation():
         if in_average:
             spatial_data = pd.DataFrame()
             data_field.append('time')
-            data_field = data_field + ['Sff','sff_mean']
+            data_field = data_field + ['Sff','sff_mean','myofiber_stretch','alpha_f']
 
             for f in data_field:
                 s = pd.Series(data=np.zeros(rows), name=f)
@@ -286,7 +292,7 @@ class LV_simulation():
             spatial_data = dict()
             for f in data_field:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
-            for f in ['Sff','sff_mean']:
+            for f in ['Sff','sff_mean','myofiber_stretch','alpha_f']:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
                 #spatial_data[f]['time'] = pd.Series(0)
         if self.comm.Get_rank() == 0:
@@ -431,13 +437,13 @@ class LV_simulation():
                     self.check_output_directory_folder(path = self.output_data_str)
             
         for i in np.arange(self.prot.data['no_of_time_steps']+1):
-            #self.implement_time_step(self.prot.data['time_step'])
-            try:
+            self.implement_time_step(self.prot.data['time_step'])
+            """try:
                 self.implement_time_step(self.prot.data['time_step'])
             except RuntimeError: 
                 print "RuntimeError happend"
                 self.handle_output(output_struct)
-                return
+                return"""
 
 
         # Now build up global data holders for 
@@ -648,10 +654,30 @@ class LV_simulation():
             neg_ind_local = np.where(self.data['sff_mean']<0)[0]
             neg_ind_global = self.dofmap[neg_ind_local]
             z_neg_sff = self.z_coord[neg_ind_global]
-            print 'z_neg_sff'
-            print z_neg_sff
+            #print 'z_neg_sff'
+            #print z_neg_sff
             self.sff_tracker = []
 
+        # check myofiber stretch
+        myo_stretch = project(self.mesh.model['functions']['myofiber_stretch'], 
+                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        alpha_f = project(self.mesh.model['functions']['alpha_f'], 
+                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        self.data['myofiber_stretch'] = myo_stretch
+        self.data['alpha_f'] = alpha_f
+        if self.comm.Get_rank() == 0:
+            print 'Checking myofiber stretch'
+            print 'Myofiber stretch:'
+            print myo_stretch
+            print 'alpha_f:'
+            print alpha_f 
+            print 'Sff:'
+            print Sff 
+        if self.comm.Get_rank() == 0: 
+            print 'z location of point 2005'
+            print self.z_coord[2005]
         if self.gr:            
             #self.data['growth_active'] = 0
             for g in self.prot.growth_activations:
@@ -1270,7 +1296,7 @@ class LV_simulation():
 
 
         for f in list(self.data.keys()):
-            if f not in ['Sff','sff_mean']:
+            if f not in ['Sff','sff_mean','myofiber_stretch','alpha_f']:
                 self.sim_data[f][self.write_counter] = self.data[f]
         for f in list(self.circ.data.keys()):
             if (f not in ['p', 'v', 's', 'compliance', 'resistance',
@@ -1320,7 +1346,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
             
-            for f in ['Sff','sff_mean']:
+            for f in ['Sff','sff_mean','myofiber_stretch','alpha_f']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
@@ -1353,7 +1379,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             
-            for f in ['Sff','sff_mean']:
+            for f in ['Sff','sff_mean','myofiber_stretch','alpha_f']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
