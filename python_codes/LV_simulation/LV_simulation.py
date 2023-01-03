@@ -675,9 +675,7 @@ class LV_simulation():
             print alpha_f 
             print 'Sff:'
             print Sff 
-        if self.comm.Get_rank() == 0: 
-            print 'z location of point 2005'
-            print self.z_coord[2005]
+        
         if self.gr:            
             #self.data['growth_active'] = 0
             for g in self.prot.growth_activations:
