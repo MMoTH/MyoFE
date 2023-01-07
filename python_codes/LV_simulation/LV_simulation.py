@@ -188,6 +188,13 @@ class LV_simulation():
         self.data['alpha_f'] = project(self.mesh.model['functions']['alpha_f'], 
                     FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
                     form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        inner_p = inner(self.mesh.model['functions']['f0'],
+                        self.mesh.model['functions']['total_stress']*\
+                            self.mesh.model['functions']['f0'])
+
+        total_stress = project(inner_p,self.mesh.model['function_spaces']['growth_scalar_FS'],
+                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
+        self.data['total_stress'] = total_stress
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 
@@ -284,7 +291,7 @@ class LV_simulation():
         if in_average:
             spatial_data = pd.DataFrame()
             data_field.append('time')
-            data_field = data_field + ['Sff','sff_mean','hsl0','alpha_f']
+            data_field = data_field + ['Sff','sff_mean','hsl0','alpha_f','total_stress']
 
             for f in data_field:
                 s = pd.Series(data=np.zeros(rows), name=f)
@@ -295,7 +302,7 @@ class LV_simulation():
             spatial_data = dict()
             for f in data_field:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
-            for f in ['Sff','sff_mean','hsl0','alpha_f']:
+            for f in ['Sff','sff_mean','hsl0','alpha_f','total_stress']:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
                 #spatial_data[f]['time'] = pd.Series(0)
         if self.comm.Get_rank() == 0:
@@ -645,12 +652,20 @@ class LV_simulation():
         Sff = project(self.mesh.model['functions']['Sff'], 
                     FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
                     form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-        #print Sff
+
+        inner_p = inner(self.mesh.model['functions']['f0'],
+                        self.mesh.model['functions']['total_stress']*\
+                            self.mesh.model['functions']['f0'])
+
+        total_stress = project(inner_p,self.mesh.model['function_spaces']['growth_scalar_FS'],
+                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
+        
         neg_sff = np.array(Sff[Sff<0])
         num_of_neg_sff = len(neg_sff)
         self.data['Sff'] = Sff
         print 'Core: %d, num of points with negative Sff:%d' %(self.comm.Get_rank(),num_of_neg_sff)
 
+        self.data['total_stress'] = total_stress
         self.sff_tracker.append(Sff)
         if self.end_diastolic:
             self.data['sff_mean'] = np.mean(self.sff_tracker,axis=0)
@@ -1300,7 +1315,7 @@ class LV_simulation():
 
 
         for f in list(self.data.keys()):
-            if f not in ['Sff','sff_mean','hsl0','hsl','alpha_f']:
+            if f not in ['Sff','sff_mean','hsl0','hsl','alpha_f','total_stress']:
                 self.sim_data[f][self.write_counter] = self.data[f]
         for f in list(self.circ.data.keys()):
             if (f not in ['p', 'v', 's', 'compliance', 'resistance',
@@ -1350,7 +1365,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
             
-            for f in ['Sff','sff_mean','hsl0','alpha_f']:
+            for f in ['Sff','sff_mean','hsl0','alpha_f','total_stress']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
@@ -1383,7 +1398,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             
-            for f in ['Sff','sff_mean','hsl0','alpha_f']:
+            for f in ['Sff','sff_mean','hsl0','alpha_f','total_stress']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
