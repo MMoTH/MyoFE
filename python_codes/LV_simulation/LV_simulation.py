@@ -175,26 +175,18 @@ class LV_simulation():
 
         self.sff_tracker = []
         Sff = project(self.mesh.model['functions']['Sff'], 
-                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
-                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
         self.data['sff_mean']= Sff
-        self.data['hsl'] = project(self.mesh.model['functions']['hsl'], 
-                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
-                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-        self.data['hsl0'] = project(self.mesh.model['functions']['hsl0'], 
-                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
-                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-        
+
         self.data['alpha_f'] = project(self.mesh.model['functions']['alpha_f'], 
-                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
-                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
         inner_p = inner(self.mesh.model['functions']['f0'],
                         self.mesh.model['functions']['total_stress']*\
                             self.mesh.model['functions']['f0'])
 
         total_stress = project(inner_p,self.mesh.model['function_spaces']['growth_scalar_FS'],
                             form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
-        self.data['total_stress'] = total_stress
+        self.data['total_stress_spatial'] = total_stress
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 
@@ -291,7 +283,7 @@ class LV_simulation():
         if in_average:
             spatial_data = pd.DataFrame()
             data_field.append('time')
-            data_field = data_field + ['Sff','sff_mean','hsl0','alpha_f','total_stress']
+            data_field = data_field + ['Sff','sff_mean','alpha_f','total_stress_spatial']
 
             for f in data_field:
                 s = pd.Series(data=np.zeros(rows), name=f)
@@ -302,12 +294,12 @@ class LV_simulation():
             spatial_data = dict()
             for f in data_field:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
-            for f in ['Sff','sff_mean','hsl0','alpha_f','total_stress']:
+            for f in ['Sff','sff_mean','alpha_f','total_stress_spatial']:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
                 #spatial_data[f]['time'] = pd.Series(0)
         if self.comm.Get_rank() == 0:
             print 'spatial simulation data is created'
-        
+
         return spatial_data
 
     def run_simulation(self,protocol_struct,output_struct=[]):
@@ -634,6 +626,8 @@ class LV_simulation():
         self.delta_hs_length_list = new_hs_length_list - self.hs_length_list
         self.hs_length_list = new_hs_length_list
         
+        #self.mesh.model['functions']['myofiber_stretch'].vector()[self.mesh.model['functions']['myofiber_stretch'].vector()<1.0]=1.0
+
         temp_DG = project(self.mesh.model['functions']['Sff'], 
                     FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
                     form_compiler_parameters={"representation":"uflacs"})
@@ -650,8 +644,7 @@ class LV_simulation():
         if self.comm.Get_rank() == 0:
             print 'Checking Sff values'
         Sff = project(self.mesh.model['functions']['Sff'], 
-                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
-                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
         inner_p = inner(self.mesh.model['functions']['f0'],
                         self.mesh.model['functions']['total_stress']*\
@@ -665,7 +658,7 @@ class LV_simulation():
         self.data['Sff'] = Sff
         print 'Core: %d, num of points with negative Sff:%d' %(self.comm.Get_rank(),num_of_neg_sff)
 
-        self.data['total_stress'] = total_stress
+        self.data['total_stress_spatial'] = total_stress
         self.sff_tracker.append(Sff)
         if self.end_diastolic:
             self.data['sff_mean'] = np.mean(self.sff_tracker,axis=0)
@@ -677,23 +670,22 @@ class LV_simulation():
             self.sff_tracker = []
 
         # check myofiber stretch
-        hsl0 = project(self.mesh.model['functions']['hsl0'], 
-                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
-                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-        alpha_f = project(self.mesh.model['functions']['alpha_f'], 
-                    FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
-                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-        self.data['hsl0'] = hsl0
+
+        #alpha_f = project(self.mesh.model['functions']['alpha_f'], 
+        #            FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+        #            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        myo_stretch = project(self.mesh.model['functions']['myofiber_stretch'], 
+                    self.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
+        #self.data['hsl0'] = hsl0
         self.data['hsl'] = new_hs_length_list
-        self.data['alpha_f'] = alpha_f
+        self.data['alpha_f'] = myo_stretch
         if self.comm.Get_rank() == 0:
             print 'Checking myofiber stretch'
             print 'hsl:'
             print new_hs_length_list
-            print 'hsl0:'
-            print hsl0
-            print 'alpha_f:'
-            print alpha_f 
+
+            print 'myo_stretch:'
+            print myo_stretch 
             print 'Sff:'
             print Sff 
         
@@ -1315,7 +1307,7 @@ class LV_simulation():
 
 
         for f in list(self.data.keys()):
-            if f not in ['Sff','sff_mean','hsl0','hsl','alpha_f','total_stress']:
+            if f not in ['Sff','sff_mean','hsl','alpha_f','total_stress_spatial']:
                 self.sim_data[f][self.write_counter] = self.data[f]
         for f in list(self.circ.data.keys()):
             if (f not in ['p', 'v', 's', 'compliance', 'resistance',
@@ -1340,8 +1332,7 @@ class LV_simulation():
         print 'Writing spatial variables on core id: %0.0f' %rank
 
         if self.spatial_data_to_mean:
-            self.local_spatial_sim_data.at[self.write_counter,'time'] = \
-                self.data['time']
+            self.local_spatial_sim_data.at[self.write_counter,'time'] = self.data['time']
             for f in list(self.spatial_hs_data_fields):
                 data_field = []
                 for h in self.hs_objs_list:
@@ -1365,7 +1356,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
             
-            for f in ['Sff','sff_mean','hsl0','alpha_f','total_stress']:
+            for f in ['Sff','sff_mean','alpha_f','total_stress_spatial']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
@@ -1398,7 +1389,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             
-            for f in ['Sff','sff_mean','hsl0','alpha_f','total_stress']:
+            for f in ['Sff','sff_mean','alpha_f','total_stress_spatial']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 

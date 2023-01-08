@@ -443,9 +443,11 @@ class Forms(object):
 
 
         Q = C3*conditional(myofiber_stretch > 1.0, myofiber_stretch - 1.0,0.0)**2.0
+        #Q = C3*(myofiber_stretch - 1.0)**2.0
         #Wmyo = C2*(exp(C3*(conditional(alpha > 1.0,alpha,1.0)-1.)**2.0)-1)
 
         # Differentiation already done, this is the stress magnitude for myofiber passive response
+        #Sff = (2.0/myofiber_stretch)* C2 * C3 * (myofiber_stretch-1.0)*exp(Q)
         Sff = (2.0/myofiber_stretch)* C2 * C3 * (conditional(myofiber_stretch > 1.0, myofiber_stretch,1.0)-1.0)*exp(Q)
         # PK2 for myofiber passive stress in fiber-coordinate system
         S_local = as_tensor([[Sff, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])

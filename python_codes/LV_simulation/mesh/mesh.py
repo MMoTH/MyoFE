@@ -235,7 +235,7 @@ class MeshClass():
                         functions[name].vector()[:] = 1
                     else:
                         functions[name].vector()[:] = 0
-        
+
         functions["w"] = w
         functions["f0"] = f0
         functions["s0"] = s0
@@ -407,11 +407,23 @@ class MeshClass():
                 (1.-(k_myo_damp*(self.model['functions']["hsl_diff_from_reference"])))
         alpha_f = sqrt(dot(f0, Cmat*f0)) # actual stretch based on deformation gradient
         
+        
+
         self.model['functions']["hsl"] = \
             alpha_f*self.model['functions']["hsl0"]
         self.model['functions']["delta_hsl"] = \
             self.model['functions']["hsl"] - self.model['functions']["hsl_old"]
 
+        #self.model['functions']['myofiber_stretch'] = \
+        #    project(sqrt(dot(f0, Cmat*f0)),self.model['function_spaces']['quadrature_space'])
+        
+        self.model['functions']['myofiber_stretch'] = conditional(alpha_f > 1.0, alpha_f ,1.0)
+        print 'Myofiber'
+        print project(self.model['functions']['myofiber_stretch'],
+                self.model['function_spaces']['quadrature_space']).vector()[:].get_local()
+        #self.model['functions']['myofiber_stretch'].vector()[self.model['functions']['myofiber_stretch'].vector()<1.0]=1.0
+        #print 'after checking myofiber '
+        #print self.model['functions']['myofiber_stretch'].vector()[:].get_local()
         self.y_split = np.array(split(self.model['functions']['y_vec']))
 
 
@@ -458,7 +470,7 @@ class MeshClass():
             uflforms.passivestress(self.model['functions']["hsl"])
         self.model['functions']['total_stress'] = Pactive + self.model['functions']["total_passive_PK2"]
 
-        self.model['functions']['myofiber_stretch'] = self.model['functions']["hsl"]/self.model['functions']["hsl0"]
+        #self.model['functions']['myofiber_stretch'] = self.model['functions']["hsl"]/self.model['functions']["hsl0"]
         self.model['functions']['alpha_f'] = alpha_f
         #F2 = inner(Fmat*Pactive, grad(v))*dx
         F2 = inner(F*Pactive, grad(v))*dx

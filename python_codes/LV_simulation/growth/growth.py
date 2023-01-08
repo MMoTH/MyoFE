@@ -382,8 +382,7 @@ class growth_component():
         if self.data['signal'] == 'myofiber_passive_stress':
             s = project(inner(self.parent.mesh.model['functions']['f0'],
                             self.parent.mesh.model['functions']['Sff']*self.parent.mesh.model['functions']['f0']),
-                            self.parent.mesh.model['function_spaces']['growth_scalar_FS'],
-                            form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
+                            self.parent.mesh.model['function_spaces']['quadrature_space']).vector().array()[:]
         if self.data['signal'] == 'total_stress':
             #active_stress = self.parent.mesh.model['functions']['Pactive']
             #total_stress = total_passive + active_stress
