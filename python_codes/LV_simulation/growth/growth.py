@@ -267,6 +267,7 @@ class growth_component():
             self.data[item] = comp_struct[item][0]
         theta_name = 'theta' + '_' + self.data['type']
         size = len(self.parent.mechan.model['functions'][theta_name].vector().get_local()[:])
+
         for item in ['stimulus','stimulus_tracker',
                     'local_theta', 'global_theta',
                     'setpoint', 'setpoint_tracker', 
@@ -307,65 +308,6 @@ class growth_component():
 
             dtheta = (set_component/tau)*(global_theta - self.data['theta_min'])/range_theta
         return dtheta
-
-    def store_stimulus(self):
-
-        if self.parent.comm.Get_rank() == 0:
-            print 'Storing stimuli data!'
-
-        hsl = self.parent.mesh.model['functions']['hsl']
-        f0 = self.parent.mesh.model['functions']['f0']
-        scalar_fs = self.parent.mesh.model['function_spaces']['growth_scalar_FS']
-        total_passive,myofiber_passive = \
-                self.parent.mesh.model['uflforms'].stress(hsl)
-        
-        if self.data['signal'] == 'myofiber_passive_stress':
-            s = project(inner(f0,myofiber_passive*f0),
-                            scalar_fs,
-                            form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
-
-        if self.data['signal'] == 'total_stress':
-            active_stress = self.parent.mesh.model['functions']['Pactive']
-            total_stress = total_passive + active_stress
-            inner_p = inner(f0,total_stress*f0)
-
-            s = project(inner_p,scalar_fs,
-                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
-        
-        self.data['stimulus_tracker'].append(s)
-        """if self.parent.comm.Get_rank() == 0: 
-            print 'stimulus_tracker'
-            print self.data['stimulus_tracker']
-            print 'len setpoint'
-            print len(s)"""
-
-        return s
-
-    def store_setpoint(self):
-        """ Store setpoint data before growth activation """
-        
-        if self.parent.comm.Get_rank() == 0:
-            print 'Storing setpoint data!'
-
-        hsl = self.parent.mesh.model['functions']['hsl']
-        f0 = self.parent.mesh.model['functions']['f0']
-        scalar_fs = self.parent.mesh.model['function_spaces']['growth_scalar_FS']
-        total_passive,myofiber_passive = \
-                self.parent.mesh.model['uflforms'].stress(hsl)
-
-        if self.data['signal'] == 'myofiber_passive_stress':
-            set = project(inner(f0,myofiber_passive*f0),
-                            scalar_fs,
-                            form_compiler_parameters={"representation":"uflacs"}).vector().array()[:]
-        if self.data['signal'] == 'total_stress':
-            active_stress = self.parent.mesh.model['functions']['Pactive']
-            total_stress = total_passive + active_stress
-            inner_p = inner(f0,total_stress*f0)
-
-            set = project(inner_p,scalar_fs,
-                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
-
-        self.data['setpoint_tracker'].append(set)
     
     def return_signal(self):
         """ Calculate stimulus instantaneous signal  """
@@ -393,49 +335,4 @@ class growth_component():
                             form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
 
         return s
-
-     
-
-
-    """def return_theta(self,stimulus,time_step):
-
-        
-        #setpoint = self.data['setpoint']
-        theta_old = self.data['theta']
-        theta_new = np.zeros(len(theta_old))
-
-        
-        for i,s in enumerate(stimulus):
-            t_0 = theta_old[i]
-
-            #dtheta = self.return_theta_dot(t_0,s,s_set[i])
-            setpoint = self.data['setpoint'][i]
-            sol = odeint(self.return_theta_dot, t_0, 
-                        [0,time_step],
-                        args = ((s,setpoint)))
-            #theta_new[i] = t_0 + dtheta*time_step
-            theta_new[i] = sol[-1].item()
-            
-        
-        return theta_new
-
-    def return_theta_dot(self,y,t,s,setpoint):
-
-
-        # theta merges to thta_max if s > set and vice versa.
-        tau = float(self.data['tau'])
-        range_theta = self.data['theta_max'] - self.data['theta_min']
-        set_component = (s - setpoint)/np.amax([np.abs(setpoint),1])
-        if s-setpoint>=0:
-            #dthetha = \
-            #        1/tau*(self.data['theta_max'] - y)/range_theta *\
-            #             (s - setpoint)/np.amax([np.abs(setpoint),1])
-            dtheta = (set_component/tau)*(self.data['theta_max'] - y)/range_theta
-        else:
-            #dthetha = \
-            #        1/tau*(y - self.data['theta_min'])/range_theta *\
-            #             (s - setpoint)/np.amax([np.abs(setpoint),1])
-            dtheta = (set_component/tau)*(y - self.data['theta_min'])/range_theta
-        return dtheta"""
-        
 

@@ -184,9 +184,9 @@ class LV_simulation():
                         self.mesh.model['functions']['total_stress']*\
                             self.mesh.model['functions']['f0'])
 
-        total_stress = project(inner_p,self.mesh.model['function_spaces']['growth_scalar_FS'],
-                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
-        self.data['total_stress_spatial'] = total_stress
+        #total_stress = project(inner_p,self.mesh.model['function_spaces']['growth_scalar_FS'],
+        #                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
+        #self.data['total_stress_spatial'] = total_stress
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 
@@ -650,15 +650,15 @@ class LV_simulation():
                         self.mesh.model['functions']['total_stress']*\
                             self.mesh.model['functions']['f0'])
 
-        total_stress = project(inner_p,self.mesh.model['function_spaces']['growth_scalar_FS'],
-                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
+        #total_stress = project(inner_p,self.mesh.model['function_spaces']['growth_scalar_FS'],
+        #                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
         
         neg_sff = np.array(Sff[Sff<0])
         num_of_neg_sff = len(neg_sff)
         self.data['Sff'] = Sff
         print 'Core: %d, num of points with negative Sff:%d' %(self.comm.Get_rank(),num_of_neg_sff)
 
-        self.data['total_stress_spatial'] = total_stress
+        #self.data['total_stress_spatial'] = total_stress
         self.sff_tracker.append(Sff)
         if self.end_diastolic:
             self.data['sff_mean'] = np.mean(self.sff_tracker,axis=0)
@@ -679,7 +679,7 @@ class LV_simulation():
         #self.data['hsl0'] = hsl0
         self.data['hsl'] = new_hs_length_list
         self.data['alpha_f'] = myo_stretch
-        if self.comm.Get_rank() == 0:
+        """if self.comm.Get_rank() == 0:
             print 'Checking myofiber stretch'
             print 'hsl:'
             print new_hs_length_list
@@ -687,7 +687,7 @@ class LV_simulation():
             print 'myo_stretch:'
             print myo_stretch 
             print 'Sff:'
-            print Sff 
+            print Sff """
         
         if self.gr:            
             #self.data['growth_active'] = 0
@@ -759,6 +759,9 @@ class LV_simulation():
                                 print temp_Fe_0
                                 print 'F before updating Fg'
                                 print temp_F_0
+                            #self.gr.mechan.model['functions']['temp_theta_fiber'].vector()[:] = 1
+                            #self.gr.mechan.model['functions']['temp_theta_sheet'].vector()[:] = 1.1
+                            #self.gr.mechan.model['functions']['temp_theta_sheet_normal'].vector()[:] = 1.1
 
                             for dir in ['fiber','sheet','sheet_normal']:
                                 name = 'theta_' + dir
@@ -1356,7 +1359,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
             
-            for f in ['Sff','sff_mean','alpha_f','total_stress_spatial']:
+            for f in ['Sff','sff_mean','alpha_f']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
@@ -1389,7 +1392,7 @@ class LV_simulation():
                     data_field = self.gr.data[f]
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             
-            for f in ['Sff','sff_mean','alpha_f','total_stress_spatial']:
+            for f in ['Sff','sff_mean','alpha_f']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
