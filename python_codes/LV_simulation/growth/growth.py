@@ -325,14 +325,25 @@ class growth_component():
             s = project(inner(self.parent.mesh.model['functions']['f0'],
                             self.parent.mesh.model['functions']['Sff']*self.parent.mesh.model['functions']['f0']),
                             self.parent.mesh.model['function_spaces']['quadrature_space']).vector().array()[:]
+            
         if self.data['signal'] == 'total_stress':
             #active_stress = self.parent.mesh.model['functions']['Pactive']
             #total_stress = total_passive + active_stress
             inner_p = inner(self.parent.mesh.model['functions']['f0'],
                         self.parent.mesh.model['functions']['total_stress']*self.parent.mesh.model['functions']['f0'])
 
-            s = project(inner_p,self.parent.mesh.model['function_spaces']['growth_scalar_FS'],
-                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
-
+            s_projected = project(inner_p,self.parent.mesh.model['function_spaces']['growth_scalar_FS'],
+                            form_compiler_parameters={"representation":"uflacs"})
+            if self.parent.comm.Get_rank() == 0:
+                print 'projected total stress'
+                print s_projected.vector().get_local()[:]
+                print 'size'
+                print len(s_projected.vector().get_local()[:])
+            s = interpolate(s_projected,self.parent.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
+            if self.parent.comm.Get_rank() == 0:    
+                print 'interpolated total stress'
+                print s
+                print 'size'
+                print len(s)
         return s
 
