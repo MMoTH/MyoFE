@@ -171,6 +171,10 @@ class growth():
                         for i,t in enumerate(comp.data['local_theta']):
                             new_global_theta[i] = \
                                 comp.data['global_theta'][i]*t
+                            if new_global_theta[i] > comp.data['theta_max']:
+                                new_global_theta[i] = comp.data['theta_max']
+                            if new_global_theta[i] < comp.data['theta_min']:
+                                new_global_theta[i] = comp.data['theta_min']
                         comp.data['global_theta'] = new_global_theta
   
                         # Update theta functions to update Fg
