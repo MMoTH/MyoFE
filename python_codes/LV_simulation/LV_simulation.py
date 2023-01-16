@@ -1182,7 +1182,12 @@ class LV_simulation():
                             if self.comm.Get_rank() == 0: 
                                 print'lv press after reload back to ED'
                                 print lv_p
-                            
+                            # save LV geometry at ED 
+                            file_path_ED = os.path.join(self.growth_path,'growth_ED' + str(self.data['time']) +'.xdmf') 
+                            growth_mesh_ED = XDMFFile(mpi_comm_world(),file_path_ED)
+                            growth_mesh_ED.parameters.update({"functions_share_mesh": True,
+                                                        "rewrite_function_mesh": True})
+                            growth_mesh_ED.write(self.mesh.model['mesh'])
                             # update the LV pressure in circultaion with new mesh 
                             self.circ.data['p'][-1] = \
                                 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
