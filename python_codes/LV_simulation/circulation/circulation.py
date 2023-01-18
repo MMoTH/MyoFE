@@ -211,10 +211,11 @@ class Circulation():
 
         return f
 
+
     def evolve_regurgitant_volumes(self,time_step,v):
         """ Evolve regurgitant volumes """
 
-        """reg_volumes = [self.data['mitral_reg_volume'],self.data['aortic_reg_volume']]
+        reg_volumes = [self.data['mitral_reg_volume'],self.data['aortic_reg_volume']]
         flows = self.return_flows(v)
             
         dmrv = flows[-2]
@@ -229,33 +230,9 @@ class Circulation():
             darv = 0
             self.data['aortic_reg_volume'] = 0
         arv = darv * time_step + self.data['aortic_reg_volume']
-        reg_volumes = [mrv,arv]"""
+        reg_volumes = [mrv,arv]
 
-        from scipy.integrate import solve_ivp
-
-        def derivs(t, v):
-            dv = np.zeros(2)
-            flows = self.return_flows(v)
-            #self.data['f'] = flows
-            dmrv = flows[-2]
-            if dmrv > 0:
-                dmrv = 0
-            darv = flows[0]
-            if darv > 0:
-                darv = 0
-            dv[0] = dmrv
-            dv[1] = darv
-            return dv
-
-        rv = np.zeros(2)
-        rv[0] = self.data['mitral_reg_volume']
-        rv[1] = self.data['aortic_reg_volume']
-        sol = solve_ivp(derivs, [0, time_step], rv)
-
-        # Tidy up negative values
-        y = sol.y[:, -1]
-        
-        return y
+        return reg_volumes
 
         
 
