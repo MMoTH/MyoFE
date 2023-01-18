@@ -170,10 +170,10 @@ class growth():
                         new_global_theta = np.ones(len(comp.data['local_theta']))
                         for i,t in enumerate(comp.data['local_theta']):
 
-                            if comp.data['local_theta'][i]> 1.015:
-                                comp.data['local_theta'][i] = 1.015
-                            if comp.data['local_theta'][i] < 0.985:
-                                comp.data['local_theta'][i] = 0.985
+                            if comp.data['local_theta'][i]> comp.data['local_theta_max']:
+                                comp.data['local_theta'][i] =comp.data['local_theta_max']
+                            if comp.data['local_theta'][i] < comp.data['local_theta_min']:
+                                comp.data['local_theta'][i] = comp.data['local_theta_min']
 
                             new_global_theta[i] = \
                                 comp.data['global_theta'][i]*t
