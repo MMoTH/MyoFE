@@ -35,7 +35,7 @@ class fiber_reorientation():
 
         function_space = self.parent_params.mesh.model['function_spaces']['fiber_FS']
         self.f_adjusted = self.stress_law(self.data['signal'],time_step,function_space)
-        
+
     def stress_law(self,s,time_step,function_space):
 
 
@@ -51,9 +51,9 @@ class fiber_reorientation():
 
         f_adjusted = 1./kappa * (f_proj - f0) * time_step
         #f_adjusted = 1./kappa * (f-f0) * step_size
-        #f_adjusted = project(f_adjusted,VectorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"})
-        f_adjusted = project(f_adjusted,function_space,
-                     form_compiler_parameters={"representation":"uflacs"})
+        f_adjusted = project(f_adjusted,VectorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"})
+        #f_adjusted = project(f_adjusted,function_space,form_compiler_parameters={"representation":"uflacs"}) # error with this line: 
+        f_adjusted = project(f_adjusted,function_space)
 
         return f_adjusted
 
