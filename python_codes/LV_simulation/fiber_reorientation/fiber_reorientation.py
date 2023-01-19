@@ -27,7 +27,7 @@ class fiber_reorientation():
         #PK2 = self.data['signal']
         #f0 = self.parent_params.mesh.model['functions']['f0']
         #self.f = PK2*f0/np.sqrt(np.inner(PK2*f0,PK2*f0))
-        time_step = self.parent_params['time_steps']
+        time_step = self.parent_params.prot.data['time_step']
         function_space = self.parent_params.mesh.model['function_spaces']['fiber_FS']
         self.f_adjusted = self.stress_law(self.data['signal'],time_step,function_space)
     def stress_law(self,s,time_step,function_space):
