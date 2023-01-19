@@ -39,7 +39,7 @@ class fiber_reorientation():
         mesh = self.parent_params.mesh.model['mesh']
         PK2 = s
         f0 = self.parent_params.mesh.model['functions']['f0']
-        f = PK2*f0/np.sqrt(np.inner(PK2*f0,PK2*f0))
+        f = PK2*f0/sqrt(np.inner(PK2*f0,PK2*f0))
         kappa = self.data['time_constant']    
 
         f_proj = project(f,VectorFunctionSpace(mesh,"DG",1),
