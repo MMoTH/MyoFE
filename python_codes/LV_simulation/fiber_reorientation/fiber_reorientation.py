@@ -20,41 +20,56 @@ class fiber_reorientation():
         fiber_struct = self.parent_params.instruction_data['model']['fiber_remodeling']
         self.data=dict()
         for k in fiber_struct.keys():
-            self.data[k] = fiber_struct[k]
+            self.data[k] = fiber_struct[k][0]
         
         #self.parameters.update(params)
+        self.data['signal'] = self.return_driving_signal(fiber_struct['stress_type'][0])
+        #PK2 = self.data['signal']
+        #f0 = self.parent_params.mesh.model['functions']['f0']
+        #self.f = PK2*f0/np.sqrt(np.inner(PK2*f0,PK2*f0))
+        time_step = self.parent_params['time_steps']
+        function_space = self.parent_params.mesh.model['function_spaces']['fiber_FS']
+        self.f_adjusted = self.stress_law(self.data['signal'],time_step,function_space)
+    def stress_law(self,s,time_step,function_space):
 
 
-    def stress_law(self,stress_tensor,FunctionSpace,step_size,kappa):
+        mesh = self.parent_params.mesh.model['mesh']
+        PK2 = s
+        f0 = self.parent_params.mesh.model['functions']['f0']
+        f = PK2*f0/np.sqrt(np.inner(PK2*f0,PK2*f0))
+        kappa = self.data['time_constant']    
 
+        f_proj = project(f,VectorFunctionSpace(mesh,"DG",1),
+            form_compiler_parameters={"representation":"uflacs"})
+        
 
-        mesh = self.mesh.model['mesh']
-        PK2 = stress_tensor
-        f0 = self.mesh.model['functions']['f0']
-        f = PK2*f0/np.sqrt(np.inner(PK2*f0,PK2*f0))    
-
-        f_proj = project(f,VectorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"})
-     
-
-        f_adjusted = 1./kappa * (f_proj - f0) * step_size
+        f_adjusted = 1./kappa * (f_proj - f0) * time_step
         #f_adjusted = 1./kappa * (f-f0) * step_size
-        f_adjusted = project(f_adjusted,VectorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"})
-        f_adjusted = project(f_adjusted,FunctionSpace)
+        #f_adjusted = project(f_adjusted,VectorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"})
+        f_adjusted = project(f_adjusted,function_space,
+                     form_compiler_parameters={"representation":"uflacs"})
 
         return f_adjusted
 
+    def return_driving_signal(self,signal_type):
 
+        if signal_type == 'total_stress':
+            s = self.parent_params.mesh.model['functions']['total_stress']
+        if signal_type == 'passive_stress':
+            s = self.parent_params.mesh.model['functions']['total_stress_PK2']
+        
+        return s
 
     def update_local_coordinate_system(self,fiber_direction):
 
-        f0 = self.mesh.model['functions']['f0']
+        f0 = fiber_direction
         print "update local cs"
-        s0 = self.mesh.model['functions']['s0']
-        n0 = self.mesh.model['functions']['n0']
+        s0 = self.parent_params.mesh.model['functions']['s0']
+        n0 = self.parent_params.mesh.model['functions']['n0']
         no_of_int_points = self.global_n_of_int_points
         #fiberFS = coord_params["fiberFS"]
-        z_axis = Function(fiberFS)
-        dm = fiberFS.dofmap()
+        z_axis = Function(self.parent_params.mesh.model['function_spaces']['fiber_FS'])
+        dm = self.parent_params.mesh.model['function_spaces']['fiber_FS'].dofmap()
         local_range = dm.ownership_range()
         local_dim = local_range[1] - local_range[0]
 

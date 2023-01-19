@@ -27,8 +27,8 @@ from .dependencies.nsolver import NSolver
 from .output_handler.output_handler import output_handler as oh
 from .baroreflex import baroreflex as br
 from .half_sarcomere import half_sarcomere as hs 
-
-
+from .fiber_reorientation import fiber_reorientation as fr
+from .dependencies.assign_local_coordinate_system import assign_local_coordinate_system as lcs
 from mpi4py import MPI
 
 
@@ -269,6 +269,17 @@ class LV_simulation():
         self.gr = []
         # If required, create the vad object
         self.va = []
+
+
+         """ If requried, create the fiber reorientation"""
+        
+        if ('fiber_reorientation' in instruction_data['model']):
+            self.fr = fr.fiber_reorientation(self)
+        else:
+            self.fr = []
+
+
+
         
         self.infarct = 0
         self.infarct_regions = [] 
@@ -305,7 +316,8 @@ class LV_simulation():
             data_fields = data_fields + list(self.gr.data.keys())
         if (self.va != []):
             data_fields = data_fields + list(self.va.data.keys())
-
+        if (self.fr != []):
+            data_fields = data_fields + list(self.fr.data.keys())
         # Now start define the data holder
         rows = int(no_of_data_points/frequency) + 1 # 1 for time zero
         #sim_data = pd.DataFrame()
@@ -517,15 +529,65 @@ class LV_simulation():
                         (self.t_counter < b.data['t_stop_ind'])):
                     self.data['baroreflex_active'] = 1
 
+
+
+
             self.br.implement_time_step(self.circ.data['pressure_arteries'],
                                         time_step,
                                         reflex_active=
                                         self.data['baroreflex_active'])
-        
+
             #now update the function for spatial controlled parameters  
             for p in ['k_1','k_3','k_on','k_act','k_serca']:
                 self.mesh.model['functions'][p].vector()[:] = \
                   self.mesh.data[p]
+
+
+  # Check for fiber reorientation and implement  (data addressing should be checked)
+        if (self.fr):
+            self.data['fr_active'] = 0
+            for f in self.prot.fiber_re_activations:
+                if ((self.t_counter >= f.data['t_start_ind']) and
+                        (self.t_counter < f.data['t_stop_ind'])):
+                    self.data['fr_active'] = 1
+                    if self.comm.Get_rank() == 0:
+                        print("fiber reorientation active")
+
+
+        if self.data['fr_active'] == 1:
+
+            if self.comm.Get_rank() == 0:
+                print "updating fiber orientation"
+            """deg = 2
+            VQuadelem = VectorElement("Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default")
+            VQuadelem._quad_scheme = 'default'
+            fiberFS = FunctionSpace(self.mesh, VQuadelem)"""
+ 
+
+            #PK2_passive = self.mesh.model['functions']['total_passive_PK2']
+            #Pactive = self.mesh.model['functions']['Pactive']
+            #total_stress = PK2_passive + Pactive
+            #kappa = self.fr.data['time_constant']
+
+             
+
+            #fdiff = self.fr.stress_law(total_stress,fiberFS,self.t_counter,kappa)
+            
+            fdiff = self.fr.f_adjusted
+            self.mesh.model['functions']['f0'].vector()[:] += fdiff.vector().get_local()[:]  # mpi should be checked 
+            print "CHECKING NUMBER OF FIBER VECTORS"
+            print np.shape(self.mesh.model['functions']['f0'].vector().get_local())
+            print "Fiber orientation updated"
+
+            self.mesh.model['functions']['s0'],self.mesh.model['functions']['n0'] = self.fr.update_local_coordinate_system(self,self.mesh.model['functions']['f0']) 
+            # lcs is not defined in the new platform and needs to be discussed
+
+
+
+
+
+
+
         # check for any perturbation
         for p in self.prot.perturbations:
             if (self.t_counter >= p.data['t_start_ind'] and 

@@ -1,8 +1,19 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [5000],
-        "time_step": [0.001]
+        "no_of_time_steps": [500],
+        "time_step": [0.001],
+        "fiber_reorientation":
+        {
+            "activations":
+            [
+                {
+                    "t_start_s":[0.005],
+                    "t_stop_s":[5]
+
+                } 
+            ]
+        }
         
     },
     "heart_rate": {
@@ -13,7 +24,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/Demo_full_cycle/sim_inputs/new_mesh/ellipsoidal_correct_fiber.hdf5"],
+        "mesh_path":["../demos/fiber/sim_inputs/ellipsoidal_correct_fiber.hdf5"],
         "function_spaces":
         [
             {
@@ -45,6 +56,12 @@
                 "type":["scaler"],
                 "element_type":["Quadrature"],
                 "degree": [2]
+            },
+            {
+                "name":["fiber_FS"],
+                "type":["vector"],
+                "element_type":["Quadrature"],
+                "degree" :[2]
             }
         ],
         "forms_parameters": 
@@ -209,7 +226,7 @@
         },
         "fiber_reorientation":
         {
-            "stress_type":["total"],
+            "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
             "time_constant":[340.0],
             "reorient_t_start":[400.0,"ms"]
@@ -227,13 +244,14 @@
       },
     "output_handler":
     {
-        "output_data_path": ["../demos/Demo_full_cycle/sim_output/t_active0.2_5cycle/data.csv"],
-        "mesh_output_path": ["../demos/Demo_full_cycle/sim_output/t_active0.2_5cycle/mesh_output"],
+        "output_data_path": ["../demos/fiber/sim_output/data.csv"],
+        "mesh_output_path": ["../demos/fiber/sim_output/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
             "active_stress",
             "hs_length",
+            "fiber_direction",
 	    "k_1",
 	    "k_3",
 	    "k_on",
