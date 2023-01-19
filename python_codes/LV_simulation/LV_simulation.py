@@ -271,7 +271,7 @@ class LV_simulation():
         self.va = []
 
 
-         """ If requried, create the fiber reorientation"""
+        """ If requried, create the fiber reorientation"""
         
         if ('fiber_reorientation' in instruction_data['model']):
             self.fr = fr.fiber_reorientation(self)
