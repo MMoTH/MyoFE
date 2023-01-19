@@ -395,6 +395,9 @@ class MeshClass():
         p_f = interpolate(temp_DG, self.model['function_spaces']['quadrature_space'])
         self.pass_stress_list = p_f.vector().get_local()[:]
         
+        self.model['functions']['total_stress'] = \
+            self.model['functions']["total_passive_PK2"] + self.model['functions']['Pactive']
+
         self.model['functions']['PK2_local'],self.model['functions']['incomp'] = \
             uflforms.passivestress(self.model['functions']["hsl"])
 
