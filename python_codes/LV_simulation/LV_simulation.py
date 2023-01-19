@@ -757,7 +757,7 @@ class LV_simulation():
                                         self.mesh.model['function_spaces']["scalar"])
                     if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['vector_f'])
+                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
 
                     temp_obj.rename(m,'')
                     self.solution_mesh.write(temp_obj,self.data['time'])
