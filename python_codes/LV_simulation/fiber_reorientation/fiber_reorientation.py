@@ -17,7 +17,7 @@ class fiber_reorientation():
     def __init__(self, parent_params):
 
         self.parent_params = parent_params
-        fiber_struct = self.parent_params.instruction_data['model']['fiber_remodeling']
+        fiber_struct = self.parent_params.instruction_data['model']['fiber_reorientation']
         self.data=dict()
         for k in fiber_struct.keys():
             self.data[k] = fiber_struct[k][0]
