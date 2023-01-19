@@ -29,7 +29,9 @@ class fiber_reorientation():
         #self.f = PK2*f0/np.sqrt(np.inner(PK2*f0,PK2*f0))
         #time_step = self.parent_params.prot.data['time_step']  # since prot is defined in the run_simulation function, we can not use it in the initialization
 
-        time_step = self.parent_params.instruction_data['protocol']['time_step']
+        time_step = self.parent_params.instruction_data['protocol']['time_step'][0]
+        if self.comm.Get_rank() == 0:
+                print (time_step)
 
         function_space = self.parent_params.mesh.model['function_spaces']['fiber_FS']
         self.f_adjusted = self.stress_law(self.data['signal'],time_step,function_space)
