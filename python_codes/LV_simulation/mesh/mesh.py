@@ -103,7 +103,7 @@ class MeshClass():
         # Now handle if manual elements need to be defined 
         if 'function_spaces' in mesh_struct:
             for fs in mesh_struct['function_spaces']:
-    		print fs['name'][0]
+    		    print (fs['name'][0])
                 #define required finite elements 
                 if fs['type'][0] == 'scalar':
                     finite_element = \

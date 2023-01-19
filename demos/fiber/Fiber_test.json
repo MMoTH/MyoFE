@@ -29,13 +29,13 @@
         [
             {
                 "name":["stimulusFS"],
-                "type":["scaler"],
+                "type":["scalar"],
                 "element_type":["DG"],
                 "degree": [1]
             },
             {
-                "name":["scaler"],
-                "type":["scaler"],
+                "name":["scalar"],
+                "type":["scalar"],
                 "element_type":["DG"],
                 "degree": [1]
             },
@@ -53,7 +53,7 @@
             },
             {
                 "name":["quadrature_space"],
-                "type":["scaler"],
+                "type":["scalar"],
                 "element_type":["Quadrature"],
                 "degree": [2]
             },
