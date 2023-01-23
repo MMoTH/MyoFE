@@ -610,6 +610,10 @@ class LV_simulation():
                     for j in range(self.local_n_of_int_points):
                         self.hs_objs_list[j].memb.data[p.data['variable']] +=\
                             p.data['increment']
+                elif p.data['level'] == 'fiber_reorientation':
+                    self.fr.data[p.data['variable']] += \
+                        p.data['increment']
+
         if self.infarct: 
             for i in self.prot.infarct_activation:
                 if (self.t_counter >= i.data['t_start_ind'] and 
