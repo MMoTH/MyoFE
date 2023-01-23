@@ -855,13 +855,18 @@ class LV_simulation():
         
         
         print "error check 1"
+        
         print (self.data)
+
+        print "error check 2"
         print (list(self.data.keys()))
 
         for f in list(self.data.keys()):
+            
+            print "error check 3"
             print (self.data[f])
-            print "error check 2"
-            print (self.data.keys(f))
+            
+           
 
 
             self.sim_data[f][self.write_counter] = self.data[f]
