@@ -476,7 +476,7 @@ class LV_simulation():
                         if m == 'fiber_direction':
                             #temp_obj = project(self.mesh.model['functions']['f0'],
                                         #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
-                            f0_vs_time_array = np.zeros((no_of_int_points,3,no_of_time_steps))
+                            f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
                             f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:] 
 
