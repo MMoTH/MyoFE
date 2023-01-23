@@ -855,6 +855,7 @@ class LV_simulation():
 
 
         for f in list(self.data.keys()):
+            print (self.data[f])
             self.sim_data[f][self.write_counter] = self.data[f]
         for f in list(self.circ.data.keys()):
             if (f not in ['p', 'v', 's', 'compliance', 'resistance',
@@ -869,6 +870,11 @@ class LV_simulation():
         if (self.gr):
             for f in list(self.gr.data.keys()):
                 self.sim_data[f][self.write_counter] = self.gr.data[f]
+        if (self.fr):
+            for f in list(self.fr.data.keys()):
+                self.sim_data[f][self.write_counter] = self.fr.data[f]
+
+
     
         self.sim_data['write_mode'] = 1
         
