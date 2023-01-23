@@ -852,10 +852,18 @@ class LV_simulation():
 
     def write_complete_data_to_sim_data(self):
         """ Writes full data to data frame """
-
+        
+        
+        print "error check 1"
+        print (self.data)
+        print (list(self.data.keys()))
 
         for f in list(self.data.keys()):
             print (self.data[f])
+            print "error check 2"
+            print (self.data.keys(f))
+
+
             self.sim_data[f][self.write_counter] = self.data[f]
         for f in list(self.circ.data.keys()):
             if (f not in ['p', 'v', 's', 'compliance', 'resistance',
