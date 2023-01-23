@@ -474,8 +474,12 @@ class LV_simulation():
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar"])
                         if m == 'fiber_direction':
-                            temp_obj = project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
+                            #temp_obj = project(self.mesh.model['functions']['f0'],
+                                        #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
+                            f0_vs_time_array = np.zeros((no_of_int_points,3,no_of_time_steps))
+                            f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:] 
+
 
                         temp_obj.rename(m,'')
                         self.solution_mesh.write(temp_obj,0)
@@ -756,8 +760,19 @@ class LV_simulation():
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar"])
                     if m == 'fiber_direction':
-                            temp_obj = project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
+                            #temp_obj = project(self.mesh.model['functions']['f0'],
+                                        #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
+                            
+                            f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
+                            f0_vs_time_temp2_global = comm.gather(f0_vs_time_temp)
+                            
+                            if comm.Get_rank() == 0:
+                                f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
+                                f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(no_of_int_points,3))
+                                f0_vs_time_array[:,:,l] = f0_vs_time_temp2_global
+
+
 
                     temp_obj.rename(m,'')
                     self.solution_mesh.write(temp_obj,self.data['time'])
@@ -765,6 +780,19 @@ class LV_simulation():
         # Update the t counter for the next step
         self.t_counter = self.t_counter + 1
         self.data['time'] = self.data['time'] + time_step
+
+
+        
+        if self.t_counter == (self.prot.data['no_of_time_steps']-1): # at last time step
+            print "LAST TIME STEP, SAVE F0_VS_TIME"
+            # save full f0_vs_time
+            #if 'kroon_time_constant' in locals():
+            if 'fiber_direction' in self.mesh_obj_to_save:
+           
+                print "SAVING F0 VS TIME ARRAY"
+                np.save(output_struct['mesh_output_path'][0]+"f0_vs_time.npy",f0_vs_time_array)
+
+
    
     def update_data(self, time_step):
         """ Update data after a time step """
