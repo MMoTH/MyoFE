@@ -871,9 +871,9 @@ class LV_simulation():
             print (self.data[f])
             
            
+            if (f not in ['fr_active']):
+                self.sim_data[f][self.write_counter] = self.data[f]
 
-
-            self.sim_data[f][self.write_counter] = self.data[f]
         for f in list(self.circ.data.keys()):
             if (f not in ['p', 'v', 's', 'compliance', 'resistance',
                             'inertance', 'f']):
