@@ -774,7 +774,7 @@ class LV_simulation():
                             if comm.Get_rank() == 0:
                                 f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
                                 f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(no_of_int_points,3))
-                                f0_vs_time_array[:,:,l] = f0_vs_time_temp2_global
+                                f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global
 
 
 
