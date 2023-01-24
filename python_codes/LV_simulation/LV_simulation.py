@@ -887,9 +887,9 @@ class LV_simulation():
         if (self.gr):
             for f in list(self.gr.data.keys()):
                 self.sim_data[f][self.write_counter] = self.gr.data[f]
-        if (self.fr):
-            for f in list(self.fr.data.keys()):
-                self.sim_data[f][self.write_counter] = self.fr.data[f]
+        #if (self.fr):
+            #for f in list(self.fr.data.keys()):
+                #self.sim_data[f][self.write_counter] = self.fr.data[f]
 
 
     
