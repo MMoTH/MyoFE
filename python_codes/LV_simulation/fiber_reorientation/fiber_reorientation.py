@@ -72,7 +72,7 @@ class fiber_reorientation():
         print "update local cs"
         s0 = self.parent_params.mesh.model['functions']['s0']
         n0 = self.parent_params.mesh.model['functions']['n0']
-        no_of_int_points = self.global_n_of_int_points
+        #no_of_int_points = self.global_n_of_int_points
         #fiberFS = coord_params["fiberFS"]
         z_axis = Function(self.parent_params.mesh.model['function_spaces']['fiber_FS'])
         dm = self.parent_params.mesh.model['function_spaces']['fiber_FS'].dofmap()
