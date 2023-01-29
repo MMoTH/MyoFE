@@ -206,7 +206,29 @@ class Circulation():
                 self.data['mitral_insufficiency_conductance']
 
         return f
+    
+    def evolve_regurgitant_volumes(self,time_step,v):
+        """ Evolve regurgitant volumes """
 
+        reg_volumes = [self.data['mitral_reg_volume'],self.data['aortic_reg_volume']]
+        flows = self.return_flows(v)
+            
+        dmrv = flows[-2]
+
+        if dmrv > 0:
+            dmrv = 0
+            self.data['mitral_reg_volume'] = 0
+        mrv = dmrv * time_step + self.data['mitral_reg_volume']
+
+        darv = flows[0]
+        if darv > 0:
+            darv = 0
+            self.data['aortic_reg_volume'] = 0
+        arv = darv * time_step + self.data['aortic_reg_volume']
+        reg_volumes = [mrv,arv]
+
+        return reg_volumes
+    
     def updata_data(self,time_step):
 
         #self.data['f'] = self.return_flows(self.data['v'])
