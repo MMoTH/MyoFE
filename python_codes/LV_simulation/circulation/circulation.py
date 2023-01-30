@@ -133,6 +133,10 @@ class Circulation():
         self.va = 0
         self.data['aortic_insufficiency_conductance'] = 0
         self.data['mitral_insufficiency_conductance'] = 0
+        
+        # Define regurgitant volume
+        self.data['mitral_reg_volume'] = 0
+        self.data['aortic_reg_volume'] = 0
     
     def update_circulation(self,time_step, initial_v):
 
