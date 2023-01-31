@@ -24,6 +24,8 @@ class fiber_reorientation():
         
         #self.parameters.update(params)
         self.data['signal'] = self.return_driving_signal(fiber_struct['stress_type'][0])
+        print "check1"
+        print(fiber_struct['stress_type'][0])
         #PK2 = self.data['signal']
         #f0 = self.parent_params.mesh.model['functions']['f0']
         #self.f = PK2*f0/np.sqrt(np.inner(PK2*f0,PK2*f0))
@@ -40,18 +42,21 @@ class fiber_reorientation():
 
 
         mesh = self.parent_params.mesh.model['mesh']
-        PK2 = s
+        PK2 = s                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
         f0 = self.parent_params.mesh.model['functions']['f0']
         f = PK2*f0/sqrt(np.inner(PK2*f0,PK2*f0))
         kappa = self.data['time_constant']    
 
         f_proj = project(f,VectorFunctionSpace(mesh,"DG",1),
             form_compiler_parameters={"representation":"uflacs"})
-        
+
+        print "fproj"
+        print (project(f_proj,
+                 function_space).vector().get_local()[0:3])
 
         f_adjusted = 1./kappa * (f_proj - f0) * time_step
         #f_adjusted = 1./kappa * (f-f0) * step_size
-        f_adjusted = project(f_adjusted,VectorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"})
+        #f_adjusted = project(f_adjusted,VectorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"})
         #f_adjusted = project(f_adjusted,function_space,form_compiler_parameters={"representation":"uflacs"}) # error with this line: 
         f_adjusted = project(f_adjusted,function_space)
 
@@ -62,7 +67,7 @@ class fiber_reorientation():
         if signal_type == 'total_stress':
             s = self.parent_params.mesh.model['functions']['total_stress']
         if signal_type == 'passive_stress':
-            s = self.parent_params.mesh.model['functions']['total_stress_PK2']
+            s = self.parent_params.mesh.model['functions']['total_passive_PK2']
         
         return s
 
@@ -79,22 +84,27 @@ class fiber_reorientation():
         local_range = dm.ownership_range()
         local_dim = local_range[1] - local_range[0]
 
+        #print "check1"
+
         for jj in np.arange(int(local_dim/3)):
 
             f0_holder = f0.vector().array()[jj*3:jj*3+3]
             f0_holder /= sqrt(np.inner(f0_holder,f0_holder))
             for kk in range(3):
                 f0.vector()[jj*3+kk] = f0_holder[kk]
-
+            #print "check2"
             z_axis.vector()[jj*3] = 0.0
             z_axis.vector()[jj*3+1] = 0.0
             z_axis.vector()[jj*3+2] = 1.0
+            
+            #print "check3"
 
             s0_holder = np.cross(z_axis.vector().array()[jj*3:jj*3+3],f0_holder)
 
             s0_holder /= sqrt(np.inner(s0_holder,s0_holder))
             for kk in range(3):
                 s0.vector()[jj*3+kk] = s0_holder[kk]
+            #print "check4"
 
             n0_holder = np.cross(f0.vector().array()[jj*3:jj*3+3],s0.vector().array()[jj*3:jj*3+3])
 
@@ -102,5 +112,5 @@ class fiber_reorientation():
             for kk in range(3):
                 n0.vector()[jj*3+kk] = n0_holder[kk]
 
-
+            #print "check5"
         return s0, n0    

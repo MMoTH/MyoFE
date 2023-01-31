@@ -2,13 +2,13 @@
     "protocol":
     {
         "no_of_time_steps": [500],
-        "time_step": [0.001],
+        "time_step": [0.0001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[0.001],
+                    "t_start_s":[0.0005],
                     "t_stop_s":[5]
 
                 } 
@@ -17,14 +17,14 @@
         
     },
     "heart_rate": {
-        "t_active_period": [0.003],
-        "t_quiescent_period": [0.92],
-        "t_first_activation": [0.2]
+        "t_active_period": [0.03],
+        "t_quiescent_period": [0.17],
+        "t_first_activation": [0.1]
     },
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/fiber/sim_inputs/ellipsoidal_correct_fiber.hdf5"],
+        "mesh_path":["../demos/fiber/sim_inputs/ellipsoidal_degree_2.hdf5"],
         "function_spaces":
         [
             {
@@ -68,7 +68,7 @@
         {
             "passive_law_parameters": {
               "passive_law": ["semi_structural"],
-              "c": [172],
+              "c": [200],
               "c2": [250],
               "c3": [15.0],
               "bf": [8.0],
@@ -162,7 +162,7 @@
                     "resistance": [10],
                     "slack_volume": [0.06],
                     "wall_density": [1055],
-		            "initial_ed_volume":[0.15]
+		            "initial_ed_volume":[0.0015]
                 }
             ]
         },
@@ -228,7 +228,7 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[3.0],
+            "time_constant":[30.0],
             "reorient_t_start":[400.0,"ms"]
         }
         
