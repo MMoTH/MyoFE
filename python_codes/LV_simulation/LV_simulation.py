@@ -288,6 +288,11 @@ class LV_simulation():
             if self.comm.Get_rank() == 0:
                 print 'Initializing infarct module'
             self.infarct = 1
+
+        ## container for fiber reorientation_ hardcoded as was not working in initialization
+        # for num of time step here  instruction is used not prot as it prot is not defined yet (def in run simulation)
+        # to include initial fiber as zero time step, size of below mattrix is no_of_time_steps+1
+        self.f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,int(instruction_data['protocol']['no_of_time_steps'][0])+1))
             
 
     def create_data_structure(self,no_of_data_points, frequency = 1):
@@ -476,9 +481,10 @@ class LV_simulation():
                         if m == 'fiber_direction':
                             #temp_obj = project(self.mesh.model['functions']['f0'],
                                         #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
-                            #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
-                            f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:] 
+                            f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
+                            
+                            #f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
+                                        #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:] 
 
 
                         temp_obj.rename(m,'')
@@ -497,12 +503,17 @@ class LV_simulation():
                 print "RuntimeError happend"
                 self.handle_output(output_struct)
                 return
-
+        
+        
+        
 
         # Now build up global data holders for 
         # spatial variables if multiple cores have been used
         self.handle_output(output_struct)
        
+    
+    
+
 
     def implement_time_step(self, time_step):
         """ Implements time step """
@@ -547,60 +558,6 @@ class LV_simulation():
                   self.mesh.data[p]
 
 
-  # Check for fiber reorientation and implement  (data addressing should be checked)
-        if (self.fr):
-            self.data['fr_active'] = 0
-            for f in self.prot.fiber_re_activations:
-                if ((self.t_counter >= f.data['t_start_ind']) and
-                        (self.t_counter < f.data['t_stop_ind'])):
-                    self.data['fr_active'] = 1
-                    if self.comm.Get_rank() == 0:
-                        print("fiber reorientation active")
-"""
-
-        if self.data['fr_active'] == 1:
-
-            if self.comm.Get_rank() == 0:
-                print "updating fiber orientation"
-            #deg = 2
-            #VQuadelem = VectorElement("Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default")
-            #VQuadelem._quad_scheme = 'default'
-            #fiberFS = FunctionSpace(self.mesh, VQuadelem)
- 
-
-            #PK2_passive = self.mesh.model['functions']['total_passive_PK2']
-            #Pactive = self.mesh.model['functions']['Pactive']
-            #total_stress = PK2_passive + Pactive
-            #kappa = self.fr.data['time_constant']
-
-             
-
-            #fdiff = self.fr.stress_law(total_stress,fiberFS,self.t_counter,kappa)
-
-            print (project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])
-            
-
-            fdiff = self.fr.f_adjusted
-            print (project(fdiff,
-                             self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])
-
-            temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
-            temp_fiber += fdiff.vector().get_local()[:]
-            self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
-
-
-            print "CHECKING NUMBER OF FIBER VECTORS"
-            print np.shape(self.mesh.model['functions']['f0'].vector().get_local())
-            print "Fiber orientation updated"
-            print (project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])
-
-            self.mesh.model['functions']['s0'],self.mesh.model['functions']['n0'] = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0']) 
-            # lcs is not defined in the new platform and needs to be discussed
-
-
-"""
 
 
         # check for any perturbation
@@ -746,6 +703,47 @@ class LV_simulation():
         # Update sim data for non-spatial variables on root core (i.e. 0)
 
 
+        '''mesht = self.mesh.model['mesh']
+        PK2t = self.fr.data['signal'] 
+        f0t = self.mesh.model['functions']['f0']
+        ft = PK2t*f0t/sqrt(inner(PK2t*f0t,PK2t*f0t))
+        kappat = self.fr.data['time_constant']    
+
+        f_projt = project(ft,VectorFunctionSpace(mesht,"DG",1),
+                    form_compiler_parameters={"representation":"uflacs"})
+
+        f_adjustedt = 1./kappat * (f_projt - f0t) * time_step  
+        function_spacet = self.mesh.model['function_spaces']['fiber_FS']
+        f_adjusted_pro = project(f_adjustedt,function_spacet)
+
+        
+        pk_projt = project(PK2t,TensorFunctionSpace(mesht,"DG",1),form_compiler_parameters={"representation":"uflacs"})
+        
+        print "fprojt"
+        print (f_projt.vector().get_local()[0:9])
+        print "fadjt"
+        print (f_adjusted_pro.vector().get_local()[0:9])
+        print "pkprojt"
+        print (pk_projt.vector().get_local()[0:9])'''
+
+
+############# testing Fr class
+
+
+
+  # Check for fiber reorientation and implement  (data addressing should be checked)
+        if (self.fr):
+            self.data['fr_active'] = 0
+            for f in self.prot.fiber_re_activations:
+                if ((self.t_counter >= f.data['t_start_ind']) and
+                        (self.t_counter < f.data['t_stop_ind'])):
+                    self.data['fr_active'] = 1
+                    if self.comm.Get_rank() == 0:
+                        print("fiber reorientation active")
+
+
+
+
         if self.data['fr_active'] == 1:
 
             if self.comm.Get_rank() == 0:
@@ -764,14 +762,27 @@ class LV_simulation():
              
 
             #fdiff = self.fr.stress_law(total_stress,fiberFS,self.t_counter,kappa)
-
+            
+            '''print "f0"
             print (project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])
-            
+            '''
 
-            fdiff = self.fr.f_adjusted
-            print (project(fdiff,
+            '''fdiff_test = self.fr.f_adjusted
+            print "fdiff_test"
+            print (project(fdiff_test,
                              self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])
+            '''
+
+
+            fdiff = self.fr.stress_law(self.fr.data['signal'],time_step,self.mesh.model['function_spaces']['fiber_FS'])
+
+            '''print "fdiff"
+            print (project(fdiff,
+                             self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])'''
+
+
+
 
             temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
             temp_fiber += fdiff.vector().get_local()[:]
@@ -781,21 +792,72 @@ class LV_simulation():
             print "CHECKING NUMBER OF FIBER VECTORS"
             print np.shape(self.mesh.model['functions']['f0'].vector().get_local())
             print "Fiber orientation updated"
-            print (project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])
+            
+            
+            s1 , n1 = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0'])
+            
+            self.mesh.model['functions']['s0'].vector()[:]=s1
+            self.mesh.model['functions']['n0'].vector()[:]=n1
 
-            self.mesh.model['functions']['s0'],self.mesh.model['functions']['n0'] = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0']) 
+
+
+            #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
+            f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
+            f0_vs_time_temp2_global = self.comm.gather(f0_vs_time_temp)
+                            
+            if self.comm.Get_rank() == 0:
+                f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
+                f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(self.global_n_of_int_points,3))
+
+                print "f0_vs_time_array"
+                print np.shape(self.f0_vs_time_array)
+                print "f0_vs_time_temp2_global"
+                print np.shape(f0_vs_time_temp2_global)
+                
+                print "self.t_counter"
+                print self.t_counter
+
+
+
+
+
+                self.f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global
+            
+            #self.mesh.model['functions']['s0'],self.mesh.model['functions']['n0'] = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0']) 
             # lcs is not defined in the new platform and needs to be discussed
 
+###########################test locally
+
+
+        """
+        mesht = self.mesh.model['mesh']
+        PK2t = self.fr.data['signal'] 
+        f0t = self.mesh.model['functions']['f0']
+        ft = PK2t*f0t/sqrt(inner(PK2t*f0t,PK2t*f0t))
+        kappat = self.fr.data['time_constant']    
+
+        f_projt = project(ft,VectorFunctionSpace(mesht,"DG",1),
+                    form_compiler_parameters={"representation":"uflacs"})
+
+        f_adjustedt = 1./kappat * (f_projt - f0t) * time_step  
+        function_spacet = self.mesh.model['function_spaces']['fiber_FS']
+        f_adjusted_pro = project(f_adjustedt,function_spacet)
+
+        
+        pk_projt = project(PK2t,TensorFunctionSpace(mesht,"DG",1),form_compiler_parameters={"representation":"uflacs"})
+        
+        print "fprojt"
+        print (f_projt.vector().get_local()[0:9])
+        print "fadjt"
+        print (f_adjusted_pro.vector().get_local()[0:9])
+        print "pkprojt"
+        print (pk_projt.vector().get_local()[0:9])   
+        """
 
 
 
-
-
-
-
-
-
+###################################
 
         self.update_data(time_step)
         if self.t_counter%self.dumping_data_frequency == 0:
@@ -814,22 +876,36 @@ class LV_simulation():
                 for m in self.mesh_obj_to_save:
                     if m == 'displacement':
                         temp_obj = self.mesh.model['functions']['w'].sub(0)
+                        print 'check1'
+
                     if m == 'hs_length':
+                        print 'check2'
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scalar"])
-                    
+                        print 'check3'
+
                     if m in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density']:
                             temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scalar"])
+                            
+
                     if m == 'active_stress':
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar"])
+
+                        print 'check4'
+                         
+
+                    temp_obj.rename(m,'')
+                    #print 'check222'
+                    self.solution_mesh.write(temp_obj,self.data['time'])
+                    
                     if m == 'fiber_direction':
                             #temp_obj = project(self.mesh.model['functions']['f0'],
                                         #self.mesh.model['functglobal_n_of_int_pointion_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
-                            f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
+                            '''f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
                             f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
                             f0_vs_time_temp2_global = self.comm.gather(f0_vs_time_temp)
@@ -837,22 +913,22 @@ class LV_simulation():
                             if self.comm.Get_rank() == 0:
                                 f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
                                 f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(self.global_n_of_int_points,3))
-                                f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global
+                                f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global'''
 
 
                             print "SAVING F0 VS TIME ARRAY"
-                            np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"f0_vs_time.npy",f0_vs_time_array)
-        
+                            print 'check005'
+                            np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
+                            print 'check5'
 
-                    temp_obj.rename(m,'')
-                    self.solution_mesh.write(temp_obj,self.data['time'])
+
 
         # Update the t counter for the next step
         self.t_counter = self.t_counter + 1
         self.data['time'] = self.data['time'] + time_step
 
 
-        if self.t_counter == (self.prot.data['no_of_time_steps']-1): # at last time step
+        '''if self.t_counter == (self.prot.data['no_of_time_steps']-1): # at last time step
             print "LAST TIME STEP, SAVE F0_VS_TIME"
             # save full f0_vs_time
             #if 'kroon_time_constant' in locals():
@@ -860,7 +936,7 @@ class LV_simulation():
            
                 print "SAVING F0 VS TIME ARRAY"
                 np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"f0_vs_time.npy",f0_vs_time_array)
-                self.instruction_data
+                self.instruction_data'''
 
    
     def update_data(self, time_step):
@@ -923,16 +999,16 @@ class LV_simulation():
         """ Writes full data to data frame """
         
         
-        print "error check 1"
+        
         
         print (self.data)
 
-        print "error check 2"
+        
         print (list(self.data.keys()))
 
         for f in list(self.data.keys()):
             
-            print "error check 3"
+            
             print (self.data[f])
             
            

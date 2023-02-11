@@ -14,6 +14,8 @@ import pandas as pd
 class fiber_reorientation():
     """ Class for the fiber_reorientation """
 
+    #f_adjusted = stress_law(self.data['signal'],time_step,function_space)
+
     def __init__(self, parent_params):
 
         self.parent_params = parent_params
@@ -24,7 +26,15 @@ class fiber_reorientation():
         
         #self.parameters.update(params)
         self.data['signal'] = self.return_driving_signal(fiber_struct['stress_type'][0])
-        print "check1"
+        print "checkPK2"
+        """ s_inner = inner(self.parent_params.mesh.model['functions']['f0'],
+                         self.parent_params.mesh.model['functions']['total_stress']*self.parent_params.mesh.model['functions']['f0'])
+        s_proj = project( s_inner,
+                            self.parent_params.mesh.model['function_spaces']['scalar'],
+                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+
+        print(s_proj)"""
+   
         print(fiber_struct['stress_type'][0])
         #PK2 = self.data['signal']
         #f0 = self.parent_params.mesh.model['functions']['f0']
@@ -44,15 +54,45 @@ class fiber_reorientation():
         mesh = self.parent_params.mesh.model['mesh']
         PK2 = s                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
         f0 = self.parent_params.mesh.model['functions']['f0']
-        f = PK2*f0/sqrt(np.inner(PK2*f0,PK2*f0))
+        
+        #Pf = (PK2*f0)
+        f = PK2*f0/(sqrt((inner(PK2*f0,PK2*f0))))
+        #f = PK2*f0/sqrt(abs(inner((Pf),(Pf))))
+
+
         kappa = self.data['time_constant']    
 
         f_proj = project(f,VectorFunctionSpace(mesh,"DG",1),
-            form_compiler_parameters={"representation":"uflacs"})
+            form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
+        #f_proj = project(f,self.parent_params.mesh.model['function_spaces']['fiber_FS'],
+        #            form_compiler_parameters={"representation":"uflacs"})
+        #f_proj = project(f,function_space)
 
-        print "fproj"
-        print (project(f_proj,
-                 function_space).vector().get_local()[0:3])
+        #vector_check = PK2*f0
+        #inner_check = (inner((Pf),(Pf)))
+
+        #vec_proj = project( vector_check,VectorFunctionSpace(mesh,"DG",1),
+            #form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        #inner_proj = project( inner_check,
+                          # self.parent_params.mesh.model['function_spaces']['scalar'],
+                                #form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+
+        #inner_proj = interpolate( inner_check,
+                            #self.parent_params.mesh.model['function_spaces']['scalar']
+
+
+        #print "fproj_inclass"
+        #print (project(f_proj,
+                 ##print (f_proj.vector().get_local()[0:3])
+
+
+
+        """PK2_proj = project(PK2,TensorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        print "PK2_proj"
+        print (PK2_proj)
+        print np.shape(PK2_proj)"""
+
+
 
         f_adjusted = 1./kappa * (f_proj - f0) * time_step
         #f_adjusted = 1./kappa * (f-f0) * step_size
@@ -73,38 +113,113 @@ class fiber_reorientation():
 
     def update_local_coordinate_system(self,fiber_direction):
 
-        f0 = fiber_direction
+        f0 = fiber_direction.vector().get_local()[:]
         print "update local cs"
-        s0 = self.parent_params.mesh.model['functions']['s0']
-        n0 = self.parent_params.mesh.model['functions']['n0']
-        #no_of_int_points = self.global_n_of_int_points
-        #fiberFS = coord_params["fiberFS"]
+        s0 = self.parent_params.mesh.model['functions']['s0'].vector().get_local()[:]
+        n0 = self.parent_params.mesh.model['functions']['n0'].vector().get_local()[:]
+
         z_axis = Function(self.parent_params.mesh.model['function_spaces']['fiber_FS'])
         dm = self.parent_params.mesh.model['function_spaces']['fiber_FS'].dofmap()
-        local_range = dm.ownership_range()
-        local_dim = local_range[1] - local_range[0]
+       
 
-        #print "check1"
+        #local_range = dm.ownership_range()
+        #local_dim1 = local_range[1] - local_range[0]
+        local_dim2 = self.parent_params.local_n_of_int_points
+        
 
+
+        
+        """print "f0"
+        print f0.vector().array()[:]
+        print len(f0.vector().array()[:])
+
+        print "local_dim1"
+        print local_dim1
+
+        print "local_dim2"
+        print local_dim2
+
+        print "local_dim3"
+        print local_dim3"""
+        
+
+
+        z_axis_local = z_axis.vector().get_local()[:]
+
+        for jj in np.arange(local_dim2):
+
+            f0_holder = f0[jj*3:jj*3+3]
+            f0_holder /= sqrt(np.inner(f0_holder,f0_holder))
+
+
+            #if self.parent_params.comm.Get_rank() == 0:
+                #print"ckeck before"
+
+            for kk in range(3):
+                f0[jj*3+kk] = f0_holder[kk]
+
+            #if self.parent_params.comm.Get_rank() == 0:
+                #print"ckeck after"
+
+            #z_axis.vector()[jj*3] = 0.0
+            #z_axis.vector()[jj*3+1] = 0.0
+            #z_axis.vector()[jj*3+2] = 1.0
+            z_axis_local[jj*3]=0.0
+            z_axis_local[jj*3+1]=0.0
+            z_axis_local[jj*3+2]=1.0
+
+            #if self.parent_params.comm.Get_rank() == 0:
+                #print jj    
+
+            #s0_holder = np.cross(z_axis.vector().array()[jj*3:jj*3+3],f0_holder)
+            s0_holder = np.cross(z_axis_local[jj*3:jj*3+3],f0_holder)
+
+
+            s0_holder /= sqrt(np.inner(s0_holder,s0_holder))
+            for kk in range(3):
+                s0[jj*3+kk] = s0_holder[kk]
+            
+
+            n0_holder = np.cross(f0[jj*3:jj*3+3],s0[jj*3:jj*3+3])
+
+            n0_holder /= sqrt(np.inner(n0_holder,n0_holder))
+            for kk in range(3):
+                n0[jj*3+kk] = n0_holder[kk]
+
+        '''if self.parent_params.comm.Get_rank() == 0:
+            print "complete CORE0"
+        if self.parent_params.comm.Get_rank() == 1:
+            print "complete CPRE 1"'''
+
+
+        return s0, n0    
+
+
+
+
+
+
+
+        '''
         for jj in np.arange(int(local_dim/3)):
 
             f0_holder = f0.vector().array()[jj*3:jj*3+3]
             f0_holder /= sqrt(np.inner(f0_holder,f0_holder))
             for kk in range(3):
                 f0.vector()[jj*3+kk] = f0_holder[kk]
-            #print "check2"
+            
             z_axis.vector()[jj*3] = 0.0
             z_axis.vector()[jj*3+1] = 0.0
             z_axis.vector()[jj*3+2] = 1.0
             
-            #print "check3"
+            #print jj    
 
             s0_holder = np.cross(z_axis.vector().array()[jj*3:jj*3+3],f0_holder)
 
             s0_holder /= sqrt(np.inner(s0_holder,s0_holder))
             for kk in range(3):
                 s0.vector()[jj*3+kk] = s0_holder[kk]
-            #print "check4"
+            
 
             n0_holder = np.cross(f0.vector().array()[jj*3:jj*3+3],s0.vector().array()[jj*3:jj*3+3])
 
@@ -112,5 +227,6 @@ class fiber_reorientation():
             for kk in range(3):
                 n0.vector()[jj*3+kk] = n0_holder[kk]
 
-            #print "check5"
+            
         return s0, n0    
+        '''
