@@ -513,6 +513,7 @@ class LV_simulation():
         reg_volumes = self.circ.evolve_regurgitant_volumes(time_step, self.circ.data['v'])
         self.circ.data['mitral_reg_volume'] = reg_volumes[0]
         self.circ.data['aortic_reg_volume'] = reg_volumes[-1]
+
         # Check for baroreflex and implement
         if (self.br):
             self.data['baroreflex_active'] = 0
