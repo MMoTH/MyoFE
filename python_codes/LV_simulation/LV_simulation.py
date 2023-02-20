@@ -496,13 +496,13 @@ class LV_simulation():
                     self.check_output_directory_folder(path = self.output_data_str)
 
         for i in np.arange(self.prot.data['no_of_time_steps']+1):
-            #self.implement_time_step(self.prot.data['time_step'])
-            try:
+            self.implement_time_step(self.prot.data['time_step'])
+            """try:
                 self.implement_time_step(self.prot.data['time_step'])
             except RuntimeError: 
                 print "RuntimeError happend"
                 self.handle_output(output_struct)
-                return
+                return"""
         
         
         
@@ -796,9 +796,14 @@ class LV_simulation():
             
             s1 , n1 = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0'])
             
-            self.mesh.model['functions']['s0'].vector()[:]=s1
+            self.mesh.model['functions']['s0'].vector()[:]=s1   ### on the left hand side get local is not needed as it can find the right place of the data in global function
             self.mesh.model['functions']['n0'].vector()[:]=n1
 
+            #print "f0 shape"
+            #print np.shape(self.mesh.model['functions']['f0'].vector().get_local())
+
+            #print "s0 shape"
+            #print np.shape(s1)
 
 
             #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
@@ -810,13 +815,13 @@ class LV_simulation():
                 f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
                 f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(self.global_n_of_int_points,3))
 
-                print "f0_vs_time_array"
+                '''print "f0_vs_time_array"
                 print np.shape(self.f0_vs_time_array)
                 print "f0_vs_time_temp2_global"
                 print np.shape(f0_vs_time_temp2_global)
                 
                 print "self.t_counter"
-                print self.t_counter
+                print self.t_counter'''
 
 
 
@@ -876,13 +881,13 @@ class LV_simulation():
                 for m in self.mesh_obj_to_save:
                     if m == 'displacement':
                         temp_obj = self.mesh.model['functions']['w'].sub(0)
-                        print 'check1'
+                        
 
                     if m == 'hs_length':
-                        print 'check2'
+                        
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scalar"])
-                        print 'check3'
+                        
 
                     if m in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density']:
                             temp_obj = project(self.mesh.model['functions'][m], 
@@ -895,7 +900,7 @@ class LV_simulation():
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar"])
 
-                        print 'check4'
+                        
                          
 
                     temp_obj.rename(m,'')
@@ -917,9 +922,9 @@ class LV_simulation():
 
 
                             print "SAVING F0 VS TIME ARRAY"
-                            print 'check005'
+                            
                             np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
-                            print 'check5'
+                            
 
 
 
@@ -1042,6 +1047,8 @@ class LV_simulation():
         print 'Writing spatial variables on core id: %0.0f' %rank
 
         if self.spatial_data_to_mean:
+            
+
             self.local_spatial_sim_data.at[self.write_counter,'time'] = \
                 self.data['time']
             for f in list(self.spatial_hs_data_fields):
@@ -1050,11 +1057,16 @@ class LV_simulation():
                     data_field.append(h.data[f]) 
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
+            
+
             for f in list( self.spatial_myof_data_fields):
                 data_field = []
                 for h in self.hs_objs_list:
                     data_field.append(h.myof.data[f]) 
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+            
+            
+
 
             for f in list(self.spatial_memb_data_fields):
                 data_field = []
@@ -1062,6 +1074,9 @@ class LV_simulation():
                     data_field.append(h.memb.data[f]) 
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
         else:
+
+            
+
             for f in self.spatial_hs_data_fields:
                 data_field = []
                 for h in self.hs_objs_list:
@@ -1085,6 +1100,10 @@ class LV_simulation():
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
                 #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
                 #    self.data['time']
+
+            
+
+        
 
     def check_output_directory_folder(self, path=""):
         """ Check output folder"""

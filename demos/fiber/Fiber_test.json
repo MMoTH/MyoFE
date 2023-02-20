@@ -1,15 +1,15 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [2],
+        "no_of_time_steps": [5000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[0.001],
-                    "t_stop_s":[1]
+                    "t_start_s":[1],
+                    "t_stop_s":[10]
 
                 } 
             ]
@@ -228,7 +228,7 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[3.0],
+            "time_constant":[300.0],
             "reorient_t_start":[400.0,"ms"]
         }
         
@@ -259,7 +259,7 @@
 	    "k_serca"
         ],
         "dumping_spatial_in_average":[true],
-        "frequency_n": [2]
+        "frequency_n": [10]
         
         
     }
