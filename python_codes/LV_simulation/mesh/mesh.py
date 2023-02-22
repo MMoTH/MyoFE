@@ -11,6 +11,7 @@ from dolfin import *
 import os
 from ..dependencies.forms import Forms
 from ..dependencies.nsolver import NSolver
+from ..dependencies.assign_heterogeneous_params import assign_heterogeneous_params as assign_params
 
 class MeshClass():
 
@@ -39,6 +40,11 @@ class MeshClass():
         #print 'comminicator is defined'
         #print self.comm.Get_rank()
         #print self.comm.Get_size()
+
+        ##MM here we hardcode functions to obtain no_of_cell for het modeling
+        subdomains = MeshFunction('int', self.model['mesh'], 3)
+        self.no_of_cells = len(subdomains.array())
+
 
         self.model['function_spaces'] = self.initialize_function_spaces(mesh_struct)
         
@@ -157,6 +163,13 @@ class MeshClass():
         dolfin_functions = \
             self.initialize_dolfin_functions(dolfin_functions,
                                 self.model['function_spaces']['quadrature_space'])
+
+
+
+
+        ##MM in the general form there used to be more inputs for below function, but for LV het modeling only below inputs are needed
+        hs_params_list,dolfin_functions = assign_params.assign_heterogeneous_params(hs_params_list,dolfin_functions,self.no_of_cells)
+    
        
         # initialize myosim params
         hsl0    = Function(self.model['function_spaces']['quadrature_space'])
