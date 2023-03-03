@@ -391,11 +391,24 @@ class LV_simulation():
                                                 self.mesh.model['function_spaces']["scalar"],
                                                 form_compiler_parameters={"representation":"uflacs"})
                         if m == 'active_stress':
+                            """quad_elem = FiniteElement("Quadrature", self.mesh.model['mesh'].ufl_cell(),
+                                     degree=2)
+                            Vq = FunctionSpace(self.mesh.model['mesh'], quad_elem)
+                            
+                            temp_obj = Function(Vq)
+                            inner_p = inner(self.mesh.model['functions']['f0'],
+                                            self.mesh.model['functions']['Pactive']*
+                                            self.mesh.model['functions']['f0'])
+                            #inner_p = self.mesh.model['functions']['Pactive']
+                            temp_obj=project(inner_p,Vq,form_compiler_parameters={"representation":"uflacs"})"""
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"],
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
+                            #dolfin.parameters["form_compiler"]["representation"] = "quadrature"
+                            #temp_obj = interpolate(temp_proj, self.mesh.model['function_spaces']["quadrature_space"])
+                            
                         if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'],
@@ -439,13 +452,13 @@ class LV_simulation():
                     self.check_output_directory_folder(path = self.output_data_str)
             
         for i in np.arange(self.prot.data['no_of_time_steps']+1):
-            self.implement_time_step(self.prot.data['time_step'])
-            """try:
+            #self.implement_time_step(self.prot.data['time_step'])
+            try:
                 self.implement_time_step(self.prot.data['time_step'])
             except RuntimeError: 
                 print "RuntimeError happend"
                 self.handle_output(output_struct)
-                return"""
+                return
 
 
         # Now build up global data holders for 
@@ -1226,11 +1239,23 @@ class LV_simulation():
                                                 self.mesh.model['function_spaces']["scalar"],
                                                 form_compiler_parameters={"representation":"uflacs"})
                     if m == 'active_stress':
+                        """quad_elem = FiniteElement("Quadrature", self.mesh.model['mesh'].ufl_cell(),
+                                     degree=2)
+                        Vq = FunctionSpace(self.mesh.model['mesh'], quad_elem)
+                        
+                        temp_obj = Function(Vq)
+                        inner_p = inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['Pactive']*
+                                        self.mesh.model['functions']['f0'])"""
+                        #inner_p = self.mesh.model['functions']['Pactive']
+                        #temp_obj= project(inner_p,Vq,form_compiler_parameters={"representation":"uflacs"})
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"],
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
+                        #dolfin.parameters["form_compiler"]["representation"] = "quadrature"
+
                     if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'],
