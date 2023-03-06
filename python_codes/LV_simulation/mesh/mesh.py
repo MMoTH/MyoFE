@@ -11,7 +11,8 @@ from dolfin import *
 import os
 from ..dependencies.forms import Forms
 from ..dependencies.nsolver import NSolver
-from ..dependencies.assign_heterogeneous_params import assign_heterogeneous_params as assign_params
+#from ..dependencies.assign_heterogeneous_params import assign_heterogeneous_params as assign_params
+from ..dependencies.assign_heterogeneous_params import assign_heterogeneous_params 
 
 class MeshClass():
 
@@ -44,7 +45,10 @@ class MeshClass():
         ##MM here we hardcode functions to obtain no_of_cell for het modeling
         subdomains = MeshFunction('int', self.model['mesh'], 3)
         self.no_of_cells = len(subdomains.array())
+        #print "no of cells"
+        #print self.no_of_cells
 
+        
 
         self.model['function_spaces'] = self.initialize_function_spaces(mesh_struct)
         
@@ -52,6 +56,7 @@ class MeshClass():
             print 'function spaces are defined'
 
         self.model['functions'] = self.initialize_functions(mesh_struct)
+        
 
         self.model['boundary_conditions'] = self.initialize_boundary_conditions()
 
@@ -165,21 +170,29 @@ class MeshClass():
                                 self.model['function_spaces']['quadrature_space'])
 
 
-
+        het_class = assign_heterogeneous_params()
 
         ##MM in the general form there used to be more inputs for below function, but for LV het modeling only below inputs are needed
-        hs_params_list,dolfin_functions = assign_params.assign_heterogeneous_params(hs_params_list,dolfin_functions,self.no_of_cells)
-    
-       
+        dolfin_functions = het_class.assign_heterogeneous_params(dolfin_functions,self.no_of_cells)
+        #print "het class worked"
+        #print "c param for LV"
+
+        #print len(np.array(dolfin_functions["passive_params"]["c"][-1].vector().get_local()[:]))
+        #print np.array(dolfin_functions["passive_params"]["c"][-1].vector().get_local()[0:9])
+        #File(self.parent_parameters.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(dolfin_functions["passive_params"]["c"][-1],FunctionSpace(self.model['mesh'],"DG",0))
+
+
         # initialize myosim params
+        
         hsl0    = Function(self.model['function_spaces']['quadrature_space'])
+        
         hsl_old = Function(self.model['function_spaces']['quadrature_space'])
         pseudo_alpha = Function(self.model['function_spaces']['quadrature_space'])
         pseudo_old = Function(self.model['function_spaces']['quadrature_space'])
         pseudo_old.vector()[:] = 1.0
         hsl_diff_from_reference = Function(self.model['function_spaces']['quadrature_space'])
         hsl_diff_from_reference.vector()[:] = 0.0
-
+        
         try:
             self.f.read(hsl0, "ellipsoidal" + "/" + "hsl0")
         except:
@@ -187,11 +200,12 @@ class MeshClass():
         
         # close f
         self.f.close()
-
+        
         y_vec   = Function(self.model['function_spaces']['quad_vectorized_space'])
 
         # Create function for myosim params that baroreflex regulates
         for p in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density','k_cb','x_ps']:
+            
             functions[p] = Function(self.model['function_spaces']['quadrature_space'])
             
             self.data[p] = project(functions[p],self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
@@ -230,7 +244,7 @@ class MeshClass():
         functions["pseudo_old"] = pseudo_old
         functions["y_vec"] = y_vec
 
-
+        
         return functions
 
     def initialize_boundary_conditions(self):
@@ -506,6 +520,7 @@ class MeshClass():
         #    print "appending fcn"
         if isinstance(temp_dict[key][0],str):
             #do nothing
+            print temp_dict[key][0]
             if MPI.rank(self.comm) == 0:
                 print "string, not creating function"
         else:

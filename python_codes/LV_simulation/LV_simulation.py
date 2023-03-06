@@ -93,7 +93,10 @@ class LV_simulation():
         #self.hs_params_mesh = dict()
         self.local_n_of_int_points = \
             4 * np.shape(self.mesh.model['mesh'].cells())[0]
-        
+
+        print "n_local"
+        print self.local_n_of_int_points
+
         """ Calculate the total no of integration points"""
         # First on the root core
         self.global_n_of_int_points = \
@@ -925,7 +928,7 @@ class LV_simulation():
                             print "SAVING F0 VS TIME ARRAY"
                             
                             np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
-                            
+                            #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.functions['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(mesh,"DG",0))
 
 
 

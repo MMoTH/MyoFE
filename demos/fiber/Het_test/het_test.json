@@ -1,14 +1,14 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [2],
+        "no_of_time_steps": [5000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[0.001],
+                    "t_start_s":[1],
                     "t_stop_s":[10]
 
                 } 
@@ -68,7 +68,7 @@
         {
             "passive_law_parameters": {
               "passive_law": ["semi_structural"],
-              "c": [172],
+              "c": [172, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.2,"scaling_factor":15,"material_properties":"isotropic"}],
               "c2": [250],
               "c3": [15.0],
               "bf": [8.0],
