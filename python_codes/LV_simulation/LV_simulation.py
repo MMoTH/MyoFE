@@ -809,30 +809,42 @@ class LV_simulation():
             #print "s0 shape"
             #print np.shape(s1)
 
-
+            ##MM to save the fiber even before fiber remodleing this apart needs to be out of if FR = 1
             #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
-            f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
+        f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
-            f0_vs_time_temp2_global = self.comm.gather(f0_vs_time_temp)
+        f0_vs_time_temp2_global = self.comm.gather(f0_vs_time_temp)
                             
-            if self.comm.Get_rank() == 0:
-                f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
-                f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(self.global_n_of_int_points,3))
+        if self.comm.Get_rank() == 0:
 
-                '''print "f0_vs_time_array"
-                print np.shape(self.f0_vs_time_array)
-                print "f0_vs_time_temp2_global"
-                print np.shape(f0_vs_time_temp2_global)
-                
-                print "self.t_counter"
-                print self.t_counter'''
+                #print "f0_vs_time_temp2_global"
+                #print np.shape(f0_vs_time_temp2_global)
+                #print (f0_vs_time_temp2_global)
 
 
+            f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
+            f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(self.global_n_of_int_points,3))
+
+            #print "f0_vs_time_array"
+            #print np.shape(self.f0_vs_time_array)
+            print "f0_vs_time_temp2_global"
+            print np.shape(f0_vs_time_temp2_global)
+            print (f0_vs_time_temp2_global)
+
+                #print "self.t_counter"
+                #print self.t_counter
 
 
-
-                self.f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global
+            self.f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global
             
+        print "SAVING F0 VS TIME ARRAY"
+        ##MM to save the data in case of failure, fiber data of all time steps is being saved here, later we can implement saveing freq
+
+        print "(self.f0_vs_time_array)"
+        for i in np.arange(100, 4000):
+            print (self.f0_vs_time_array[i,:,self.t_counter])
+        np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
+
             #self.mesh.model['functions']['s0'],self.mesh.model['functions']['n0'] = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0']) 
             # lcs is not defined in the new platform and needs to be discussed
 
@@ -867,6 +879,8 @@ class LV_simulation():
 
 
 ###################################
+
+        
 
         self.update_data(time_step)
         if self.t_counter%self.dumping_data_frequency == 0:
@@ -912,6 +926,13 @@ class LV_simulation():
                     self.solution_mesh.write(temp_obj,self.data['time'])
                     
                     if m == 'fiber_direction':
+
+
+                        #print "SAVING F0 VS TIME ARRAY"
+                            
+                        #np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)        
+
+
                             #temp_obj = project(self.mesh.model['functions']['f0'],
                                         #self.mesh.model['functglobal_n_of_int_pointion_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
                             '''f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
@@ -925,13 +946,11 @@ class LV_simulation():
                                 f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global'''
 
 
-                            print "SAVING F0 VS TIME ARRAY"
-                            
-                            np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
+                        
                             #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.functions['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(mesh,"DG",0))
 
 
-
+        
         # Update the t counter for the next step
         self.t_counter = self.t_counter + 1
         self.data['time'] = self.data['time'] + time_step

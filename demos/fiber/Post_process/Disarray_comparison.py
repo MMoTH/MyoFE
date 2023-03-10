@@ -35,16 +35,16 @@ from mpl_toolkits.mplot3d import Axes3D
 
 #--------------------------------------------------------------------------------
 # Load inputs:
-base_dir = 'C:/Users/mme250.AD/OneDrive - University of Kentucky/Cluster_models/'
-sim_dir = 'Het_model/Final_time_step0.1/not_het4/'
+base_dir = 'C:/Users/mme250/OneDrive - University of Kentucky/Github/FEniCS-Myosim/demos/fiber/'
+sim_dir = 'Het_test2/sim_output/mesh_output/'
 
-Num_model = 4
+Num_model = 1
 f0_vs_time = np.load(base_dir + sim_dir + 'f0_vs_time.npy')
 quadrature_dof_map = np.load(base_dir + 'quadrature_dof.npy')
 ecc = np.load(base_dir + 'ecc.npy')
 err = np.load(base_dir + 'err.npy')
 ell = np.load(base_dir + 'ell.npy')
-norm_dist_endo = np.load(base_dir+'ellipsoid_deg2_norm_dist_endo.npy')
+norm_dist_endo = np.load(base_dir+'norm_dist_endo.npy')
 
 
 
@@ -109,7 +109,7 @@ for jj in np.arange(1,Num_model+1):
     #fig, axs = plt.subplots(1,3)
 
     if jj == 1: 
-        sim_dir = 'Het_model/Final_time_step0.1/not_het4/'
+        sim_dir = 'Het_test2/sim_output/mesh_output/'
         #fig.suptitle('No Het')
     if jj == 2: 
         sim_dir = 'Het_model/Final_time_step0.1/het4_0.1fib/'

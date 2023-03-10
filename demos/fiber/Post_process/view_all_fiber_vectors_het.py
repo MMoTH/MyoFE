@@ -35,18 +35,21 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # Load inputs:
 #sim_dir = '/Users/charlesmann/Academic/UK/FEniCS-Myosim/working_directory_untracked/rat_infarct_remodeling/strain/strain_remodeling_on_t340/'
-base_dir = 'C:/Users/mme250/OneDrive - University of Kentucky/Github/FEniCS-Myosim/demos'
-sim_dir = '/fiber/sim_output/'
-f0_vs_time = np.load(base_dir + sim_dir + 'mesh_outputf0_vs_time.npy')
+base_dir = 'C:/Users/mme250/OneDrive - University of Kentucky/Github/FEniCS-Myosim/demos/fiber/'
+sim_dir = 'Het_test2/sim_output/mesh_output/'
+f0_vs_time = np.load(base_dir + sim_dir + 'f0_vs_time.npy')
 quadrature_dof_map = np.load(base_dir + 'quadrature_dof.npy')
 ecc = np.load(base_dir + 'ecc.npy')
 err = np.load(base_dir + 'err.npy')
 ell = np.load(base_dir + 'ell.npy')
-norm_dist_endo = np.load(base_dir+'ellipsoid_deg2_norm_dist_endo.npy')
+norm_dist_endo = np.load(base_dir+'norm_dist_endo.npy')
 
 final_vectors = f0_vs_time[:,:,-1]
-initial_vectors = f0_vs_time[:,:,0]
+initial_vectors = f0_vs_time[:,:,1]
 
+print (np.shape(f0_vs_time))
+print (np.shape(quadrature_dof_map))
+print (np.shape(final_vectors))
 #--------------------- partition based on region -------------------------------
 region_indices = np.zeros(np.shape(quadrature_dof_map)[0])
 
@@ -112,12 +115,14 @@ ax1 = plt.axes(projection='3d')
 ax1.view_init(0, 0)
 
 for p in np.arange(np.shape(quadrature_dof_map)[0]):   
-   
+#for p in np.arange(1,30):     
     vec = final_vectors[p,:]
     vec2 = initial_vectors[p,:]
     q = quadrature_dof_map[p]
+    #print (vec)
+    #print (vec2)
      
-    if norm_dist_endo[p] > 0.97 and q[0]>0:
+    if norm_dist_endo[p] > 0.005 and q[0]>0:
 
         vec2plot = np.array([q[0],q[1],q[2],(q[0]+vec2[0]),(q[1]+vec2[1]),(q[2]+vec2[2])])
         ax1.quiver(vec2plot[0],vec2plot[1],vec2plot[2],vec2plot[3],vec2plot[4],vec2plot[5],length = 0.04, color = colors[2],pivot='middle',arrow_length_ratio=0.05)
