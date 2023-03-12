@@ -244,8 +244,8 @@
       },
     "output_handler":
     {
-        "output_data_path": ["../demos/fiber/Het_test3_cluster/sim_output/data.csv"],
-        "mesh_output_path": ["../demos/fiber/Het_test2_cluster/sim_output/mesh_output"],
+        "output_data_path": ["../demos/fiber/Heta_test3_cluster/sim_output/data.csv"],
+        "mesh_output_path": ["../demos/fiber/Heta_test2_cluster/sim_output/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
