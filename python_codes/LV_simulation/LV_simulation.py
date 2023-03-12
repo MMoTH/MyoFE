@@ -404,7 +404,7 @@ class LV_simulation():
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"],
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
                             #dolfin.parameters["form_compiler"]["representation"] = "quadrature"
                             #temp_obj = interpolate(temp_proj, self.mesh.model['function_spaces']["quadrature_space"])
@@ -1252,7 +1252,7 @@ class LV_simulation():
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"],
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
                         #dolfin.parameters["form_compiler"]["representation"] = "quadrature"
 
