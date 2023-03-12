@@ -43,7 +43,7 @@ quadrature_dof_map = np.load(base_dir + 'quadrature_dof.npy')
 ecc = np.load(base_dir + 'ecc.npy')
 err = np.load(base_dir + 'err.npy')
 ell = np.load(base_dir + 'ell.npy')
-norm_dist_endo = np.load(base_dir+'ellipsoid_deg2_norm_dist_endo.npy')
+norm_dist_endo = np.load(base_dir+'norm_dist_endo.npy')
 
 Num_model = 4
 # 2 inital cycles with not fib reorientaion_ then 5 reorientaion

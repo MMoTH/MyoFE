@@ -827,9 +827,9 @@ class LV_simulation():
 
             #print "f0_vs_time_array"
             #print np.shape(self.f0_vs_time_array)
-            print "f0_vs_time_temp2_global"
-            print np.shape(f0_vs_time_temp2_global)
-            print (f0_vs_time_temp2_global)
+            #print "f0_vs_time_temp2_global"
+            #print np.shape(f0_vs_time_temp2_global)
+            #print (f0_vs_time_temp2_global)
 
                 #print "self.t_counter"
                 #print self.t_counter
@@ -840,9 +840,9 @@ class LV_simulation():
         print "SAVING F0 VS TIME ARRAY"
         ##MM to save the data in case of failure, fiber data of all time steps is being saved here, later we can implement saveing freq
 
-        print "(self.f0_vs_time_array)"
-        for i in np.arange(100, 4000):
-            print (self.f0_vs_time_array[i,:,self.t_counter])
+        #print "(self.f0_vs_time_array)"
+        #for i in np.arange(100, 4000):
+            #print (self.f0_vs_time_array[i,:,self.t_counter])
         np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
 
             #self.mesh.model['functions']['s0'],self.mesh.model['functions']['n0'] = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0']) 
