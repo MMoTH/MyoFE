@@ -297,7 +297,9 @@ class LV_simulation():
         # for num of time step here  instruction is used not prot as it prot is not defined yet (def in run simulation)
         # to include initial fiber as zero time step, size of below mattrix is no_of_time_steps+1
         self.f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,int(instruction_data['protocol']['no_of_time_steps'][0])+1))
-            
+        self.fdiff_mag = []    
+        self.fdiff_ang = [] 
+        self.f0_mag = [] 
 
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
@@ -785,6 +787,10 @@ class LV_simulation():
             print (project(fdiff,
                              self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])'''
 
+            self.fdiff_mag = (sqrt((inner(fdiff,fdiff))))
+            self.f0_mag = (sqrt((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f0']))))
+
+            self.fdiff_ang = acos((inner(self.mesh.model['functions']['f0'],fdiff))/(fdiff_mag*f0_mag ))
 
 
 
@@ -918,13 +924,6 @@ class LV_simulation():
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar"])
 
-                        
-                         
-
-                    temp_obj.rename(m,'')
-                    #print 'check222'
-                    self.solution_mesh.write(temp_obj,self.data['time'])
-                    
                     if m == 'fiber_direction':
 
 
@@ -933,9 +932,8 @@ class LV_simulation():
                         #np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)        
 
 
-                            #temp_obj = project(self.mesh.model['functions']['f0'],
-                                        #self.mesh.model['functglobal_n_of_int_pointion_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
-                            '''f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
+                        temp_obj = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']['fiber_FS'])  # should be checked: .vector().get_local()[:]   just added
+                        '''f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
                             f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
                             f0_vs_time_temp2_global = self.comm.gather(f0_vs_time_temp)
@@ -948,7 +946,13 @@ class LV_simulation():
 
                         
                             #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.functions['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(mesh,"DG",0))
-
+    
+                    
+                    temp_obj.rename(m,'')
+                    #print 'check222'
+                    self.solution_mesh.write(temp_obj,self.data['time'])
+                    
+                    
 
         
         # Update the t counter for the next step
