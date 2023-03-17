@@ -460,7 +460,7 @@ class LV_simulation():
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"])
+                                        self.mesh.model['function_spaces']["scalar_for_active"])
                         if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'])
@@ -697,7 +697,7 @@ class LV_simulation():
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"])
+                                        self.mesh.model['function_spaces']["scalar_for_active"])
                     if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'])
