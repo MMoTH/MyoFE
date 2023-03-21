@@ -371,15 +371,14 @@ class assign_heterogeneous_params(object):
 
         sample_indices = r.choice(all_cells,int(percent*all_cells), replace=False)  # MM each cell includes 4 integer points and to consider all the LV 4 should be multiplied
         
-        #step = int(no_of_cells/(percent*no_of_cells)) +1  # it stimately would follow the percenage
+        #step = int(1/(percent))   # it stimately would follow the percenage
         #sample_indices = np.arange(1,no_of_cells,step)    # this can give better unified disarray
 
         #sample_indices = np.arange(900,1000)
-        #print "step"
-
-        #print step
-        #print "sample indices"
-        #print sample_indices
+        #print ("step")
+        #print (step)
+        #print ("sample size")
+        #print (np.shape(sample_indices))
     
         
         l_cb_n_density = dolfin_functions["cb_number_density"][-1].vector().get_local()[:] 

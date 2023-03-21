@@ -124,12 +124,12 @@ if __name__ == '__main__':
     create_ellipsoidal_LV(geofile = input_geo_file,
             output_vtk = output_vtk_str,
             casename=vtk_file_name,
-             meshsize=0.05, gmshcmd="gmsh", 
+             meshsize=0.02, gmshcmd="gmsh", 
              iswritemesh=True, verbose=False)
 
     #mesh size base = 0.075
     # Set the path to save the mesh
-    output_folder = 'output_files/human_60_fiber_meshsize_0.05/'
+    output_folder = 'output_files/human_60_fiber_meshsize_0.02/'
 
     check_output_directory_folder(path = output_folder)
     vtk_file_str = 'input_files/' + '/' + \

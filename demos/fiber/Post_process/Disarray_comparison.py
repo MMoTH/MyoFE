@@ -35,8 +35,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 #--------------------------------------------------------------------------------
 # Load inputs:
-base_dir = 'C:/Users/mme250/OneDrive - University of Kentucky/Github/FEniCS-Myosim/demos/fiber/'
-sim_dir = 'Het_test2/sim_output/mesh_output/'
+base_dir = 'C:/Users/mme250/OneDrive - University of Kentucky/Github/FEniCS-Myosim/demos/fiber/Het_test3_cluster/'
+sim_dir = 'sim_output/mesh_output/'
 
 Num_model = 1
 f0_vs_time = np.load(base_dir + sim_dir + 'f0_vs_time.npy')
@@ -109,7 +109,7 @@ for jj in np.arange(1,Num_model+1):
     #fig, axs = plt.subplots(1,3)
 
     if jj == 1: 
-        sim_dir = 'Het_test2/sim_output/mesh_output/'
+        sim_dir = 'sim_output/mesh_output/'
         #fig.suptitle('No Het')
     if jj == 2: 
         sim_dir = 'Het_model/Final_time_step0.1/het4_0.1fib/'
@@ -135,18 +135,26 @@ for jj in np.arange(1,Num_model+1):
 
 
     # 2 inital cycles with not fib reorientaion_ then 5 reorientaion
-    num_cycles = 7
-    CS = 2000  # number of time steps in one cycle
+    num_cycles = 1
+    CS = 50  # number of time steps in one cycle
     #mean_helical_angle_per_segment_per_cycle = np.nan*np.ones((m*n,num_cycles))
     #mean_transverse_angle_per_segment_per_cycle = np.nan*np.ones((m*n,num_cycles))
 
+
+    print ("err size")
+    print (np.shape(err))
+
     for ii in np.arange(np.shape(helical_angles_init)[0]):
         temp_vec = f0_vs_time[ii,:,0]
-        temp_vec2 = f0_vs_time[ii,:,-(CS*3)]  # 6th cycle
+        #temp_vec2 = f0_vs_time[ii,:,-(CS*3)]  # 6th cycle
+        temp_vec2 = f0_vs_time[ii,:,-1]
         temp_vec3 = f0_vs_time[ii,:,-1]
-        temp_ell = ell[ii,:]
-        temp_ecc = ecc[ii,:]
-        temp_err = err[ii,:]
+        #temp_ell = ell[ii,:]
+        #temp_ecc = ecc[ii,:]
+        #temp_err = err[ii,:]
+        temp_ell = ell[ii]
+        temp_ecc = ecc[ii]
+        temp_err = err[ii]
         helical_angles_init[ii] = (180/np.pi)*np.arctan(np.dot(temp_vec,temp_ell)/np.dot(temp_vec,temp_ecc))
         helical_angles_beat4[ii] = (180/np.pi)*np.arctan(np.dot(temp_vec3,temp_ell)/np.dot(temp_vec3,temp_ecc))
         helical_angles_final[ii] = (180/np.pi)*np.arctan(np.dot(temp_vec2,temp_ell)/np.dot(temp_vec2,temp_ecc))

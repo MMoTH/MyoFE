@@ -1,5 +1,6 @@
 //Thick-Walled Prolate Spheroid Script
 
+// MM scale  = 1.2 was the initial value 
 scale = 1.2;
 //lc = 0.05*scale; //this value changes the resolution of the mesh // medium
 //lc = 0.025*scale; // Medium 2 mesh

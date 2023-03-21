@@ -158,6 +158,14 @@ class MeshClass():
         self.f.read(s0,"ellipsoidal/eS")
         self.f.read(n0,"ellipsoidal/eN")
 
+
+        #MM for post processing purpusses here we save more data from the mesh
+        endo_dist = Function(self.model['function_spaces']['quadrature_space'])
+        epi_dist = Function(self.model['function_spaces']['quadrature_space'])
+
+        self.f.read(endo_dist,"ellipsoidal/endo_dist")
+        self.f.read(epi_dist,"ellipsoidal/epi_dist")
+
         # Initializing passive parameters as functions, in the case of introducing
         # heterogeneity later
         dolfin_functions = {}
@@ -181,6 +189,11 @@ class MeshClass():
         #print np.array(dolfin_functions["passive_params"]["c"][-1].vector().get_local()[0:9])
         #File(self.parent_parameters.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(dolfin_functions["passive_params"]["c"][-1],FunctionSpace(self.model['mesh'],"DG",0))
 
+        #MM to evaluate fiber reorientaion here we difine some scalar functions 
+        f0_mag = Function(self.model['function_spaces']['quadrature_space'])
+        fdiff_mag = Function(self.model['function_spaces']['quadrature_space'])
+        fdiff_ang = Function(self.model['function_spaces']['quadrature_space'])
+        f00_mag = Function(self.model['function_spaces']['quadrature_space'])
 
         # initialize myosim params
         
@@ -220,6 +233,7 @@ class MeshClass():
         
         functions["w"] = w
         functions["f0"] = f0
+        functions["f00"] = f0
         functions["s0"] = s0
         functions["n0"] = n0
         functions["c11"] = c11
@@ -244,7 +258,16 @@ class MeshClass():
         functions["pseudo_old"] = pseudo_old
         functions["y_vec"] = y_vec
 
-        
+        functions["f0_mag"] = f0_mag 
+        functions["fdiff_mag"] = fdiff_mag 
+        functions["fdiff_ang"] = fdiff_ang 
+        functions["f00"] = f0  # here we assinge initial angle and keep it constant to evaluate reorientaion
+        functions["f00_mag"] = f00_mag
+
+        functions["endo_dist"] = endo_dist
+        functions["epi_dist"] = epi_dist
+
+
         return functions
 
     def initialize_boundary_conditions(self):

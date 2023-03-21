@@ -36,8 +36,8 @@ from mpl_toolkits.mplot3d import Axes3D
 #--------------------------------------------------------------------------------
 # Load inputs:
 #sim_dir = '/Users/charlesmann/Academic/UK/FEniCS-Myosim/working_directory_untracked/rat_infarct_remodeling/strain/strain_remodeling_on_t340/'
-base_dir = 'C:/Users/mme250.AD/OneDrive - University of Kentucky/Cluster_models/'
-sim_dir = 'Het_model/Final_time_step0.1/not_het4/'
+base_dir = 'C:/Users/mme250/OneDrive - University of Kentucky/Github/FEniCS-Myosim/demos/fiber/Het_test3_cluster/'
+sim_dir = 'sim_output/mesh_output/'
 f0_vs_time = np.load(base_dir + sim_dir + 'f0_vs_time.npy')
 quadrature_dof_map = np.load(base_dir + 'quadrature_dof.npy')
 ecc = np.load(base_dir + 'ecc.npy')
@@ -45,7 +45,7 @@ err = np.load(base_dir + 'err.npy')
 ell = np.load(base_dir + 'ell.npy')
 norm_dist_endo = np.load(base_dir+'norm_dist_endo.npy')
 
-Num_model = 4
+Num_model = 1
 # 2 inital cycles with not fib reorientaion_ then 5 reorientaion
 num_cycles = 7
 CS = 2000  # number of time steps in one cycle
@@ -132,7 +132,7 @@ for jj in np.arange(1,Num_model+1):
     fig3,axs3 = plt.subplots(m,n,sharex='col',squeeze=False)
 
     if jj == 1: 
-        sim_dir = 'Het_model/Final_time_step0.1/not_het4/'
+        sim_dir =  'sim_output/mesh_output/'
         
         fig.suptitle('Helical Angle - No Het')
         fig3.suptitle('Transverse Angle -No Het')
@@ -163,7 +163,7 @@ for jj in np.arange(1,Num_model+1):
     for ii in np.arange(np.shape(helical_angles_init)[0]):
         temp_vec = f0_vs_time[ii,:,0]
         temp_vec2 = f0_vs_time[ii,:,-1]
-        temp_vec3 = f0_vs_time[ii,:,6000]
+        temp_vec3 = f0_vs_time[ii,:,50]
         temp_ell = ell[ii,:]
         temp_ecc = ecc[ii,:]
         temp_err = err[ii,:]

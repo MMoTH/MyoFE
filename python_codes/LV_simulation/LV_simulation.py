@@ -484,14 +484,40 @@ class LV_simulation():
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar"])
-                        if m == 'fiber_direction':
+                        if m == 'reorienting_angle':
                             #temp_obj = project(self.mesh.model['functions']['f0'],
                                         #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
                             f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
+                            temp_obj = project(self.mesh.model['functions']["fdiff_ang"],self.mesh.model['function_spaces']["scalar"])  # should be checked: .vector().get_local()[:]   just added
                             
+                            '''f0_mag_proj = project(self.mesh.model['functions']["f0_mag"],self.mesh.model['function_spaces']["scalar"])
+                            self.solution_mesh.write('f0_mag_proj',0)
+
+                            fdiff_mag_proj = project(self.mesh.model['functions']["fdiff_mag"],self.mesh.model['function_spaces']["scalar"])
+                            self.solution_mesh.write('fdiff_mag_proj' ,0)
+                        
+                            fdiff_ang_proj = project( self.mesh.model['functions']["fdiff_ang"],self.mesh.model['function_spaces']["scalar"])
+                            self.solution_mesh.write('fdiff_ang_proj',0)'''
+
                             #f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
                                         #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:] 
 
+                        if m == 'fiber_direction':
+
+
+                            #temp_obj = project(self.mesh.model['functions']['f0'],FunctionSpace(self.mesh.model['mesh'], "CG", 1),form_compiler_parameters={"representation":"uflacs"})
+                            #temp_obj = self.mesh.model['functions']['f0']
+                            
+                            Velem = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
+                            Velem._quad_scheme = 'default'
+                            Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem)
+                            temp_obj = project(self.mesh.model['functions']['f0'],Velem_FS)
+
+                        if m == 'endo_distance':
+
+                            temp_obj =  project(self.mesh.model['functions']['endo_dist'],self.mesh.model['function_spaces']["scalar"])
+                         
+                                                                    
 
                         temp_obj.rename(m,'')
                         self.solution_mesh.write(temp_obj,0)
@@ -787,16 +813,21 @@ class LV_simulation():
             print (project(fdiff,
                              self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])'''
 
-            self.fdiff_mag = (sqrt((inner(fdiff,fdiff))))
-            self.f0_mag = (sqrt((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f0']))))
+            self.mesh.model['functions']["fdiff_mag"] = (sqrt((inner(fdiff,fdiff))))
+            self.mesh.model['functions']["f0_mag"] = (sqrt((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f0']))))
+            self.mesh.model['functions']["f00_mag"] = (sqrt((inner(self.mesh.model['functions']['f00'],self.mesh.model['functions']['f00']))))
 
-            self.fdiff_ang = acos((inner(self.mesh.model['functions']['f0'],fdiff))/(fdiff_mag*f0_mag ))
 
 
 
             temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
             temp_fiber += fdiff.vector().get_local()[:]
             self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
+
+
+
+            self.mesh.model['functions']["fdiff_ang"] = acos((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f00']))/(self.mesh.model['functions']["f0_mag"] *self.mesh.model['functions']["f00_mag"]  ))
+
 
 
             print "CHECKING NUMBER OF FIBER VECTORS"
@@ -817,8 +848,12 @@ class LV_simulation():
 
             ##MM to save the fiber even before fiber remodleing this apart needs to be out of if FR = 1
             #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
-        f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
+        
+        #MM in kurtis code here f0 is being projected on fiber_FS. question: why is this needed as f0 is already on the fiber FS space
+        #f0_vs_time_temp = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
+        
+        
+        f0_vs_time_temp = self.mesh.model['functions']['f0'].vector().get_local()[:]
         f0_vs_time_temp2_global = self.comm.gather(f0_vs_time_temp)
                             
         if self.comm.Get_rank() == 0:
@@ -841,16 +876,16 @@ class LV_simulation():
                 #print self.t_counter
 
 
+
             self.f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global
             
-        print "SAVING F0 VS TIME ARRAY"
+
         ##MM to save the data in case of failure, fiber data of all time steps is being saved here, later we can implement saveing freq
 
         #print "(self.f0_vs_time_array)"
         #for i in np.arange(100, 4000):
             #print (self.f0_vs_time_array[i,:,self.t_counter])
-        np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
-
+            
             #self.mesh.model['functions']['s0'],self.mesh.model['functions']['n0'] = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0']) 
             # lcs is not defined in the new platform and needs to be discussed
 
@@ -924,32 +959,53 @@ class LV_simulation():
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar"])
 
+                    if m == 'reorienting_angle':
+
+                        #temp_obj = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']['fiber_FS'])  # should be checked: .vector().get_local()[:]   just added
+                        
+                        temp_obj = project(self.mesh.model['functions']["fdiff_ang"],self.mesh.model['function_spaces']["scalar"])
+
+
+                        '''f0_mag_proj = project(self.mesh.model['functions']["f0_mag"],self.mesh.model['function_spaces']["scalar"])
+                        self.solution_mesh.write(f0_mag_proj,self.data['time'])
+
+                        fdiff_mag_proj = project(self.mesh.model['functions']["fdiff_mag"],self.mesh.model['function_spaces']["scalar"])
+                        self.solution_mesh.write(fdiff_mag_proj ,self.data['time'])
+                        #print ("fdiff_mag_proj ")
+                        #print (fdiff_mag_proj.vector().get_local()[:])
+                        fdiff_ang_proj = project(self.mesh.model['functions']["fdiff_ang"],self.mesh.model['function_spaces']["scalar"])
+                        self.solution_mesh.write(fdiff_ang_proj,self.data['time'])
+ '''
+                        
+                        #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.functions['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(mesh,"DG",0))
+    
+                    if m == 'c_param':
+
+                        temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],self.mesh.model['function_spaces']["scalar"])
+
+
                     if m == 'fiber_direction':
 
-
-                        #print "SAVING F0 VS TIME ARRAY"
+                        #temp_obj = project(self.mesh.model['functions']['f0'],FunctionSpace(self.mesh.model['mesh'], "CG", 1),form_compiler_parameters={"representation":"uflacs"})
                             
-                        #np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)        
+                        Velem = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
+                        Velem._quad_scheme = 'default'
+                        Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem)
+                        temp_obj = project(self.mesh.model['functions']['f0'],Velem_FS)
 
 
-                        temp_obj = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']['fiber_FS'])  # should be checked: .vector().get_local()[:]   just added
-                        '''f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
-                            f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
-                            f0_vs_time_temp2_global = self.comm.gather(f0_vs_time_temp)
-                            
-                            if self.comm.Get_rank() == 0:
-                                f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
-                                f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(self.global_n_of_int_points,3))
-                                f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global'''
+
+                        print "SAVING F0 VS TIME ARRAY"
+                        np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
 
 
-                        
-                            #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.functions['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(mesh,"DG",0))
-    
-                    
+                    if m == 'endo_distance':
+
+                        temp_obj =  project(self.mesh.model['functions']['endo_dist'],self.mesh.model['function_spaces']["scalar"])
+                               
+
                     temp_obj.rename(m,'')
-                    #print 'check222'
+                    
                     self.solution_mesh.write(temp_obj,self.data['time'])
                     
                     
