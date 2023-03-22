@@ -68,7 +68,7 @@
         {
             "passive_law_parameters": {
               "passive_law": ["semi_structural"],
-              "c": [172, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.2,"scaling_factor":15,"material_properties":"isotropic"}],
+              "c": [172, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":15,"material_properties":"isotropic"}],
               "c2": [250],
               "c3": [15.0],
               "bf": [8.0],
@@ -244,8 +244,8 @@
       },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/het_test4/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/het_test4/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/het_test4_0.5het/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/het_test4_0.5het/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",

@@ -45,8 +45,8 @@ ell = np.load(base_dir + 'ell.npy')
 norm_dist_endo = np.load(base_dir+'norm_dist_endo.npy')
 #norm_dist_endo = np.array(int(len(norm_dist_endo0[:]))/3)
 
-final_vectors = f0_vs_time[:,:,10]
-initial_vectors = f0_vs_time[:,:,10]
+final_vectors = f0_vs_time[:,:,1]
+initial_vectors = f0_vs_time[:,:,3]
 
 print (np.shape(f0_vs_time))
 print (np.shape(quadrature_dof_map))
@@ -64,6 +64,7 @@ for i in np.shape(norm_dist_endo0):
 
 
 print ((norm_dist_endo[1:20]))
+print (final_vectors[1:20,:])
 
 #--------------------- partition based on region -------------------------------
 region_indices = np.zeros(np.shape(quadrature_dof_map)[0])
@@ -95,7 +96,7 @@ for p in np.arange(1,5100,4):
     vec = final_vectors[p,:]
     vec2 = initial_vectors[p,:]
     q = quadrature_dof_map[p]
-    #print (vec)
+    
     #print (vec2)
      
     #if norm_dist_endo[p] < 0.03 and q[0]>0:

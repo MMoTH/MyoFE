@@ -866,19 +866,26 @@ class LV_simulation():
             f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
             f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(self.global_n_of_int_points,3))
 
-            #print "f0_vs_time_array"
-            #print np.shape(self.f0_vs_time_array)
-            #print "f0_vs_time_temp2_global"
-            #print np.shape(f0_vs_time_temp2_global)
-            #print (f0_vs_time_temp2_global)
 
-                #print "self.t_counter"
-                #print self.t_counter
+            '''print ("f0_vs_time_temp2_global")
+            print (np.shape(f0_vs_time_temp2_global))
+            print (f0_vs_time_temp2_global)
+
+            print ("self.t_counter")
+            print (self.t_counter)'''
 
 
 
             self.f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global
-            
+
+
+            '''print ("f0_vs_time_array")
+            print (np.shape(self.f0_vs_time_array))
+            print ((self.f0_vs_time_array[:,:,self.t_counter]))'''
+
+            print "SAVING F0 VS TIME ARRAY"
+            np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
+
 
         ##MM to save the data in case of failure, fiber data of all time steps is being saved here, later we can implement saveing freq
 
@@ -934,6 +941,9 @@ class LV_simulation():
 
             self.write_counter = self.write_counter + 1
 
+
+
+
             # save data on mesh
             if self.mesh_obj_to_save:
                 print 'Saving to 3d mesh'
@@ -977,12 +987,16 @@ class LV_simulation():
                         self.solution_mesh.write(fdiff_ang_proj,self.data['time'])
  '''
                         
-                        #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.functions['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(mesh,"DG",0))
+                        
     
                     if m == 'c_param':
 
-                        temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],self.mesh.model['function_spaces']["scalar"])
 
+
+                        finite_element = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
+                        finite_elemet_FS = FunctionSpace(self.mesh.model['mesh'],finite_element)
+                        temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],finite_elemet_FS)
+                        File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
 
                     if m == 'fiber_direction':
 
@@ -995,8 +1009,6 @@ class LV_simulation():
 
 
 
-                        print "SAVING F0 VS TIME ARRAY"
-                        np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
 
 
                     if m == 'endo_distance':
