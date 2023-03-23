@@ -1,14 +1,14 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [5000],
+        "no_of_time_steps": [2000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[2],
+                    "t_start_s":[1],
                     "t_stop_s":[10]
 
                 } 
@@ -68,7 +68,7 @@
         {
             "passive_law_parameters": {
               "passive_law": ["semi_structural"],
-              "c": [172, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":15,"material_properties":"isotropic"}],
+              "c": [200, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":15,"material_properties":"isotropic"}],
               "c2": [250],
               "c3": [15.0],
               "bf": [8.0],
@@ -228,7 +228,7 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[5000.0],
+            "time_constant":[500.0],
             "reorient_t_start":[400.0,"ms"]
         }
         
@@ -254,12 +254,7 @@
             "reorienting_angle",
             "c_param",
             "fiber_direction",
-            "endo_distance",
-	    "k_1",
-	    "k_3",
-	    "k_on",
-	    "k_act",
-	    "k_serca"
+            "endo_distance"
         ],
         "dumping_spatial_in_average":[true],
         "frequency_n": [10]

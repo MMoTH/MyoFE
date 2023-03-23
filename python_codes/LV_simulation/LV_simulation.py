@@ -813,20 +813,44 @@ class LV_simulation():
             print (project(fdiff,
                              self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])'''
 
-            self.mesh.model['functions']["fdiff_mag"] = (sqrt((inner(fdiff,fdiff))))
-            self.mesh.model['functions']["f0_mag"] = (sqrt((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f0']))))
-            self.mesh.model['functions']["f00_mag"] = (sqrt((inner(self.mesh.model['functions']['f00'],self.mesh.model['functions']['f00']))))
-
-
-
-
             temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
             temp_fiber += fdiff.vector().get_local()[:]
             self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
 
 
+            
+            ##MM below parameters are calculated to post processing purposes
+            #self.mesh.model['functions']["fdiff_mag"] = (sqrt((inner(fdiff,fdiff))))
+            l_f0 = self.mesh.model['functions']['f0'].vector().get_local()[:] 
+            l_f00 = self.mesh.model['functions']['f00'].vector().get_local()[:] 
+            l_fdiff_ang = self.mesh.model['functions']["fdiff_ang"].vector().get_local()[:] 
+            
+            for ii in np.arange(self.local_n_of_int_points):
 
-            self.mesh.model['functions']["fdiff_ang"] = acos((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f00']))/(self.mesh.model['functions']["f0_mag"] *self.mesh.model['functions']["f00_mag"]  ))
+                
+                l_f0_holder = l_f0[ii*3:ii*3+3]
+                l_f00_holder = l_f00[ii*3:ii*3+3]
+                
+                cos = (np.inner(l_f0_holder,l_f00_holder))/(sqrt(np.inner(l_f0_holder,l_f0_holder))*sqrt(np.inner(l_f00_holder,l_f00_holder)))
+                cos = np.clip(cos, -1, 1)  #MM here avoids values abouve 1 cause nan results
+                rad = np.arccos(cos) 
+                theta = math.degrees(rad)
+                l_fdiff_ang[ii] = theta
+                #l_fdiff_ang[ii] = (180/3.14159)*np.arccos((np.inner(l_f0_holder,l_f00_holder))/(sqrt(np.inner(l_f0_holder,l_f0_holder))*sqrt(np.inner(l_f00_holder,l_f00_holder))))
+                
+            
+            self.mesh.model['functions']["fdiff_ang"].vector()[:] = l_fdiff_ang
+            
+            '''print("np.shape(l_fdiff_ang)")
+            print(np.shape(l_fdiff_ang))
+            print((l_fdiff_ang[20:30]))
+            print(sqrt(np.inner(l_f0_holder,l_f0_holder)))
+            print(sqrt(np.inner(l_f00_holder,l_f00_holder)))
+            print(np.arccos((np.inner(l_f0_holder,l_f00_holder))))'''
+
+            #self.mesh.model['functions']["f0_mag"] = (sqrt((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f0']))))
+            #self.mesh.model['functions']["f00_mag"] = (sqrt((inner(self.mesh.model['functions']['f00'],self.mesh.model['functions']['f00']))))
+            #self.mesh.model['functions']["fdiff_ang"] = (180/3.14159)*acos((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f00']))/(self.mesh.model['functions']["f0_mag"] *self.mesh.model['functions']["f00_mag"]  ))
 
 
 
@@ -996,7 +1020,7 @@ class LV_simulation():
                         finite_element = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
                         finite_elemet_FS = FunctionSpace(self.mesh.model['mesh'],finite_element)
                         temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],finite_elemet_FS)
-                        File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
+                        #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
 
                     if m == 'fiber_direction':
 
