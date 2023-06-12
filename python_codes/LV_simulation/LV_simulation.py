@@ -422,7 +422,7 @@ class LV_simulation():
                                     'growth' in self.instruction_data['model']:
 
                                 temp_obj = project(self.mesh.model['functions'][m],
-                                                self.mesh.model['function_spaces']["scalar"],
+                                                self.mesh.model['function_spaces']["scalar_for_growth"],
                                                 form_compiler_parameters={"representation":"uflacs"})
 
                         if m == 'facetboundaries':
@@ -1268,7 +1268,7 @@ class LV_simulation():
                                     'growth' in self.instruction_data['model']:
 
                             temp_obj = project(self.mesh.model['functions'][m],
-                                                self.mesh.model['function_spaces']["scalar"],
+                                                self.mesh.model['function_spaces']["scalar_for_growth"],
                                                 form_compiler_parameters={"representation":"uflacs"})
 
                     temp_obj.rename(m,'')
@@ -1590,6 +1590,10 @@ class LV_simulation():
         self.x_coord = np.array(x_coord)
         self.y_coord = np.array(y_coord)
         self.z_coord = np.array(z_coord)
+
+        print 'dimensions of LV'
+        print self.z_coord.min()
+        print self.x_coord.max()
     
     def handle_apex_contractility(self,instruction_data):
 
