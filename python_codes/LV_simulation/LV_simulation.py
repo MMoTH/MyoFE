@@ -135,8 +135,10 @@ class LV_simulation():
         
         """ Initialize simulation time and counter"""
         self.data['time'] = 0
+        self.data['new_beat'] = 0
         self.t_counter = 0
         self.end_diastolic = 0
+
 
         """ If requried, create the baroreceptor"""
         self.data['baroreflex_active'] = 0
@@ -1278,6 +1280,10 @@ class LV_simulation():
         # Update the t counter for the next step
         self.t_counter = self.t_counter + 1
         self.data['time'] = self.data['time'] + time_step
+
+        if new_beat:
+            self.data['new_beat'] = new_beat
+
    
     def update_data(self, time_step):
         """ Update data after a time step """
