@@ -393,16 +393,6 @@ class LV_simulation():
                                                 self.mesh.model['function_spaces']["scalar"],
                                                 form_compiler_parameters={"representation":"uflacs"})
                         if m == 'active_stress':
-                            """quad_elem = FiniteElement("Quadrature", self.mesh.model['mesh'].ufl_cell(),
-                                     degree=2)
-                            Vq = FunctionSpace(self.mesh.model['mesh'], quad_elem)
-                            
-                            temp_obj = Function(Vq)
-                            inner_p = inner(self.mesh.model['functions']['f0'],
-                                            self.mesh.model['functions']['Pactive']*
-                                            self.mesh.model['functions']['f0'])
-                            #inner_p = self.mesh.model['functions']['Pactive']
-                            temp_obj=project(inner_p,Vq,form_compiler_parameters={"representation":"uflacs"})"""
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
@@ -486,7 +476,7 @@ class LV_simulation():
             print(json.dumps(vol, indent=4))
             print(json.dumps(press, indent=4))
             print(json.dumps(flow, indent=4))
-
+        """###############"""
         temp_vol = self.mesh.model['uflforms'].LVcavityvol()
         lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
 
@@ -496,7 +486,7 @@ class LV_simulation():
             print 'lv_p: %f' %lv_p
             #print 'y_vec in hs class'
             #print self.hs_objs_list[0].myof.y
-        
+        """###############"""
         # Update circulation and FE function for LV cavity volume
         self.circ.data['v'] = \
                 self.circ.evolve_volume(time_step, self.circ.data['v'])
@@ -588,12 +578,13 @@ class LV_simulation():
         self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
         self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
 
-        
+        """###############"""
         temp_vol = self.mesh.model['uflforms'].LVcavityvol()
         if self.comm.Get_rank() == 0:
             print "LV volume befor assigning LVCavityvol:" 
             print temp_vol
             print self.circ.data['v']
+        """###############"""
         # Update LV cavity volume fenics function        
         self.mesh.model['functions']['LVCavityvol'].vol = \
             self.circ.data['v'][-1]
@@ -655,6 +646,7 @@ class LV_simulation():
 
         self.comm.Barrier()
         # Update sim data for non-spatial variables on root core (i.e. 0)
+        """###############"""
         # check Sff
         if self.comm.Get_rank() == 0:
             print 'Checking Sff values'
@@ -675,6 +667,8 @@ class LV_simulation():
 
         #self.data['total_stress_spatial'] = total_stress
         self.sff_tracker.append(Sff)
+        """###############"""
+        """###############"""
         if self.end_diastolic:
             self.data['sff_mean'] = np.mean(self.sff_tracker,axis=0)
             neg_ind_local = np.where(self.data['sff_mean']<0)[0]
@@ -703,16 +697,20 @@ class LV_simulation():
             print myo_stretch 
             print 'Sff:'
             print Sff """
-        
+        """###############"""
         if self.gr:            
             #self.data['growth_active'] = 0
             for g in self.prot.growth_activations:
-
+                # Initilize indicies for growth
+                # 'gr_start_active': identify the first cycle after growth is activated
+                # 'gr_active': identify the activation of growth onward
+                # initial_gr_cycle_counter: counter for initial growth step
                 if self.t_counter == g.data['t_start_ind']:
                     self.gr.data['gr_start_active'] = 1
                     self.gr.data['gr_active'] = 0
                     self.gr.initial_gr_cycle_counter = 1
 
+                # identify if we are not in the initial growth steps anymore
                 if self.gr.initial_gr_cycle_counter > self.gr.initial_gr_cycles:
                     self.gr.data['gr_start_active'] = 0
 
@@ -723,26 +721,33 @@ class LV_simulation():
                     if self.comm.Get_rank() == 0:
                         print 'Growth module is activated'
                     
+                    # identify the cycle before happening of growth cycles for 
+                    # calculating setpoint
                     self.gr.data['gr_setpoint_active'] = 0
                     if self.gr.initial_gr_cycle_counter == self.gr.initial_gr_cycles - 1:
                         self.gr.data['gr_setpoint_active'] = 1
-
                         self.gr.store_setpoint(self.gr.data['gr_setpoint_active'])
+                        
+                        # assign setpoint when it is at end diastole 
                         if self.end_diastolic:
                             self.gr.assign_setpoint()
                             self.gr.data['gr_active'] = 1
-
                     else: 
                          self.gr.data['gr_setpoint_active'] = 0
 
+                    # calculate stimulus at the last cycle before hapening of growth
                     self.gr.data['gr_stimulus_active'] = 0
                     if self.gr.initial_gr_cycle_counter >= (self.gr.initial_gr_cycles - 1) and \
                         self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
                         #print 'True for theta'
                         self.gr.data['gr_stimulus_active'] = 1
 
+                    # implement growth, it will handle storing data and tracking the changes
+                    # updating dolfin functions like 'local_thetas' and 'global_thetas'
                     self.gr.implement_growth(self.end_diastolic,time_step)
                     
+                    # let's grow the geometry when thetas are calculated and time-step is
+                    # at end-diastole
                     if self.end_diastolic:
 
                         if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n and\
@@ -755,7 +760,7 @@ class LV_simulation():
                                 print 'Reference volume before growth'
                                 print self.reference_LV_vol
                            
-
+                            """########start#######"""
                             # *** testing
                             Fe_0 = self.gr.mechan.model['functions']['Fe']
                             temp_Fe_0 = project(Fe_0,self.gr.mechan.model['function_spaces']['tensor_space'],
@@ -777,7 +782,10 @@ class LV_simulation():
                             #self.gr.mechan.model['functions']['temp_theta_fiber'].vector()[:] = 1
                             #self.gr.mechan.model['functions']['temp_theta_sheet'].vector()[:] = 1.1
                             #self.gr.mechan.model['functions']['temp_theta_sheet_normal'].vector()[:] = 1.1
+                            """########end#######"""
 
+                            # update dolfin functions for thetas that Fg is defined upon
+                            # Fg = theta_f(f0xf0) + theta_s(s0xs0) + theta_n(n0xn0)
                             for dir in ['fiber','sheet','sheet_normal']:
                                 name = 'theta_' + dir
                                 temp_name = 'temp_' + name
@@ -786,7 +794,7 @@ class LV_simulation():
                                    
                                     #self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
                                 #print self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
-
+                            """########start#######"""
                             Fg = self.gr.mechan.model['functions']['Fg']
                             Fe = self.gr.mechan.model['functions']['Fe']
 
@@ -932,9 +940,9 @@ class LV_simulation():
                                 
                                 
                             """============================== """
+                            """#######end########"""
                             # Grow reference configuration
                             self.gr.grow_reference_config()
-                            #self.grow_reference_config()
 
                             # reset Fg = 1
                             for dir in ['fiber','sheet','sheet_normal']:
@@ -946,6 +954,7 @@ class LV_simulation():
                             if self.comm.Get_rank() == 0:
                                 print 'Updating Mesh class'
 
+                            # store information for updating the reference geometry
                             predefined_functions = dict()
                             predefined_functions['facetboundaries'] = self.gr.mechan.model['functions']['facetboundaries']
                             predefined_functions['hsl0'] = self.gr.mechan.model['functions']['hsl0']
@@ -959,34 +968,30 @@ class LV_simulation():
                             #reinitialize growth mechanics class with the geometry from growth
                             self.gr.reinitialize_mesh_object_for_growth(predefined_functions)
 
-                            # reinitialize solver
+                            # reinitialize solver object
                             self.solver =  NSolver(self,self.mesh,self.comm)
 
+                            # reinitialize dof mapping
                             self.initialize_dof_mapping()
-
+                            # reinitialize integer points
                             self.initialize_integer_points()
 
                             rank_id = self.comm.Get_rank()
                             print '%0.0f integer points have been assigned to core %0.0f'\
                                 %(self.local_n_of_int_points,rank_id)
-
-                            
+                            # update coordinates of nodes over updated reference geometry
                             self.handle_coordinates_of_geometry()
-                            
+                            # adjust apex contractility if needed 
                             self.handle_apex_contractility(self.instruction_data)
-                            
+                            # handle half-sarocomere visualization
                             self.handle_hs_visualization_on_mesh()
-
+                            # update mesh in circulatory object 
                             self.circ.mesh = self.mesh
                         # check if the pressure is zero 
-                            #update LV vol expression 
-                            #self.mesh.model['functions']['LVCavityvol'].vol = \
-                            #    self.mesh.model['uflforms'].LVcavityvol()
-                            # uodate reference volume 
-                            
                             
                             # reset solution to zero 
                             self.mesh.model['functions']['w'].vector()[:] = 0.0
+                            """#######start########"""
                             sol = self.mesh.model['functions']['w'].vector().array()[:] 
                             sol_gr = self.gr.mechan.model['functions']['w'].vector().array()[:] 
                             if self.comm.Get_rank() == 0:
@@ -994,7 +999,9 @@ class LV_simulation():
                                 print sol
                                 print 'Checking solution in gr class is reset to 0'
                                 print sol_gr
-   
+                            """#######end########"""
+
+                            # now save mesh file for reference geometry 
                             file_path = os.path.join(self.growth_path,'growth_' + str(self.data['time']) +'.xdmf') 
                             self.growth_mesh = XDMFFile(mpi_comm_world(),file_path)
                             self.growth_mesh.parameters.update({"functions_share_mesh": True,
@@ -1002,7 +1009,7 @@ class LV_simulation():
                             self.growth_mesh.write(self.mesh.model['mesh'])
                             
                             
-
+                            """#######start########"""
                             Fg = self.gr.mechan.model['functions']['Fg']
                     
                             Fe = self.gr.mechan.model['functions']['Fe']
@@ -1032,6 +1039,7 @@ class LV_simulation():
                                 print 'LV caviry vol after growth:'
                                 print temp_lv_vol
                                 print 'lv_p: %f' %lv_p
+                            """#######end########"""
 
                             # now reload back to ED vol
                             self.reference_LV_vol = \
@@ -1039,6 +1047,7 @@ class LV_simulation():
                             
                             self.mesh.model['functions']['LVCavityvol'].vol = \
                                 self.mesh.model['uflforms'].LVcavityvol()
+                            """#######start########"""
                             lv_vol = self.mesh.model['uflforms'].LVcavityvol()
                             #lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
                             expression_vol = self.mesh.model['functions']['LVCavityvol'].vol 
@@ -1063,7 +1072,7 @@ class LV_simulation():
                                 print expression_vol
                                 print'lv press'
                                 print lv_p
-
+                            """#######end########"""
                             # redefine hs attributes 
                             # Start with half-saromere length
                             self.hs_length_list = self.mesh.hs_length_list
@@ -1081,6 +1090,8 @@ class LV_simulation():
                                     self.hs_length_list[i]
                                 self.hs_objs_list[i].myof.y = \
                                     self.hs.myof.y
+                                
+                            """#######start########"""
                             y_vec = self.mesh.model['functions']['y_vec'].vector().array()[:]
                             if self.comm.Get_rank() == 0:
                                 print 'y_vec in hs obj'
@@ -1091,8 +1102,9 @@ class LV_simulation():
                             if self.comm.Get_rank() == 0:
                                 print 'y_vec in meshclass'
                                 print y_vec
+                            """#######end########"""
 
-
+                            # now reload back to ED vol in 10 steps
                             n_step = 10.0
                             loading_vol = ED_vol - self.reference_LV_vol
                             delta_vol = loading_vol / n_step
@@ -1110,7 +1122,6 @@ class LV_simulation():
 
                                 # solve hs to update y_vec while we are loading back to ED
                                 for j in range(self.local_n_of_int_points):
-            
                                     self.hs_objs_list[j].update_simulation(time_step,
                                                                             self.delta_hs_length_list[j], 
                                                                             activation,
@@ -1175,6 +1186,7 @@ class LV_simulation():
                             
                                 self.comm.Barrier()
 
+                            """#######start########"""
                             #self.diastolic_loading(loading_vol)
                         
                             # reset y_vec back to its original value before growth
@@ -1203,6 +1215,7 @@ class LV_simulation():
                             growth_mesh_ED.parameters.update({"functions_share_mesh": True,
                                                         "rewrite_function_mesh": True})
                             growth_mesh_ED.write(self.mesh.model['mesh'])
+                            """#######end########"""
                             # update the LV pressure in circultaion with new mesh 
                             self.circ.data['p'][-1] = \
                                 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
@@ -1241,14 +1254,6 @@ class LV_simulation():
                                                 self.mesh.model['function_spaces']["scalar"],
                                                 form_compiler_parameters={"representation":"uflacs"})
                     if m == 'active_stress':
-                        """quad_elem = FiniteElement("Quadrature", self.mesh.model['mesh'].ufl_cell(),
-                                     degree=2)
-                        Vq = FunctionSpace(self.mesh.model['mesh'], quad_elem)
-                        
-                        temp_obj = Function(Vq)
-                        inner_p = inner(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['functions']['Pactive']*
-                                        self.mesh.model['functions']['f0'])"""
                         #inner_p = self.mesh.model['functions']['Pactive']
                         #temp_obj= project(inner_p,Vq,form_compiler_parameters={"representation":"uflacs"})
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
@@ -1281,8 +1286,8 @@ class LV_simulation():
         self.t_counter = self.t_counter + 1
         self.data['time'] = self.data['time'] + time_step
 
-        if new_beat:
-            self.data['new_beat'] = new_beat
+        
+        self.data['new_beat'] = new_beat
 
    
     def update_data(self, time_step):
