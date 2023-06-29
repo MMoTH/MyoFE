@@ -385,7 +385,7 @@ class LV_simulation():
                             temp_obj = self.mesh.model['functions']['w'].sub(0)
                         if m == 'hs_length':
                             temp_obj = project(self.mesh.model['functions']['hsl'], 
-                                                self.mesh.model['function_spaces']["scalar"],
+                                                self.mesh.model['function_spaces']["scalar_for_active"],
                                                 form_compiler_parameters={"representation":"uflacs"})
                         
                         if m in ['k_1','k_3','k_on','k_act','k_serca']:
@@ -400,6 +400,24 @@ class LV_simulation():
                                         form_compiler_parameters={"representation":"uflacs"})
                             #dolfin.parameters["form_compiler"]["representation"] = "quadrature"
                             #temp_obj = interpolate(temp_proj, self.mesh.model['function_spaces']["quadrature_space"])
+                        if m == 'total_stress':
+                            temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['total_stress']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                        if m == 'total_passive':
+                            temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['total_passive_PK2']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                        if m == 'myofiber_passive':
+                            temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['Sff']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
                             
                         if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
@@ -1246,7 +1264,7 @@ class LV_simulation():
                         temp_obj = self.mesh.model['functions']['w'].sub(0)
                     if m == 'hs_length':
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
-                                                self.mesh.model['function_spaces']["scalar"],
+                                                self.mesh.model['function_spaces']["scalar_for_active"],
                                                 form_compiler_parameters={"representation":"uflacs"})
                    
                     if m in ['k_1','k_3','k_on','k_act','k_serca']:
@@ -1262,7 +1280,24 @@ class LV_simulation():
                                         self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
                         #dolfin.parameters["form_compiler"]["representation"] = "quadrature"
-
+                    if m == 'total_stress':
+                        temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['total_stress']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                    if m == 'total_passive':
+                        temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['total_passive_PK2']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                    if m == 'myofiber_passive':
+                        temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['Sff']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})                    
                     if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'],
