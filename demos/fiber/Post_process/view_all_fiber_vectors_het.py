@@ -35,7 +35,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # Load inputs:
 #sim_dir = '/Users/charlesmann/Academic/UK/FEniCS-Myosim/working_directory_untracked/rat_infarct_remodeling/strain/strain_remodeling_on_t340/'
-base_dir = 'C:/Users/mme250/OneDrive - University of Kentucky/Github/FEniCS-Myosim/demos/fiber/Het_test3_cluster/'
+base_dir = 'C:/Users/mme250/OneDrive - University of Kentucky/Github/FEniCS-Myosim/demos/fiber/Het_test5/'
 sim_dir = 'sim_output/mesh_output/'
 f0_vs_time = np.load(base_dir + sim_dir + 'f0_vs_time.npy')
 quadrature_dof_map = np.load(base_dir + 'quadrature_dof.npy')
@@ -45,8 +45,8 @@ ell = np.load(base_dir + 'ell.npy')
 norm_dist_endo = np.load(base_dir+'norm_dist_endo.npy')
 #norm_dist_endo = np.array(int(len(norm_dist_endo0[:]))/3)
 
-final_vectors = f0_vs_time[:,:,1]
-initial_vectors = f0_vs_time[:,:,3]
+final_vectors = f0_vs_time[:,:,-2]
+initial_vectors = f0_vs_time[:,:,2]
 
 print (np.shape(f0_vs_time))
 print (np.shape(quadrature_dof_map))
@@ -91,22 +91,22 @@ fig3 = plt.figure(figsize=(9,9))
 ax1 = plt.axes(projection='3d')
 ax1.view_init(0, 0)
 
-#for p in np.arange(np.shape(quadrature_dof_map)[0]):   
-for p in np.arange(1,5100,4):     
+for p in np.arange(np.shape(quadrature_dof_map)[0]):   
+#for p in np.arange(1,5100,4):     
     vec = final_vectors[p,:]
     vec2 = initial_vectors[p,:]
     q = quadrature_dof_map[p]
     
     #print (vec2)
      
-    #if norm_dist_endo[p] < 0.03 and q[0]>0:
+    if norm_dist_endo[p] > 0.95 and q[0]>0:
     #if norm_dist_endo[p] > 0.001 :
 
-    vec2plot = np.array([q[0],q[1],q[2],(q[0]+vec2[0]),(q[1]+vec2[1]),(q[2]+vec2[2])])
-    ax1.quiver(vec2plot[0],vec2plot[1],vec2plot[2],vec2plot[3],vec2plot[4],vec2plot[5],length = 0.03, color = colors[2],pivot='middle',arrow_length_ratio=0.1)
+        vec2plot = np.array([q[0],q[1],q[2],(q[0]+vec2[0]),(q[1]+vec2[1]),(q[2]+vec2[2])])
+        ax1.quiver(vec2plot[0],vec2plot[1],vec2plot[2],vec2plot[3],vec2plot[4],vec2plot[5],length = 0.03, color = colors[2],pivot='middle',arrow_length_ratio=0.1)
 
-    vec2plot = np.array([q[0],q[1],q[2],(q[0]+vec[0]),(q[1]+vec[1]),(q[2]+vec[2])])
-    ax1.quiver(vec2plot[0],vec2plot[1],vec2plot[2],vec2plot[3],vec2plot[4],vec2plot[5],length = 0.03, color = colors[0],pivot='middle',arrow_length_ratio=0.1)
+        vec2plot = np.array([q[0],q[1],q[2],(q[0]+vec[0]),(q[1]+vec[1]),(q[2]+vec[2])])
+        ax1.quiver(vec2plot[0],vec2plot[1],vec2plot[2],vec2plot[3],vec2plot[4],vec2plot[5],length = 0.03, color = colors[0],pivot='middle',arrow_length_ratio=0.1)
 
 
 ax1.legend(['Initial fiber',"Final fiber"])

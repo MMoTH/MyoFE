@@ -62,7 +62,7 @@ def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
     Quadelem = FiniteElement("Quadrature",mesh.ufl_cell(),degree=quad_deg,quad_scheme="default")
     VQuadelem._quad_scheme = 'default'
     fiberFS = FunctionSpace(mesh, VQuadelem)
-    isepiflip = False #False
+    isepiflip = True #False
     isendoflip = False #True #True
     #endo_angle = 60; epi_angle = -60; 
     casedir="./"
@@ -124,12 +124,12 @@ if __name__ == '__main__':
     create_ellipsoidal_LV(geofile = input_geo_file,
             output_vtk = output_vtk_str,
             casename=vtk_file_name,
-             meshsize=0.02, gmshcmd="gmsh", 
+             meshsize=0.06, gmshcmd="gmsh", 
              iswritemesh=True, verbose=False)
 
     #mesh size base = 0.075
     # Set the path to save the mesh
-    output_folder = 'output_files/human_60_fiber_meshsize_0.02/'
+    output_folder = 'output_files/human_60_fiber_meshsize_0.06/'
 
     check_output_directory_folder(path = output_folder)
     vtk_file_str = 'input_files/' + '/' + \
