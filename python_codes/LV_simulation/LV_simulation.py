@@ -294,7 +294,7 @@ class LV_simulation():
             self.infarct = 1
 
         ## container for fiber reorientation_ hardcoded as was not working in initialization
-        # for num of time step here  instruction is used not prot as it prot is not defined yet (def in run simulation)
+        # for num of time step here  instruction is used not prot(modeling protocol) as it prot is not defined yet (def in run simulation)
         # to include initial fiber as zero time step, size of below mattrix is no_of_time_steps+1
         self.f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,int(instruction_data['protocol']['no_of_time_steps'][0])+1))
         self.fdiff_mag = []    
@@ -360,6 +360,7 @@ class LV_simulation():
         self.spatial_myof_data_fields = []
         self.spatial_memb_data_fields = []
         self.spatial_hs_data_fields = []
+        self.spatial_fiber_data_fields = []
         if spatial_data_fields:
             # create data fileds based on what user has asked
             for sd in spatial_data_fields:
@@ -372,6 +373,9 @@ class LV_simulation():
                 if sd['level'][0] == 'membranes':
                     for f in sd['fields']:
                         self.spatial_memb_data_fields.append(f)
+                if sd['level'][0] == 'fiber':
+                    for f in sd['fields']:
+                        self.spatial_fiber_data_fields.append(f)
         else:
             # create default data fields
             self.spatial_hs_data_fields = list(self.hs.data.keys())
@@ -379,9 +383,13 @@ class LV_simulation():
                                                 #'n_bound']
             self.spatial_memb_data_fields = list(self.hs.memb.data.keys())#['Ca_cytosol','Ca_SR']
 
+            for f in ['f01','f02','f03','s01','s02','s03','n01','n02','n03','lx','ly','lz','endo_dist']:
+                self.spatial_fiber_data_fields.append(f)
+
         data_field = self.spatial_hs_data_fields +\
                         self.spatial_myof_data_fields+\
-                            self.spatial_memb_data_fields
+                            self.spatial_memb_data_fields+\
+                            self.spatial_fiber_data_fields
         if in_average:
             spatial_data = pd.DataFrame()
             data_field.append('time')
@@ -501,17 +509,41 @@ class LV_simulation():
 
                             #f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
                                         #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:] 
+    
+                        if m == 'c_param_cell':
 
+
+
+                            finite_element = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
+                            finite_elemet_FS = FunctionSpace(self.mesh.model['mesh'],finite_element)
+                            temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],finite_elemet_FS)
+                            #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
+
+                        if m == 'c_param':
+
+
+                            temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],self.mesh.model['function_spaces']["scalar_CG"])
+                        
+  
                         if m == 'fiber_direction':
 
-
-                            #temp_obj = project(self.mesh.model['functions']['f0'],FunctionSpace(self.mesh.model['mesh'], "CG", 1),form_compiler_parameters={"representation":"uflacs"})
-                            #temp_obj = self.mesh.model['functions']['f0']
+                        #temp_obj = project(self.mesh.model['functions']['f0'],FunctionSpace(self.mesh.model['mesh'], "CG", 1),form_compiler_parameters={"representation":"uflacs"})
                             
-                            Velem = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
-                            Velem._quad_scheme = 'default'
-                            Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem)
+                            Velem0 = VectorElement("CG",self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
+                            Velem0._quad_scheme = 'default'
+                            Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem0)
                             temp_obj = project(self.mesh.model['functions']['f0'],Velem_FS)
+
+                        if m == 'fiber_direction2':
+
+                            '''Velem = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
+                            Velem._quad_scheme = 'default'
+                            Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem)'''
+
+                            #Fiber_vis = (self.mesh.model['function_spaces']["fiber_vis2"])
+                            #temp_obj = project(self.mesh.model['functions']['f0'],Fiber_vis)
+                        
+                        
 
                         if m == 'endo_distance':
 
@@ -819,7 +851,7 @@ class LV_simulation():
 
 
             
-            ##MM below parameters are calculated to post processing purposes
+            ##MM below parameters are calculated for post processing purposes
             #self.mesh.model['functions']["fdiff_mag"] = (sqrt((inner(fdiff,fdiff))))
             l_f0 = self.mesh.model['functions']['f0'].vector().get_local()[:] 
             l_f00 = self.mesh.model['functions']['f00'].vector().get_local()[:] 
@@ -863,6 +895,18 @@ class LV_simulation():
             
             self.mesh.model['functions']['s0'].vector()[:]=s1   ### on the left hand side get local is not needed as it can find the right place of the data in global function
             self.mesh.model['functions']['n0'].vector()[:]=n1
+
+
+            '''Quadelem = FiniteElement("Quadrature", tetrahedron, degree=2, quad_scheme="default")
+            Quadelem._quad_scheme = 'default'
+            Quad = FunctionSpace(mesh, Quadelem)  
+
+            gdim = mesh.geometry().dim()
+            xq = Quad.tabulate_dof_coordinates().reshape((-1,gdim))'''
+
+            print("check coord",self.coord)
+            print("check coord size",np.shape(self.coord))
+
 
             #print "f0 shape"
             #print np.shape(self.mesh.model['functions']['f0'].vector().get_local())
@@ -1013,7 +1057,7 @@ class LV_simulation():
                         
                         
     
-                    if m == 'c_param':
+                    if m == 'c_param_cell':
 
 
 
@@ -1022,17 +1066,37 @@ class LV_simulation():
                         temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],finite_elemet_FS)
                         #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
 
+                    if m == 'c_param':
+
+
+                        temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],self.mesh.model['function_spaces']["scalar_CG"])
+                        #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
+
                     if m == 'fiber_direction':
 
                         #temp_obj = project(self.mesh.model['functions']['f0'],FunctionSpace(self.mesh.model['mesh'], "CG", 1),form_compiler_parameters={"representation":"uflacs"})
                             
-                        Velem = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
-                        Velem._quad_scheme = 'default'
-                        Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem)
+                        #Velem = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
+                        #Velem._quad_scheme = 'default'
+                        #Velem_FS = FunctionSpace(self.mesh.model['mesh'],self.mesh.model['function_spaces']["fiber_vis"])
+                        #temp_obj = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']["fiber_vis"])
+                        
+                        
+                        Velem0 = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
+                        Velem0._quad_scheme = 'default'
+                        Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem0)
                         temp_obj = project(self.mesh.model['functions']['f0'],Velem_FS)
 
 
 
+                        '''if m == 'fiber_direction2':
+
+                        Velem = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
+                        Velem._quad_scheme = 'default'
+                        Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem)
+                        Fiber_vis = (self.mesh.model['function_spaces']["fiber_vis2"])
+                        temp_obj = project(self.mesh.model['functions']['f0'],Fiber_vis)'''
+                        
 
 
                     if m == 'endo_distance':
@@ -1192,6 +1256,24 @@ class LV_simulation():
                 for h in self.hs_objs_list:
                     data_field.append(h.memb.data[f]) 
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+
+           
+           
+            for f in list(self.spatial_fiber_data_fields):
+                data_field = []
+
+                if f == 'f01':
+                    d = self.mesh.model['functions']['f0'].vector().get_local()[:,1]
+                    data_field.append(d)
+
+                #for i,d in enumerate(self.mesh.model['functions']['f0'].vector().get_local()[:,1]):
+                   # data_field.append(d)
+                self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+
+            #self.mesh.data['f0'] = array
+
+            
+            
         else:
 
             
@@ -1215,12 +1297,79 @@ class LV_simulation():
             for f in self.spatial_memb_data_fields:
                 data_field = []
                 for h in list(self.hs_objs_list):
+                    #print("h check",np.shape(h.memb.data[f]))
                     data_field.append(h.memb.data[f])
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+            
+            
                 #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
                 #    self.data['time']
 
+
+
+            f0_temp = self.mesh.model['functions']['f0'].vector().get_local()[:]
+            f0_temp_3n = np.reshape(f0_temp,(self.local_n_of_int_points,3))
+            f0_x = f0_temp_3n[:,0]
+            f0_y = f0_temp_3n[:,1]
+            f0_z = f0_temp_3n[:,2]
+
+            gdim2 = self.mesh.model['mesh'].geometry().dim()
+
+            self.lcoord = self.mesh.model['function_spaces']['quadrature_space'].\
+                tabulate_dof_coordinates().reshape((-1, gdim2))
+            lx = self.lcoord[:,0]
+            ly = self.lcoord[:,1]
+            lz = self.lcoord[:,2]
+
+            endo_dist = self.mesh.model['functions']['endo_dist'].vector().get_local()[:]
             
+            for f in self.spatial_fiber_data_fields:
+                data_field = []
+
+                
+
+                if f == 'f01':
+
+                    
+                    data_field= list(f0_x)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                if f == 'f02':
+                    data_field= list(f0_y)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                if f == 'f03':
+                    data_field= list(f0_z)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                if f == 'lx':
+                    data_field= list(lx)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+
+                if f == 'ly':
+                    data_field= list(ly)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                if f == 'lz':
+                    data_field= list(lz)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+
+                if f == 'endo_dist':
+                    data_field= list(endo_dist)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
+                #    self.data['time'
+
+            
+
 
         
 
@@ -1285,6 +1434,12 @@ class LV_simulation():
                     for f in list(self.spatial_sim_data.keys()):
                         out_path = output_dir + '/' + f + '_data.csv'
                         self.spatial_sim_data[f].to_csv(out_path)
+
+                    '''out_path = output_dir + '/'  + 'coord_data.csv'
+                    coord = list(self.coord)
+                    coord.to_csv(out_path)'''
+                    
+
 
         return 
     def rebuild_from_perturbations(self):

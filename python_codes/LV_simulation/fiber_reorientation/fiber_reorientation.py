@@ -120,7 +120,9 @@ class fiber_reorientation():
 
         z_axis = Function(self.parent_params.mesh.model['function_spaces']['fiber_FS'])
         dm = self.parent_params.mesh.model['function_spaces']['fiber_FS'].dofmap()
-       
+        
+
+
 
         #local_range = dm.ownership_range()
         #local_dim1 = local_range[1] - local_range[0]
