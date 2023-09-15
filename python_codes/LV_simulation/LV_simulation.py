@@ -273,12 +273,31 @@ class LV_simulation():
         self.infarct = 0
         self.infarct_regions = [] 
         self.border_zone_regions = []
+        bz_global_on_local = []
+        bz_global=[]
         if 'infarct' in instruction_data['mesh']:
             if self.comm.Get_rank() == 0:
                 print 'Initializing infarct module'
             self.infarct = 1
+            self.infarct_regions, 
+            self.border_zone_regions = \
+                            self.handle_infarct(self.instruction_data['mesh']['infarct'])
             
+            for i,bz in enumerate(self.border_zone_regions):
+                bz_global_on_local.append(self.dofmap[bz])
 
+            if self.comm.Get_rank()!=0:
+                self.comm.send(bz_global_on_local,dest=0,tag = 12)
+            else:
+                bz_global = np.append(bz_global_on_local)
+                for i in range(1,self.comm.Get_size()):
+                    bz_global = \
+                            np.append(bz_global_on_local,
+                                self.comm.recv(source = i, tag = 12),axis = 0)
+                print bz_global
+
+    
+                
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 
@@ -553,9 +572,9 @@ class LV_simulation():
             for i in self.prot.infarct_activation:
                 if (self.t_counter >= i.data['t_start_ind'] and 
                     self.t_counter < i.data['t_stop_ind']):
-                    if self.t_counter == i.data['t_start_ind']:
-                        self.infarct_regions, self.border_zone_regions = \
-                            self.handle_infarct(self.instruction_data['mesh']['infarct'])
+                    #if self.t_counter == i.data['t_start_ind']:
+                    #    self.infarct_regions, self.border_zone_regions = \
+                    #        self.handle_infarct(self.instruction_data['mesh']['infarct'])
                     if self.infarct_model['level']== 'myofilaments':
                         for r in self.infarct_regions:
                             self.hs_objs_list[r].myof.data[self.infarct_model['variable']] +=\
