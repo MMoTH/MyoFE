@@ -293,7 +293,7 @@ class LV_simulation():
                 for i in range(1,self.comm.Get_size()):
                     bz_global = \
                             np.append(bz_global,
-                                self.comm.recv(source = i, tag = 12),axis = 0)
+                                self.comm.recv(source = i, tag = 12))
                 print bz_global
 
     
