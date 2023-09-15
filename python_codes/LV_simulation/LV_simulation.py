@@ -281,7 +281,8 @@ class LV_simulation():
             self.infarct = 1
             infarct_regions, border_zone_regions = \
                             self.handle_infarct(self.instruction_data['mesh']['infarct'])
-            
+            print "border zone regions on local:"
+            print border_zone_regions
             for i,bz in enumerate(border_zone_regions):
                 bz_global_on_local.append(self.dofmap[bz])
 
