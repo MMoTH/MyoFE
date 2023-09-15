@@ -279,21 +279,18 @@ class LV_simulation():
             if self.comm.Get_rank() == 0:
                 print 'Initializing infarct module'
             self.infarct = 1
-            self.infarct_regions, 
-            self.border_zone_regions = \
+            infarct_regions, border_zone_regions = \
                             self.handle_infarct(self.instruction_data['mesh']['infarct'])
             
-            for i,bz in enumerate(self.border_zone_regions):
+            for i,bz in enumerate(border_zone_regions):
                 bz_global_on_local.append(self.dofmap[bz])
 
             if self.comm.Get_rank()!=0:
-                self.comm.send(bz_global_on_local,dest=0,tag = 12)
+                self.comm.send(bz_global_on_local,dest=0,tag = 21)
             else:
                 bz_global = np.append(bz_global,bz_global_on_local)
                 for i in range(1,self.comm.Get_size()):
-                    bz_global = \
-                            np.append(bz_global,
-                                self.comm.recv(source = i, tag = 12))
+                    bz_global = np.append(bz_global,self.comm.recv(source = i, tag = 21))
                 print bz_global
 
     
@@ -572,9 +569,9 @@ class LV_simulation():
             for i in self.prot.infarct_activation:
                 if (self.t_counter >= i.data['t_start_ind'] and 
                     self.t_counter < i.data['t_stop_ind']):
-                    #if self.t_counter == i.data['t_start_ind']:
-                    #    self.infarct_regions, self.border_zone_regions = \
-                    #        self.handle_infarct(self.instruction_data['mesh']['infarct'])
+                    if self.t_counter == i.data['t_start_ind']:
+                        self.infarct_regions, self.border_zone_regions = \
+                            self.handle_infarct(self.instruction_data['mesh']['infarct'])
                     if self.infarct_model['level']== 'myofilaments':
                         for r in self.infarct_regions:
                             self.hs_objs_list[r].myof.data[self.infarct_model['variable']] +=\
