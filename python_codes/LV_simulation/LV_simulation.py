@@ -289,10 +289,10 @@ class LV_simulation():
             if self.comm.Get_rank()!=0:
                 self.comm.send(bz_global_on_local,dest=0,tag = 12)
             else:
-                bz_global = np.append(bz_global_on_local)
+                bz_global = np.append(bz_global,bz_global_on_local)
                 for i in range(1,self.comm.Get_size()):
                     bz_global = \
-                            np.append(bz_global_on_local,
+                            np.append(bz_global,
                                 self.comm.recv(source = i, tag = 12),axis = 0)
                 print bz_global
 
