@@ -169,6 +169,22 @@ class LV_simulation():
         self.y_coord = np.array(y_coord)
         self.z_coord = np.array(z_coord)
 
+        # dump coordinates
+        coord_df = pd.DataFrame()
+        point_id = []
+        if self.comm.Get_rank() == 0:
+            for i, c in enumerate(self.x_coord):
+                point_id.append(i)
+            coord_df['points'] = point_id
+            coord_df['X'] = self.x_coord
+            coord_df['Y'] = self.y_coord
+            coord_df['Z'] = self.Z_coord
+            
+            output_dir = os.path.dirname(self.output_data_str)
+            out_path_coord = output_dir + '/coordinates.csv'
+            coord_df.to_csv(out_path_coord)
+                        
+            
         """ Reduce the contractility of gaussian points near apex"""
         # First assume the corrdinates of apex
         xc = 0.0
