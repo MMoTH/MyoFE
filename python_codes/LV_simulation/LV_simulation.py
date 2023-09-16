@@ -178,7 +178,7 @@ class LV_simulation():
             coord_df['points'] = point_id
             coord_df['X'] = self.x_coord
             coord_df['Y'] = self.y_coord
-            coord_df['Z'] = self.Z_coord
+            coord_df['Z'] = self.z_coord
             
             output_dir = os.path.dirname(self.output_data_str)
             out_path_coord = output_dir + '/coordinates.csv'
