@@ -179,10 +179,12 @@ class LV_simulation():
             coord_df['X'] = self.x_coord
             coord_df['Y'] = self.y_coord
             coord_df['Z'] = self.z_coord
-            
-            
+        
             output_str = instruction_data['output_handler']['output_data_path'][0]
             output_dir = os.path.dirname(output_str)
+            if not os.path.isdir(output_dir):
+                print('Making output dir')
+                os.makedirs(output_dir)
             out_path_coord = output_dir + '/coordinates.csv'
             coord_df.to_csv(out_path_coord)
                         
