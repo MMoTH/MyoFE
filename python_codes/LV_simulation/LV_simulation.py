@@ -63,6 +63,9 @@ class LV_simulation():
         # function spaces, functions)
         self.mesh = MeshClass(self)
 
+ 
+                                
+
         # Initialize the solver object 
         
         #self.solver_params = self.mesh.model['solver_params']
@@ -94,8 +97,7 @@ class LV_simulation():
         self.local_n_of_int_points = \
             4 * np.shape(self.mesh.model['mesh'].cells())[0]
 
-        print "n_local"
-        print self.local_n_of_int_points
+    
 
         """ Calculate the total no of integration points"""
         # First on the root core
@@ -143,8 +145,39 @@ class LV_simulation():
             #""" Assign the hs length according to what used in the mesh"""
             self.hs_objs_list[-1].data['hs_length'] = \
                 self.hs_length_list[i]
+            
+
         
         
+        #### MM here we assign het params to the LV
+
+        for kk, vv in self.mesh.model['functions']['dolfin_functions'].items():
+            if kk == "cb_number_density":
+                if self.comm.Get_rank() == 0:  
+                    print("cb alterred in hs_objs")
+                    print("k=",kk)
+                for i in np.arange(self.local_n_of_int_points):
+                    self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['cb_number_density'][-1].vector().get_local()[i]
+                    
+
+            if kk == "k_1":
+                if self.comm.Get_rank() == 0:  
+                    print("k_1 alterred in hs_objs")
+                    print("k=",kk)
+                for i in np.arange(self.local_n_of_int_points):
+                    self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['k_1'][-1].vector().get_local()[i]
+                    
+            if kk == "k_on":
+                if self.comm.Get_rank() == 0:  
+                    print("k_on alterred in hs_objs")
+                    print("k=",kk)
+                for i in np.arange(self.local_n_of_int_points):
+                    self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['k_on'][-1].vector().get_local()[i]
+                    
+
+
+
+
         """ Handle the coordinates of quadrature (integer) points"""
         gdim = self.mesh.model['mesh'].geometry().dim()
 
@@ -224,11 +257,17 @@ class LV_simulation():
                             p * (1-apex_components[ci]['factor']) * r / \
                                 (self.apex_r.max()*apex_components[ci]['radius_ratio']) + \
                                    p * apex_components[ci]['factor']
+######### MM note
+## below loop is not overriding het assignment stuff since hs_obj is assigned sooner
+
 
         # assign the values from the half-sarcomere isntances
         # to spatial variables that baroreflex can regulate
         # (for visualizaton purpose)
+
+        
         for p in ['k_1','k_3','k_on','cb_number_density','k_cb'] :
+        #for p in ['k_1','k_3','k_on','k_cb'] :   
             for i, h in enumerate(self.hs_objs_list):
                 self.mesh.data[p][i] = h.myof.data[p]
             self.mesh.model['functions'][p].vector()[:] = \
@@ -410,7 +449,10 @@ class LV_simulation():
     def run_simulation(self,protocol_struct,output_struct=[]):
 
         self.prot = prot.protocol(protocol_struct)
-        
+
+        self.l_f00 = self.mesh.model['functions']['f00'].vector().get_local()[:] # this should be localized here sice at the end to time loop this function space also reorients automatially. to save initial fiber it should be saved here
+
+
         # First setup the protocol for creating output data holders
         spatial_data_fields = []
         self.spatial_data_to_mean = False
@@ -474,7 +516,13 @@ class LV_simulation():
                     self.solution_mesh = XDMFFile(mpi_comm_world(),file_path)
                     self.solution_mesh.parameters.update({"functions_share_mesh": True,
                                             "rewrite_function_mesh": False})
+                    
+                    Quadelem = FiniteElement("Quadrature", tetrahedron, degree=2, quad_scheme="default")
+                    Quadelem._quad_scheme = 'default'
+                    Quad = FunctionSpace(self.mesh.model['mesh'], Quadelem)
 
+                    FE_DG0 = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
+                    FS_DG0 = FunctionSpace(self.mesh.model['mesh'],FE_DG0)
 
                     for m in self.mesh_obj_to_save:
                         
@@ -484,20 +532,52 @@ class LV_simulation():
                             temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scalar"])
 
-                        if m in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density']:
+                        if m in ['k_1','k_3','k_on','k_act','k_serca']:
                             temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scalar"])
+                            
+
+                        if m in ['k_1_DG0']:
+                            temp_obj = project(self.mesh.model['functions']["k_1"], 
+                                                FS_DG0)
+                            
+                        if m == 'cb_number_density_DG0':
+                            temp_obj = project(self.mesh.model['functions']["cb_number_density"], 
+                                                FS_DG0)
+
+                        if m == 'cb_number_density':
+                            temp_obj = project(self.mesh.model['functions']["cb_number_density"], 
+                                                self.mesh.model['function_spaces']["scalar"])
+
+
                         if m == 'active_stress':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar"])
+                            
+
+                        if m == 'active_stress_DG0':
+                            temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['Pactive']*
+                                        self.mesh.model['functions']['f0']),
+                                        FS_DG0)
+                            
+
                         if m == 'reorienting_angle':
                             #temp_obj = project(self.mesh.model['functions']['f0'],
                                         #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
-                            f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
-                            temp_obj = project(self.mesh.model['functions']["fdiff_ang"],self.mesh.model['function_spaces']["scalar"])  # should be checked: .vector().get_local()[:]   just added
+                            #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
+                            #temp_obj = project(self.mesh.model['functions']["fdiff_ang"],self.mesh.model['function_spaces']["scalar"])  # should be checked: .vector().get_local()[:]   just added
                             
+                            
+                            fdiff_ang= Function(Quad)   
+                            finite_element_R0 = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
+                            finite_elemet_R00 = FunctionSpace(self.mesh.model['mesh'],finite_element_R0)
+
+                            temp_obj = project(fdiff_ang,finite_elemet_R00)
+
+
                             '''f0_mag_proj = project(self.mesh.model['functions']["f0_mag"],self.mesh.model['function_spaces']["scalar"])
                             self.solution_mesh.write('f0_mag_proj',0)
 
@@ -510,13 +590,12 @@ class LV_simulation():
                             #f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
                                         #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:] 
     
-                        if m == 'c_param_cell':
+                        if m == 'c_param_DG0':
 
 
 
-                            finite_element = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
-                            finite_elemet_FS = FunctionSpace(self.mesh.model['mesh'],finite_element)
-                            temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],finite_elemet_FS)
+                        
+                            temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FS_DG0)
                             #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
 
                         if m == 'c_param':
@@ -684,6 +763,8 @@ class LV_simulation():
         start = time.time()
         for j in range(self.local_n_of_int_points):
             
+            #for p in ['k_1','k_3','k_on'] :
+                ##MM note: below is overriding het stuff
             for p in ['k_1','k_3','k_on','cb_number_density'] :
                 self.mesh.data[p][j] = self.hs_objs_list[j].myof.data[p]
             for p in ['k_act','k_serca']:
@@ -823,27 +904,9 @@ class LV_simulation():
             #total_stress = PK2_passive + Pactive
             #kappa = self.fr.data['time_constant']
 
-             
-
-            #fdiff = self.fr.stress_law(total_stress,fiberFS,self.t_counter,kappa)
             
-            '''print "f0"
-            print (project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])
-            '''
-
-            '''fdiff_test = self.fr.f_adjusted
-            print "fdiff_test"
-            print (project(fdiff_test,
-                             self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])
-            '''
-
 
             fdiff = self.fr.stress_law(self.fr.data['signal'],time_step,self.mesh.model['function_spaces']['fiber_FS'])
-
-            '''print "fdiff"
-            print (project(fdiff,
-                             self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[0:3])'''
 
             temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
             temp_fiber += fdiff.vector().get_local()[:]
@@ -854,14 +917,15 @@ class LV_simulation():
             ##MM below parameters are calculated for post processing purposes
             #self.mesh.model['functions']["fdiff_mag"] = (sqrt((inner(fdiff,fdiff))))
             l_f0 = self.mesh.model['functions']['f0'].vector().get_local()[:] 
-            l_f00 = self.mesh.model['functions']['f00'].vector().get_local()[:] 
+            ## important note: if we localize fiber data here as initial fiber it does not contain inital fiber as it is also updated automatically. initial fiber sould be localized out of time loop
+            #l_`f00 `= self.mesh.model['functions']['f00'].vector().get_local()[:] 
             l_fdiff_ang = self.mesh.model['functions']["fdiff_ang"].vector().get_local()[:] 
             
             for ii in np.arange(self.local_n_of_int_points):
 
                 
                 l_f0_holder = l_f0[ii*3:ii*3+3]
-                l_f00_holder = l_f00[ii*3:ii*3+3]
+                l_f00_holder = self.l_f00[ii*3:ii*3+3]
                 
                 cos = (np.inner(l_f0_holder,l_f00_holder))/(sqrt(np.inner(l_f0_holder,l_f0_holder))*sqrt(np.inner(l_f00_holder,l_f00_holder)))
                 cos = np.clip(cos, -1, 1)  #MM here avoids values abouve 1 cause nan results
@@ -873,12 +937,7 @@ class LV_simulation():
             
             self.mesh.model['functions']["fdiff_ang"].vector()[:] = l_fdiff_ang
             
-            '''print("np.shape(l_fdiff_ang)")
-            print(np.shape(l_fdiff_ang))
-            print((l_fdiff_ang[20:30]))
-            print(sqrt(np.inner(l_f0_holder,l_f0_holder)))
-            print(sqrt(np.inner(l_f00_holder,l_f00_holder)))
-            print(np.arccos((np.inner(l_f0_holder,l_f00_holder))))'''
+
 
             #self.mesh.model['functions']["f0_mag"] = (sqrt((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f0']))))
             #self.mesh.model['functions']["f00_mag"] = (sqrt((inner(self.mesh.model['functions']['f00'],self.mesh.model['functions']['f00']))))
@@ -897,22 +956,6 @@ class LV_simulation():
             self.mesh.model['functions']['n0'].vector()[:]=n1
 
 
-            '''Quadelem = FiniteElement("Quadrature", tetrahedron, degree=2, quad_scheme="default")
-            Quadelem._quad_scheme = 'default'
-            Quad = FunctionSpace(mesh, Quadelem)  
-
-            gdim = mesh.geometry().dim()
-            xq = Quad.tabulate_dof_coordinates().reshape((-1,gdim))'''
-
-            print("check coord",self.coord)
-            print("check coord size",np.shape(self.coord))
-
-
-            #print "f0 shape"
-            #print np.shape(self.mesh.model['functions']['f0'].vector().get_local())
-
-            #print "s0 shape"
-            #print np.shape(s1)
 
             ##MM to save the fiber even before fiber remodleing this apart needs to be out of if FR = 1
             #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
@@ -926,30 +969,12 @@ class LV_simulation():
                             
         if self.comm.Get_rank() == 0:
 
-                #print "f0_vs_time_temp2_global"
-                #print np.shape(f0_vs_time_temp2_global)
-                #print (f0_vs_time_temp2_global)
-
-
+            
             f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
             f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(self.global_n_of_int_points,3))
 
-
-            '''print ("f0_vs_time_temp2_global")
-            print (np.shape(f0_vs_time_temp2_global))
-            print (f0_vs_time_temp2_global)
-
-            print ("self.t_counter")
-            print (self.t_counter)'''
-
-
-
             self.f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global
 
-
-            '''print ("f0_vs_time_array")
-            print (np.shape(self.f0_vs_time_array))
-            print ((self.f0_vs_time_array[:,:,self.t_counter]))'''
 
             print "SAVING F0 VS TIME ARRAY"
             np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
@@ -1011,7 +1036,9 @@ class LV_simulation():
 
 
 
-
+            FE_DG0 = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
+            FS_DG0 = FunctionSpace(self.mesh.model['mesh'],FE_DG0)
+            
             # save data on mesh
             if self.mesh_obj_to_save:
                 print 'Saving to 3d mesh'
@@ -1031,17 +1058,37 @@ class LV_simulation():
                                                 self.mesh.model['function_spaces']["scalar"])
                             
 
+                    if m in ['k_1_DG0']:
+                            temp_obj = project(self.mesh.model['functions']["k_1"], 
+                                                FS_DG0)
+                            
+                            
+                    if m == 'cb_number_density_DG0':
+                            temp_obj = project(self.mesh.model['functions']["cb_number_density"], 
+                                                FS_DG0)
+
+                    if m == 'cb_number_density':
+                            temp_obj = project(self.mesh.model['functions']["cb_number_density"], 
+                                                self.mesh.model['function_spaces']["scalar"])
+
                     if m == 'active_stress':
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar"])
+                        
+                    if m == 'active_stress_DG0':
+                        temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['Pactive']*
+                                        self.mesh.model['functions']['f0']),
+                                        FS_DG0)
 
                     if m == 'reorienting_angle':
 
                         #temp_obj = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']['fiber_FS'])  # should be checked: .vector().get_local()[:]   just added
-                        
-                        temp_obj = project(self.mesh.model['functions']["fdiff_ang"],self.mesh.model['function_spaces']["scalar"])
+                        finite_element_R0 = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
+                        finite_elemet_R00 = FunctionSpace(self.mesh.model['mesh'],finite_element_R0)
+                        temp_obj = project(self.mesh.model['functions']["fdiff_ang"],finite_elemet_R00)
 
 
                         '''f0_mag_proj = project(self.mesh.model['functions']["f0_mag"],self.mesh.model['function_spaces']["scalar"])
@@ -1057,13 +1104,11 @@ class LV_simulation():
                         
                         
     
-                    if m == 'c_param_cell':
+                    if m == 'c_param_DG0':
 
 
 
-                        finite_element = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
-                        finite_elemet_FS = FunctionSpace(self.mesh.model['mesh'],finite_element)
-                        temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],finite_elemet_FS)
+                        temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FS_DG0)
                         #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
 
                     if m == 'c_param':
@@ -1186,13 +1231,7 @@ class LV_simulation():
     def write_complete_data_to_sim_data(self):
         """ Writes full data to data frame """
         
-        
-        
-        
-        print (self.data)
-
-        
-        print (list(self.data.keys()))
+    
 
         for f in list(self.data.keys()):
             

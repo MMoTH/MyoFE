@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [300],
+        "no_of_time_steps": [4],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -24,7 +24,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/fiber/Het_test6/sim_inputs/ellipsoidal.hdf5"],
+        "mesh_path":["../demos/fiber/Het_test13/sim_inputs/ellipsoidal.hdf5"],
         "function_spaces":
         [
             {
@@ -40,16 +40,16 @@
                 "degree": [1]
             },
             {
-                "name":["scalar_CG"],
-                "type":["scalar"],
-                "element_type":["CG"],
-                "degree": [1]
-            },
-            {
                 "name":["scalar_DG0"],
                 "type":["scalar"],
                 "element_type":["DG"],
                 "degree": [0]
+            },
+            {
+                "name":["scalar_CG"],
+                "type":["scalar"],
+                "element_type":["CG"],
+                "degree": [1]
             },
             {
                 "name":["tensor_space"],
@@ -253,7 +253,7 @@
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
             "time_constant":[1],
-            "reorient_t_start":[0.001,"ms"]
+            "reorient_t_start":[0.5,"ms"]
         }
         
     },
@@ -268,17 +268,25 @@
       },
     "output_handler":
     {
-        "output_data_path": ["../demos/fiber/Het_test6/sim_output/data.csv"],
-        "mesh_output_path": ["../demos/fiber/Het_test6/sim_output/mesh_output"],
+        "output_data_path": ["../demos/fiber/Het_test13/sim_output/data.csv"],
+        "mesh_output_path": ["../demos/fiber/Het_test13/sim_output/mesh_output"],
+        "Het_cell_output_path": ["../demos/fiber/Het_test13/sim_output/cell_data.csv"],
         "mesh_object_to_save":
         [
             "displacement",
             "active_stress",
+            "active_stress_DG0",
             "hs_length",
             "reorienting_angle",
             "c_param",
+            "c_param_DG0",
             "fiber_direction",
-            "endo_distance"
+            "endo_distance",
+            "cb_number_density_DG0",
+            "cb_number_density",
+            "k_1",
+            "k_1_DG0"
+
         ],
         "dumping_spatial_in_average":[false],
         "frequency_n": [10]
@@ -286,3 +294,4 @@
         
     }
 }
+

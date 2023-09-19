@@ -2,14 +2,16 @@
 from dolfin import *
 import numpy as np
 import numpy.random as r
+import pandas as pd
 
 # MM since het params are defined in passive paremeters which are stored in dolfin functions, parts of the code with dolfin_funtions is working for het
 class assign_heterogeneous_params(object):
 
    
+    
 
        ## define heterogeneous parameters based on some rule
-    def assign_heterogeneous_params(self,dolfin_functions,no_of_cells):
+    def assign_heterogeneous_params(self,dolfin_functions,no_of_cells,endo_dist):
 
         # Going to directly go through hs_params_list and then dolfin_functions and check for heterogeneity
         # hs_params_template is the base copy of myosim parameters, loop through this
@@ -33,8 +35,11 @@ class assign_heterogeneous_params(object):
         #rint dolfin_functions
         het_dolfin_dict = self.iterate_dolfin_keys(dolfin_functions,het_dolfin_dict)
 
+        print('het_dolfin_dict')
+        print(het_dolfin_dict)
+
         # assign heterogeneous parametrs based on the desired law
-        dolfin_functions = self.assign_dolfin_functions(dolfin_functions,het_dolfin_dict,no_of_cells)
+        dolfin_functions = self.assign_dolfin_functions(dolfin_functions,het_dolfin_dict,no_of_cells,endo_dist)
 
         # Kurtis needs to update this
         #--------------------------------------------------------
@@ -277,9 +282,24 @@ class assign_heterogeneous_params(object):
                                     scaling_factor = j["scaling_factor"]
                                     het_dolfin_dict[k].append(scaling_factor)
 
+                            if temp_law == "transmural":
+                                if "epi_value" in j:
+                                    epi_value = j["epi_value"]
+                                
+                                else:
+                                    epi_value = base_value*2
+
+                                if "transition_type" in j:
+                                    transition_type = j["transition_type"]
+                                else:
+                                    transition_type = "linear"
+                                het_dolfin_dict[k].append(epi_value)
+                                het_dolfin_dict[k].append(transition_type)
+                                
+
         return het_dolfin_dict
 
-    def assign_dolfin_functions(self,dolfin_functions,het_dolfin_dict,no_of_cells,):
+    def assign_dolfin_functions(self,dolfin_functions,het_dolfin_dict,no_of_cells,endo_dist):
 
         for k in het_dolfin_dict.keys():
             #print "het_dolfin_dict"
@@ -303,7 +323,7 @@ class assign_heterogeneous_params(object):
             dolfin_functions = df_fiber_w_compliance_law_boxmesh(dolfin_functions,base_value,k,het_dolfin_dict[k][-1],no_of_int_points,geo_options)"""
 
             if hetero_law == "fibrosis_w_compliance":
-                dolfin_functions = df_fibrosis_w_compliance_law(dolfin_functions,base_value,k,het_dolfin_dict[k][-4],het_dolfin_dict[k][-3],het_dolfin_dict[k][-2],het_dolfin_dict[k][-1],no_of_cells,geo_options)
+                dolfin_functions = df_fibrosis_w_compliance_law(dolfin_functions,base_value,k,het_dolfin_dict[k][-4],het_dolfin_dict[k][-3],het_dolfin_dict[k][-2],het_dolfin_dict[k][-1],no_of_cells)
 
             if hetero_law == "inclusion":
                 dolfin_functions = df_inclusion_law(dolfin_functions,base_value,k,het_dolfin_dict[k][-2],het_dolfin_dict[k][-1],no_of_cells,geo_options)
@@ -316,6 +336,9 @@ class assign_heterogeneous_params(object):
 
             if hetero_law == "rat_ellipsoid_infarct":
                 dolfin_functions = df_rat_ellipsoid_infarct(dolfin_functions,base_value,k,het_dolfin_dict[k][-1],no_of_int_points,geo_options)
+
+            if hetero_law == "transmural":
+                dolfin_functions =  self.df_transmural_law(dolfin_functions,base_value,k,het_dolfin_dict[k][-2],het_dolfin_dict[k][-1],no_of_cells,endo_dist)
 
         return dolfin_functions
 
@@ -362,6 +385,8 @@ class assign_heterogeneous_params(object):
     def df_fibrosis_law(self,dolfin_functions,base_value,k,percent,scaling_factor,mat_prop,no_of_cells):
 
 
+
+        #self.parent_parameters = parent_parameters
         #print "no_of_cells"
         #print no_of_cells
         #print "int(percent*no_of_cells)"
@@ -369,10 +394,10 @@ class assign_heterogeneous_params(object):
         
         all_cells = no_of_cells*4
 
-        sample_indices = r.choice(all_cells,int(percent*all_cells), replace=False)  # MM each cell includes 4 integer points and to consider all the LV 4 should be multiplied
+        #sample_indices = r.choice(all_cells,int(percent*all_cells), replace=False)  # MM each cell includes 4 integer points and to consider all the LV 4 should be multiplied
         
-        #step = int(1/(percent))   # it stimately would follow the percenage
-        #sample_indices = np.arange(1,all_cells,step)    # this can give better unified disarray
+        step = int(1/(percent))   # it stimately would follow the percenage
+        sample_indices = np.arange(1,all_cells,step)    # this can give better unified disarray
 
         #sample_indices = np.arange(900,1000)
         #print ("step")
@@ -381,13 +406,23 @@ class assign_heterogeneous_params(object):
         print (all_cells)
         print ("sample size")
         print (np.shape(sample_indices))
-    
+        
+        ##MM note: here there is code that saves the cell ID for het cells. to activate it, parent parameters should be added as an input
+        '''if 'Het_cell_output_path' in parent_parameters.instruction_data["output_handler"]:
+            self.output_data_str = parent_parameters.instruction_data["output_handler"]['Het_cell_output_path'][0]
+            het_cell_data = pd.DataFrame(data = sample_indices)
+                    #File(self.parent_parameters.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(dolfin_functions["passive_params"]["c"][-1],FunctionSpace(self.model['mesh'],"DG",0))
+
+            het_cell_data.to_csv(self.output_data_str)'''
+        
         
         l_cb_n_density = dolfin_functions["cb_number_density"][-1].vector().get_local()[:] 
         l_c = dolfin_functions["passive_params"]["c"][-1].vector().get_local()[:] 
         l_bt =dolfin_functions["passive_params"]["bt"][-1].vector().get_local()[:] 
         l_bf =dolfin_functions["passive_params"]["bf"][-1].vector().get_local()[:] 
         l_bfs = dolfin_functions["passive_params"]["bfs"][-1].vector().get_local()[:] 
+
+        l_k1 = dolfin_functions["k_1"][-1].vector().get_local()[:] 
 
 
         for jj in np.arange(all_cells):
@@ -396,29 +431,41 @@ class assign_heterogeneous_params(object):
 
                 if jj in sample_indices:
 
+
+                    ### hyercontractile with CB
                     if k == "cb_number_density":  ## it should work in a way that if k is the parameter we assign for being het, for example being hypercontractile, it increases the cb_density
 
 
                         #dolfin_functions[k][-1].vector()[jj] = base_value*scaling_factor #make 20 specified by user
                         l_cb_n_density[jj] = base_value*scaling_factor
-                    else:
+                    
+                    ### fibrousis with dead cells
+                    if k == "c": 
                         l_c[jj] = base_value*scaling_factor
                         l_bt[jj] = 10
                         l_bf[jj] = 10
                         l_bfs[jj] = 10
                         l_cb_n_density[jj] = 0
 
+
+                    ### hyercontractile with K! - higher SRX detachment
+                    if k == "k_1":
+
+                        l_k1[jj] = base_value*scaling_factor
+
             else:
-
-
-
 
                 if jj in sample_indices:
 
                     if k == "cb_number_density":
-                        dolfin_functions[k][-1].vector()[jj] = base_value*scaling_factor #make 20 specified by user
-                    else:
+                        l_cb_n_density[jj] [jj] = base_value*scaling_factor #make 20 specified by user
+                    if k == "c":
                         dolfin_functions["passive_params"][k][-1].vector()[jj] = base_value*scaling_factor
+
+                    if k == "k_1":
+
+                        l_k1[jj] = base_value*scaling_factor
+
 
         #print dolfin_functions["passive_params"]["c"][-1].vector().get_local()[0:20]
 
@@ -427,6 +474,8 @@ class assign_heterogeneous_params(object):
         dolfin_functions["passive_params"]["bt"][-1].vector()[:] = l_bt
         dolfin_functions["passive_params"]["bf"][-1].vector()[:] = l_bf
         dolfin_functions["passive_params"]["bfs"][-1].vector()[:] = l_bfs
+
+        dolfin_functions["k_1"][-1].vector()[:] = l_k1
 
 
         return dolfin_functions
@@ -654,4 +703,37 @@ class assign_heterogeneous_params(object):
                     #dolfin_functions["passive_params"]["bf"][-1].vector()[jj] = 10
                     #dolfin_functions["passive_params"]["bfs"][-1].vector()[jj] = 10
                     dolfin_functions["cb_number_density"][-1].vector()[jj] = 1.513157e18*(r-.2044)    
+        return dolfin_functions
+
+    def df_transmural_law(self,dolfin_functions,base_value,k,epi_value,transition_type,no_of_cells,endo_dist):
+
+        
+        all_cells = no_of_cells*4
+        l_endo_dist = endo_dist.vector().get_local()[:] 
+
+        
+        ### for K1
+        '''l_k1 = dolfin_functions["k_1"][-1].vector().get_local()[:] 
+
+        for jj in np.arange(all_cells):
+            if k == "k_1":
+                if transition_type == "linear":
+                    l_k1[jj] = base_value + (l_endo_dist[jj]* epi_value)
+             
+        dolfin_functions["k_1"][-1].vector()[:] = l_k1 '''
+
+
+
+
+        ## noteMM: above process can be generalized as below for all dolfin params
+
+        local_temp = dolfin_functions[k][-1].vector().get_local()[:]
+        for jj in np.arange(all_cells):
+            
+            if transition_type == "linear":
+                local_temp[jj] = base_value + (l_endo_dist[jj]* epi_value)
+             
+        dolfin_functions[k][-1].vector()[:] = local_temp
+
+
         return dolfin_functions

@@ -131,19 +131,6 @@ class fiber_reorientation():
 
 
         
-        """print "f0"
-        print f0.vector().array()[:]
-        print len(f0.vector().array()[:])
-
-        print "local_dim1"
-        print local_dim1
-
-        print "local_dim2"
-        print local_dim2
-
-        print "local_dim3"
-        print local_dim3"""
-        
 
 
         z_axis_local = z_axis.vector().get_local()[:]

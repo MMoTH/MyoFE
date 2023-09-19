@@ -63,6 +63,8 @@ class MeshClass():
         self.model['Ftotal'], self.model['Jac'], \
         self.model['uflforms'], self.model['solver_params'] = \
             self.create_weak_form()
+        
+
 
     def initialize_function_spaces(self,mesh_struct):
 
@@ -171,8 +173,16 @@ class MeshClass():
         dolfin_functions = {}
         dolfin_functions["passive_params"] = \
             mesh_struct["forms_parameters"]["passive_law_parameters"]
-        dolfin_functions["cb_number_density"] = \
-            half_sarcomere_params['myofilaments']["cb_number_density"]
+        
+
+        for p in ['k_1','k_3','k_on','cb_number_density','k_cb','x_ps']:
+
+            dolfin_functions[p] = \
+            half_sarcomere_params['myofilaments'][p]
+        
+
+
+
         dolfin_functions = \
             self.initialize_dolfin_functions(dolfin_functions,
                                 self.model['function_spaces']['quadrature_space'])
@@ -181,9 +191,22 @@ class MeshClass():
         het_class = assign_heterogeneous_params()
 
         ##MM in the general form there used to be more inputs for below function, but for LV het modeling only below inputs are needed
-        dolfin_functions = het_class.assign_heterogeneous_params(dolfin_functions,self.no_of_cells)
+        dolfin_functions = het_class.assign_heterogeneous_params(dolfin_functions,self.no_of_cells,endo_dist)
         #print "het class worked"
         #print "c param for LV"
+
+
+
+        ###### note
+
+        ## once dolfin functions are created, we need to see where each function is initialized and then replace it with the related dolfin functoin
+        ## cb density is altered later in the weak form. we use het dolfin funtion to modify cb desity after that
+        
+        
+
+
+
+
 
         #print len(np.array(dolfin_functions["passive_params"]["c"][-1].vector().get_local()[:]))
         #print np.array(dolfin_functions["passive_params"]["c"][-1].vector().get_local()[0:9])
@@ -333,6 +356,7 @@ class MeshClass():
                 "hsl0": hsl0,}
 
         params.update(self.model['functions']['dolfin_functions']["passive_params"])
+        #params.update(self.model['functions']['dolfin_functions']["cb_number_density"])
 
         # Need to tack on some other stuff, including an expression to keep track of
         # and manipulate the cavity volume
@@ -415,6 +439,20 @@ class MeshClass():
 
         self.model['functions']['k_cb'].vector()[:] = self.hs.myof.data['k_cb']
         self.model['functions']['cb_number_density'].vector()[:] = self.hs.myof.data['cb_number_density']
+        
+        for kk, vv in self.model['functions']['dolfin_functions'].items():
+            if kk == "cb_number_density":
+                if MPI.rank(self.comm) == 0:  
+                    print("cb alterred in weakform")
+                    print("k=",kk)
+                    print("cb old =",self.model['functions']['cb_number_density'] )
+
+                self.model['functions']['cb_number_density'].vector()[:] = self.model['functions']['dolfin_functions']['cb_number_density'][-1].vector().get_local()[:]
+                if MPI.rank(self.comm) == 0:  
+                    print("cb new =",self.model['functions']['cb_number_density'] )
+
+
+
         self.model['functions']['x_ps'].vector()[:] = self.hs.myof.data['x_ps']
         
         cb_stress = self.return_cb_stress(delta_hsl)
