@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [4],
+        "no_of_time_steps": [40],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -268,9 +268,9 @@
       },
     "output_handler":
     {
-        "output_data_path": ["../demos/fiber/Het_test13/sim_output/data.csv"],
-        "mesh_output_path": ["../demos/fiber/Het_test13/sim_output/mesh_output"],
-        "Het_cell_output_path": ["../demos/fiber/Het_test13/sim_output/cell_data.csv"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_o.33/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_o.33/mesh_output"],
+        "Het_cell_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_o.33/cell_data.csv"],
         "mesh_object_to_save":
         [
             "displacement",
