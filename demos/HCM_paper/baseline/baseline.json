@@ -92,7 +92,7 @@
         {
             "passive_law_parameters": {
               "passive_law": ["semi_structural"],
-              "c": [200, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.3,"scaling_factor":15,"material_properties":"isotropic"}],
+              "c": [200],
               "c2": [250],
               "c3": [15.0],
               "bf": [8.0],
@@ -268,9 +268,9 @@
       },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_o.33/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_o.33/mesh_output"],
-        "Het_cell_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_o.33/cell_data.csv"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline/mesh_output"],
+        "Het_cell_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline/cell_data.csv"],
         "mesh_object_to_save":
         [
             "displacement",
