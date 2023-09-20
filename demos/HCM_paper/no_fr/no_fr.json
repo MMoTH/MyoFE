@@ -1,14 +1,14 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [4000],
+        "no_of_time_steps": [5000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[1],
+                    "t_start_s":[6],
                     "t_stop_s":[10]
 
                 } 
@@ -92,7 +92,7 @@
         {
             "passive_law_parameters": {
               "passive_law": ["semi_structural"],
-              "c": [200, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.3,"scaling_factor":15,"material_properties":"isotropic"}],
+              "c": [200],
               "c2": [250],
               "c3": [15.0],
               "bf": [8.0],
@@ -252,7 +252,7 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[2],
+            "time_constant":[4],
             "reorient_t_start":[0.5,"ms"]
         }
         
@@ -268,9 +268,9 @@
       },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.33/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.33/mesh_output"],
-        "Het_cell_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.33/cell_data.csv"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/no_fr/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/no_fr/mesh_output"],
+        "Het_cell_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/no_fr/cell_data.csv"],
         "mesh_object_to_save":
         [
             "displacement",
