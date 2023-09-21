@@ -1,15 +1,15 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [5000],
+        "no_of_time_steps": [12000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[6],
-                    "t_stop_s":[10]
+                    "t_start_s":[12],
+                    "t_stop_s":[14]
 
                 } 
             ]
@@ -158,7 +158,7 @@
                 },
                 {
                     "name": ["arterioles"],
-                    "resistance": [1000],
+                    "resistance": [800],
                     "compliance": [1e-3],
                     "slack_volume": [0.1]
                 },
@@ -211,15 +211,15 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [4],
+                "k_1": [5],
                 "k_force": [1e-3],
                 "k_2": [200],
-                "k_3": [120],
+                "k_3": [100],
                 "k_4_0": [80],
                 "k_4_1": [1.5],
                 "k_cb": [0.001],
-                "x_ps": [5],
-                "k_on": [2e8],
+                "x_ps": [5.2],
+                "k_on": [1.7e8],
                 "k_off": [200],
                 "k_coop": [5],
                 "int_passive_exp_sigma": [100],
