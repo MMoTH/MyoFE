@@ -116,7 +116,7 @@ def check_output_directory_folder( path=""):
 if __name__ == '__main__':
 
     # Set the path to .geo file
-    input_geo_file = os.getcwd() + '/ellipsoidal.geo'
+    input_geo_file = os.getcwd() + '/ellipsoidal_thin_apex.geo'
     vtk_file_name = "Ellipsoidal"
     output_vtk_str = 'input_files'
 
@@ -124,12 +124,12 @@ if __name__ == '__main__':
     create_ellipsoidal_LV(geofile = input_geo_file,
             output_vtk = output_vtk_str,
             casename=vtk_file_name,
-             meshsize=0.06, gmshcmd="gmsh", 
+             meshsize=0.085, gmshcmd="gmsh", 
              iswritemesh=True, verbose=False)
 
     #mesh size base = 0.075
     # Set the path to save the mesh
-    output_folder = 'output_files/human_60_fiber_meshsize_0.06/'
+    output_folder = 'output_files/thin_apex_ms0.085/'
 
     check_output_directory_folder(path = output_folder)
     vtk_file_str = 'input_files/' + '/' + \
