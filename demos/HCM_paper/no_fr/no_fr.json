@@ -19,7 +19,7 @@
     "heart_rate": {
         "t_active_period": [0.003],
         "t_quiescent_period": [0.92],
-        "t_first_activation": [0.1]
+        "t_first_activation": [0.2]
     },
     "mesh":
     {

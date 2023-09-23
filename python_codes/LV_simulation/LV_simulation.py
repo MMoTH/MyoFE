@@ -154,7 +154,7 @@ class LV_simulation():
         for kk, vv in self.mesh.model['functions']['dolfin_functions'].items():
             if kk == "cb_number_density":
                 if self.comm.Get_rank() == 0:  
-                    print("cb alterred in hs_objs")
+                    print("cb altered in hs_objs")
                     print("k=",kk)
                 for i in np.arange(self.local_n_of_int_points):
                     self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['cb_number_density'][-1].vector().get_local()[i]
@@ -162,14 +162,14 @@ class LV_simulation():
 
             if kk == "k_1":
                 if self.comm.Get_rank() == 0:  
-                    print("k_1 alterred in hs_objs")
+                    print("k_1 altered in hs_objs")
                     print("k=",kk)
                 for i in np.arange(self.local_n_of_int_points):
                     self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['k_1'][-1].vector().get_local()[i]
                     
             if kk == "k_on":
                 if self.comm.Get_rank() == 0:  
-                    print("k_on alterred in hs_objs")
+                    print("k_on altered in hs_objs")
                     print("k=",kk)
                 for i in np.arange(self.local_n_of_int_points):
                     self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['k_on'][-1].vector().get_local()[i]
@@ -848,28 +848,6 @@ class LV_simulation():
         # Update sim data for non-spatial variables on root core (i.e. 0)
 
 
-        '''mesht = self.mesh.model['mesh']
-        PK2t = self.fr.data['signal'] 
-        f0t = self.mesh.model['functions']['f0']
-        ft = PK2t*f0t/sqrt(inner(PK2t*f0t,PK2t*f0t))
-        kappat = self.fr.data['time_constant']    
-
-        f_projt = project(ft,VectorFunctionSpace(mesht,"DG",1),
-                    form_compiler_parameters={"representation":"uflacs"})
-
-        f_adjustedt = 1./kappat * (f_projt - f0t) * time_step  
-        function_spacet = self.mesh.model['function_spaces']['fiber_FS']
-        f_adjusted_pro = project(f_adjustedt,function_spacet)
-
-        
-        pk_projt = project(PK2t,TensorFunctionSpace(mesht,"DG",1),form_compiler_parameters={"representation":"uflacs"})
-        
-        print "fprojt"
-        print (f_projt.vector().get_local()[0:9])
-        print "fadjt"
-        print (f_adjusted_pro.vector().get_local()[0:9])
-        print "pkprojt"
-        print (pk_projt.vector().get_local()[0:9])'''
 
 
 ############# testing Fr class
@@ -989,35 +967,6 @@ class LV_simulation():
             #self.mesh.model['functions']['s0'],self.mesh.model['functions']['n0'] = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0']) 
             # lcs is not defined in the new platform and needs to be discussed
 
-###########################test locally
-
-
-        """
-        mesht = self.mesh.model['mesh']
-        PK2t = self.fr.data['signal'] 
-        f0t = self.mesh.model['functions']['f0']
-        ft = PK2t*f0t/sqrt(inner(PK2t*f0t,PK2t*f0t))
-        kappat = self.fr.data['time_constant']    
-
-        f_projt = project(ft,VectorFunctionSpace(mesht,"DG",1),
-                    form_compiler_parameters={"representation":"uflacs"})
-
-        f_adjustedt = 1./kappat * (f_projt - f0t) * time_step  
-        function_spacet = self.mesh.model['function_spaces']['fiber_FS']
-        f_adjusted_pro = project(f_adjustedt,function_spacet)
-
-        
-        pk_projt = project(PK2t,TensorFunctionSpace(mesht,"DG",1),form_compiler_parameters={"representation":"uflacs"})
-        
-        print "fprojt"
-        print (f_projt.vector().get_local()[0:9])
-        print "fadjt"
-        print (f_adjusted_pro.vector().get_local()[0:9])
-        print "pkprojt"
-        print (pk_projt.vector().get_local()[0:9])   
-        """
-
-
 
 ###################################
 
@@ -1091,17 +1040,6 @@ class LV_simulation():
                         temp_obj = project(self.mesh.model['functions']["fdiff_ang"],finite_elemet_R00)
 
 
-                        '''f0_mag_proj = project(self.mesh.model['functions']["f0_mag"],self.mesh.model['function_spaces']["scalar"])
-                        self.solution_mesh.write(f0_mag_proj,self.data['time'])
-
-                        fdiff_mag_proj = project(self.mesh.model['functions']["fdiff_mag"],self.mesh.model['function_spaces']["scalar"])
-                        self.solution_mesh.write(fdiff_mag_proj ,self.data['time'])
-                        #print ("fdiff_mag_proj ")
-                        #print (fdiff_mag_proj.vector().get_local()[:])
-                        fdiff_ang_proj = project(self.mesh.model['functions']["fdiff_ang"],self.mesh.model['function_spaces']["scalar"])
-                        self.solution_mesh.write(fdiff_ang_proj,self.data['time'])
- '''
-                        
                         
     
                     if m == 'c_param_DG0':

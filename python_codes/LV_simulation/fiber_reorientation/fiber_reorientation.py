@@ -26,7 +26,7 @@ class fiber_reorientation():
         
         #self.parameters.update(params)
         self.data['signal'] = self.return_driving_signal(fiber_struct['stress_type'][0])
-        print "checkPK2"
+        
         """ s_inner = inner(self.parent_params.mesh.model['functions']['f0'],
                          self.parent_params.mesh.model['functions']['total_stress']*self.parent_params.mesh.model['functions']['f0'])
         s_proj = project( s_inner,
@@ -35,7 +35,7 @@ class fiber_reorientation():
 
         print(s_proj)"""
    
-        print(fiber_struct['stress_type'][0])
+        #print(fiber_struct['stress_type'][0])
         #PK2 = self.data['signal']
         #f0 = self.parent_params.mesh.model['functions']['f0']
         #self.f = PK2*f0/np.sqrt(np.inner(PK2*f0,PK2*f0))
@@ -114,7 +114,7 @@ class fiber_reorientation():
     def update_local_coordinate_system(self,fiber_direction):
 
         f0 = fiber_direction.vector().get_local()[:]
-        print "update local cs"
+        #print "update local cs"
         s0 = self.parent_params.mesh.model['functions']['s0'].vector().get_local()[:]
         n0 = self.parent_params.mesh.model['functions']['n0'].vector().get_local()[:]
 
@@ -122,16 +122,8 @@ class fiber_reorientation():
         dm = self.parent_params.mesh.model['function_spaces']['fiber_FS'].dofmap()
         
 
-
-
-        #local_range = dm.ownership_range()
-        #local_dim1 = local_range[1] - local_range[0]
         local_dim2 = self.parent_params.local_n_of_int_points
         
-
-
-        
-
 
         z_axis_local = z_axis.vector().get_local()[:]
 
@@ -141,8 +133,6 @@ class fiber_reorientation():
             f0_holder /= sqrt(np.inner(f0_holder,f0_holder))
 
 
-            #if self.parent_params.comm.Get_rank() == 0:
-                #print"ckeck before"
 
             for kk in range(3):
                 f0[jj*3+kk] = f0_holder[kk]
@@ -150,17 +140,13 @@ class fiber_reorientation():
             #if self.parent_params.comm.Get_rank() == 0:
                 #print"ckeck after"
 
-            #z_axis.vector()[jj*3] = 0.0
-            #z_axis.vector()[jj*3+1] = 0.0
-            #z_axis.vector()[jj*3+2] = 1.0
+
             z_axis_local[jj*3]=0.0
             z_axis_local[jj*3+1]=0.0
             z_axis_local[jj*3+2]=1.0
 
-            #if self.parent_params.comm.Get_rank() == 0:
-                #print jj    
+  
 
-            #s0_holder = np.cross(z_axis.vector().array()[jj*3:jj*3+3],f0_holder)
             s0_holder = np.cross(z_axis_local[jj*3:jj*3+3],f0_holder)
 
 
@@ -175,10 +161,6 @@ class fiber_reorientation():
             for kk in range(3):
                 n0[jj*3+kk] = n0_holder[kk]
 
-        '''if self.parent_params.comm.Get_rank() == 0:
-            print "complete CORE0"
-        if self.parent_params.comm.Get_rank() == 1:
-            print "complete CPRE 1"'''
 
 
         return s0, n0    
@@ -201,7 +183,6 @@ class fiber_reorientation():
             z_axis.vector()[jj*3+1] = 0.0
             z_axis.vector()[jj*3+2] = 1.0
             
-            #print jj    
 
             s0_holder = np.cross(z_axis.vector().array()[jj*3:jj*3+3],f0_holder)
 
