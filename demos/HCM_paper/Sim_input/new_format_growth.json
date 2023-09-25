@@ -300,7 +300,7 @@
             "k_1",
             "k_1_DG0"
         ],
-        "dumping_spatial_in_average":[true],
+        "dumping_spatial_in_average":[false],
         "frequency_n": [10]
         
         

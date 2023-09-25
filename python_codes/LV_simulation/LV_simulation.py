@@ -1236,7 +1236,7 @@ class LV_simulation():
 
            
            
-            for f in list(self.spatial_fiber_data_fields):
+            '''for f in list(self.spatial_fiber_data_fields):
                 data_field = []
 
                 if f == 'f01':
@@ -1245,7 +1245,7 @@ class LV_simulation():
 
                 #for i,d in enumerate(self.mesh.model['functions']['f0'].vector().get_local()[:,1]):
                    # data_field.append(d)
-                self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+                self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)'''
 
             #self.mesh.data['f0'] = array
 
