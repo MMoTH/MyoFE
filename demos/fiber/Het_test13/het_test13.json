@@ -268,9 +268,9 @@
       },
     "output_handler":
     {
-        "output_data_path": ["../demos/fiber/Het_test13/sim_output/data.csv"],
-        "mesh_output_path": ["../demos/fiber/Het_test13/sim_output/mesh_output"],
-        "Het_cell_output_path": ["../demos/fiber/Het_test13/sim_output/cell_data.csv"],
+        "output_data_path": ["../demos/fiber/thin_mesh/sim_output/data.csv"],
+        "mesh_output_path": ["../demos/fiber/thin_mesh/sim_output/mesh_output"],
+        "Het_cell_output_path": ["../demos/fiber/thin_mesh/sim_output/cell_data.csv"],
         "mesh_object_to_save":
         [
             "displacement",

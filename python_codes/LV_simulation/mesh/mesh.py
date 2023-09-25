@@ -116,7 +116,7 @@ class MeshClass():
         # Now handle if manual elements need to be defined 
         if 'function_spaces' in mesh_struct:
             for fs in mesh_struct['function_spaces']:
-                print (fs['name'][0])
+                #print (fs['name'][0])
                 #define required finite elements 
                 if fs['type'][0] == 'scalar':
                     finite_element = \
@@ -192,8 +192,7 @@ class MeshClass():
 
         ##MM in the general form there used to be more inputs for below function, but for LV het modeling only below inputs are needed
         dolfin_functions = het_class.assign_heterogeneous_params(dolfin_functions,self.no_of_cells,endo_dist)
-        #print "het class worked"
-        #print "c param for LV"
+       
 
 
 
@@ -203,10 +202,6 @@ class MeshClass():
         ## cb density is altered later in the weak form. we use het dolfin funtion to modify cb desity after that
         
         
-
-
-
-
 
         #print len(np.array(dolfin_functions["passive_params"]["c"][-1].vector().get_local()[:]))
         #print np.array(dolfin_functions["passive_params"]["c"][-1].vector().get_local()[0:9])
@@ -443,9 +438,9 @@ class MeshClass():
         for kk, vv in self.model['functions']['dolfin_functions'].items():
             if kk == "cb_number_density":
                 if MPI.rank(self.comm) == 0:  
-                    print("cb alterred in weakform")
+                    print("cb alterred in function_space")
                     print("k=",kk)
-                    print("cb old =",self.model['functions']['cb_number_density'] )
+                    
 
                 self.model['functions']['cb_number_density'].vector()[:] = self.model['functions']['dolfin_functions']['cb_number_density'][-1].vector().get_local()[:]
                 if MPI.rank(self.comm) == 0:  
@@ -560,7 +555,7 @@ class MeshClass():
        
     def initialize_dolfin_functions(self,dolfin_functions_dict,fcn_space):
 
-        print "initializing dolfin functions"
+        #print "initializing dolfin functions"
         # This function will recursively go through the dolfin_functions_dict and append
         # an initialized dolfin function to the list that exists as the parameter key's value
 
@@ -571,7 +566,7 @@ class MeshClass():
             else:
                 self.append_initialized_function(dolfin_functions_dict,k,fcn_space) #first item in value list must be base value
 
-        #print "new dict", dolfin_functions_dict
+        
 
         return dolfin_functions_dict
 

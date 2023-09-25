@@ -867,77 +867,77 @@ class LV_simulation():
 
 
 
-        if self.data['fr_active'] == 1:
+            if self.data['fr_active'] == 1:
 
-            if self.comm.Get_rank() == 0:
-                print "updating fiber orientation"
-            #deg = 2
-            #VQuadelem = VectorElement("Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default")
-            #VQuadelem._quad_scheme = 'default'
-            #fiberFS = FunctionSpace(self.mesh, VQuadelem)
- 
+                if self.comm.Get_rank() == 0:
+                    print "updating fiber orientation"
+                #deg = 2
+                #VQuadelem = VectorElement("Quadrature", self.mesh.ufl_cell(), degree=deg, quad_scheme="default")
+                #VQuadelem._quad_scheme = 'default'
+                #fiberFS = FunctionSpace(self.mesh, VQuadelem)
+    
 
-            #PK2_passive = self.mesh.model['functions']['total_passive_PK2']
-            #Pactive = self.mesh.model['functions']['Pactive']
-            #total_stress = PK2_passive + Pactive
-            #kappa = self.fr.data['time_constant']
-
-            
-
-            fdiff = self.fr.stress_law(self.fr.data['signal'],time_step,self.mesh.model['function_spaces']['fiber_FS'])
-
-            temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
-            temp_fiber += fdiff.vector().get_local()[:]
-            self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
-
-
-            
-            ##MM below parameters are calculated for post processing purposes
-            #self.mesh.model['functions']["fdiff_mag"] = (sqrt((inner(fdiff,fdiff))))
-            l_f0 = self.mesh.model['functions']['f0'].vector().get_local()[:] 
-            ## important note: if we localize fiber data here as initial fiber it does not contain inital fiber as it is also updated automatically. initial fiber sould be localized out of time loop
-            #l_`f00 `= self.mesh.model['functions']['f00'].vector().get_local()[:] 
-            l_fdiff_ang = self.mesh.model['functions']["fdiff_ang"].vector().get_local()[:] 
-            
-            for ii in np.arange(self.local_n_of_int_points):
+                #PK2_passive = self.mesh.model['functions']['total_passive_PK2']
+                #Pactive = self.mesh.model['functions']['Pactive']
+                #total_stress = PK2_passive + Pactive
+                #kappa = self.fr.data['time_constant']
 
                 
-                l_f0_holder = l_f0[ii*3:ii*3+3]
-                l_f00_holder = self.l_f00[ii*3:ii*3+3]
+
+                fdiff = self.fr.stress_law(self.fr.data['signal'],time_step,self.mesh.model['function_spaces']['fiber_FS'])
+
+                temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
+                temp_fiber += fdiff.vector().get_local()[:]
+                self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
+
+
                 
-                cos = (np.inner(l_f0_holder,l_f00_holder))/(sqrt(np.inner(l_f0_holder,l_f0_holder))*sqrt(np.inner(l_f00_holder,l_f00_holder)))
-                cos = np.clip(cos, -1, 1)  #MM here avoids values abouve 1 cause nan results
-                rad = np.arccos(cos) 
-                theta = math.degrees(rad)
-                l_fdiff_ang[ii] = theta
-                #l_fdiff_ang[ii] = (180/3.14159)*np.arccos((np.inner(l_f0_holder,l_f00_holder))/(sqrt(np.inner(l_f0_holder,l_f0_holder))*sqrt(np.inner(l_f00_holder,l_f00_holder))))
+                ##MM below parameters are calculated for post processing purposes
+                #self.mesh.model['functions']["fdiff_mag"] = (sqrt((inner(fdiff,fdiff))))
+                l_f0 = self.mesh.model['functions']['f0'].vector().get_local()[:] 
+                ## important note: if we localize fiber data here as initial fiber it does not contain inital fiber as it is also updated automatically. initial fiber sould be localized out of time loop
+                #l_`f00 `= self.mesh.model['functions']['f00'].vector().get_local()[:] 
+                l_fdiff_ang = self.mesh.model['functions']["fdiff_ang"].vector().get_local()[:] 
                 
+                for ii in np.arange(self.local_n_of_int_points):
+
+                    
+                    l_f0_holder = l_f0[ii*3:ii*3+3]
+                    l_f00_holder = self.l_f00[ii*3:ii*3+3]
+                    
+                    cos = (np.inner(l_f0_holder,l_f00_holder))/(sqrt(np.inner(l_f0_holder,l_f0_holder))*sqrt(np.inner(l_f00_holder,l_f00_holder)))
+                    cos = np.clip(cos, -1, 1)  #MM here avoids values abouve 1 cause nan results
+                    rad = np.arccos(cos) 
+                    theta = math.degrees(rad)
+                    l_fdiff_ang[ii] = theta
+                    #l_fdiff_ang[ii] = (180/3.14159)*np.arccos((np.inner(l_f0_holder,l_f00_holder))/(sqrt(np.inner(l_f0_holder,l_f0_holder))*sqrt(np.inner(l_f00_holder,l_f00_holder))))
+                    
+                
+                self.mesh.model['functions']["fdiff_ang"].vector()[:] = l_fdiff_ang
+                
+
+
+                #self.mesh.model['functions']["f0_mag"] = (sqrt((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f0']))))
+                #self.mesh.model['functions']["f00_mag"] = (sqrt((inner(self.mesh.model['functions']['f00'],self.mesh.model['functions']['f00']))))
+                #self.mesh.model['functions']["fdiff_ang"] = (180/3.14159)*acos((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f00']))/(self.mesh.model['functions']["f0_mag"] *self.mesh.model['functions']["f00_mag"]  ))
+
+
+
+                print "CHECKING NUMBER OF FIBER VECTORS"
+                print np.shape(self.mesh.model['functions']['f0'].vector().get_local())
+                print "Fiber orientation updated"
+                
+                
+                s1 , n1 = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0'])
+                
+                self.mesh.model['functions']['s0'].vector()[:]=s1   ### on the left hand side get local is not needed as it can find the right place of the data in global function
+                self.mesh.model['functions']['n0'].vector()[:]=n1
+
+
+
+                ##MM to save the fiber even before fiber remodleing this apart needs to be out of if FR = 1
+                #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
             
-            self.mesh.model['functions']["fdiff_ang"].vector()[:] = l_fdiff_ang
-            
-
-
-            #self.mesh.model['functions']["f0_mag"] = (sqrt((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f0']))))
-            #self.mesh.model['functions']["f00_mag"] = (sqrt((inner(self.mesh.model['functions']['f00'],self.mesh.model['functions']['f00']))))
-            #self.mesh.model['functions']["fdiff_ang"] = (180/3.14159)*acos((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f00']))/(self.mesh.model['functions']["f0_mag"] *self.mesh.model['functions']["f00_mag"]  ))
-
-
-
-            print "CHECKING NUMBER OF FIBER VECTORS"
-            print np.shape(self.mesh.model['functions']['f0'].vector().get_local())
-            print "Fiber orientation updated"
-            
-            
-            s1 , n1 = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0'])
-            
-            self.mesh.model['functions']['s0'].vector()[:]=s1   ### on the left hand side get local is not needed as it can find the right place of the data in global function
-            self.mesh.model['functions']['n0'].vector()[:]=n1
-
-
-
-            ##MM to save the fiber even before fiber remodleing this apart needs to be out of if FR = 1
-            #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
-        
         #MM in kurtis code here f0 is being projected on fiber_FS. question: why is this needed as f0 is already on the fiber FS space
         #f0_vs_time_temp = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
         

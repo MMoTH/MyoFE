@@ -52,13 +52,13 @@
             }
         ], 
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/hsh245/new_memorial/baro_MI_at_0.35_L/sim_output/"
+            "../demos/fiber/thin_mesh2/sim_output/mesh_output"
         ], 
         "dumping_spatial_in_average": [
             false
         ], 
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/hsh245/new_memorial/baro_MI_at_0.35_L/sim_output/data.csv"
+            "../demos/fiber/thin_mesh2/sim_output/data.csv"
         ], 
         "frequency_n": [
             10
@@ -493,7 +493,7 @@
             0.001
         ], 
         "no_of_time_steps": [
-            80000
+            4
         ], 
         "baroreflex": {
             "activations": [
@@ -507,6 +507,18 @@
                 }
             ]
         }, 
+        "fiber_reorientation":
+        {
+            "activations":
+            [
+                {
+                    "t_start_s":[12],
+                    "t_stop_s":[14]
+
+                } 
+            ]
+        },
+
         "infarct": {
             "activations": [
                 {
@@ -679,7 +691,7 @@
             ]
         }, 
         "mesh_path": [
-            "../../simulations/baro_MI_at_0.35_L//sim_inputs/ellipsoidal_correct_fiber.hdf5"
+            "../demos/HCM_paper/Sim_input/ellipsoidal.hdf5"
         ], 
         "relative_path": [
             true
