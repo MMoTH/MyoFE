@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [4000],
+        "no_of_time_steps": [10000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
