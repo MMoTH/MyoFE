@@ -282,8 +282,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/no_fr2/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/no_fr2/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/no_fr_form_gr/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/no_fr_from_gr/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
