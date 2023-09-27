@@ -175,7 +175,7 @@ class Circulation():
 
         # Tidy up negative values
         y = sol.y[:, -1]
-
+        y[-2] = y[-2] + (self.data['blood_volume'] - np.sum(y))
         return y 
 
     def return_flows(self,v):
@@ -210,8 +210,7 @@ class Circulation():
                 self.data['mitral_insufficiency_conductance']
 
         return f
-
-
+    
     def evolve_regurgitant_volumes(self,time_step,v):
         """ Evolve regurgitant volumes """
 
@@ -225,6 +224,7 @@ class Circulation():
             self.data['mitral_reg_volume'] = 0
         mrv = dmrv * time_step + self.data['mitral_reg_volume']
 
+
         darv = flows[0]
         if darv > 0:
             darv = 0
@@ -233,8 +233,6 @@ class Circulation():
         reg_volumes = [mrv,arv]
 
         return reg_volumes
-
-        
 
     def updata_data(self,time_step):
 

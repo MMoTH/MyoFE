@@ -159,6 +159,15 @@ class LV_simulation():
             self.gr = [] 
         # If required, create the vad object
         self.va = []
+        
+        self.infarct = 0
+        self.infarct_regions = [] 
+        self.border_zone_regions = []
+        if 'infarct' in instruction_data['mesh']:
+            if self.comm.Get_rank() == 0:
+                print 'Initializing infarct module'
+            self.infarct = 1
+            
 
 
         """self.mesh.model['functions']['LVCavityvol'].vol = \
@@ -255,6 +264,9 @@ class LV_simulation():
         if spatial_data_fields:
             # create data fileds based on what user has asked
             for sd in spatial_data_fields:
+                if sd['level'][0] == 'half_sarcomeres':
+                    for f in sd['fields']:
+                        self.spatial_hs_data_fields.append(f)   
                 if sd['level'][0] == 'myofilaments':
                     for f in sd['fields']:
                         self.spatial_myof_data_fields.append(f)
@@ -313,8 +325,8 @@ class LV_simulation():
         self.spatial_data_to_mean = False
         self.dumping_data_frequency = 1
         if output_struct:
-            if 'spatial_data_fileds' in output_struct:
-                spatial_data_fields = output_struct['spatial_data_fileds']
+            if 'spatial_data_fields' in output_struct:
+                spatial_data_fields = output_struct['spatial_data_fields']
             if 'dumping_spatial_in_average' in output_struct:
                 if output_struct['dumping_spatial_in_average'][0] == True:
                     self.spatial_data_to_mean = True
@@ -388,10 +400,12 @@ class LV_simulation():
                                                 self.mesh.model['function_spaces']["scalar_for_active"],
                                                 form_compiler_parameters={"representation":"uflacs"})
                         
-                        if m in ['k_1','k_3','k_on','k_act','k_serca']:
+                       
+
+                        if m in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density']:
                             temp_obj = project(self.mesh.model['functions'][m], 
-                                                self.mesh.model['function_spaces']["scalar"],
-                                                form_compiler_parameters={"representation":"uflacs"})
+                                                self.mesh.model['function_spaces']["scalar"])
+
                         if m == 'active_stress':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
@@ -419,6 +433,7 @@ class LV_simulation():
                                         self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
                             
+
                         if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'],
@@ -489,22 +504,13 @@ class LV_simulation():
                     (self.data['time'],
                     100*self.t_counter/self.prot.data['no_of_time_steps']))
 
-            vol, press, flow = self.return_system_values()
+                vol, press, flow = self.return_system_values()
                 
-            print(json.dumps(vol, indent=4))
-            print(json.dumps(press, indent=4))
-            print(json.dumps(flow, indent=4))
-        """###############"""
-        temp_vol = self.mesh.model['uflforms'].LVcavityvol()
-        lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
 
-        if self.comm.Get_rank() == 0:
-            print "LV volume: %f" %temp_vol
-            print self.circ.data['v']
-            print 'lv_p: %f' %lv_p
-            #print 'y_vec in hs class'
-            #print self.hs_objs_list[0].myof.y
-        """###############"""
+                print(json.dumps(vol, indent=4))
+                print(json.dumps(press, indent=4))
+                print(json.dumps(flow, indent=4))
+        
         # Update circulation and FE function for LV cavity volume
         self.circ.data['v'] = \
                 self.circ.evolve_volume(time_step, self.circ.data['v'])
@@ -549,6 +555,7 @@ class LV_simulation():
                     elif p.data['level'] == 'baroreflex':
                         self.br.data[p.data['variable']] += \
                             p.data['increment']
+
                     elif p.data['level'] == 'myofilaments':
                         for j in range(self.local_n_of_int_points):
                             self.hs_objs_list[j].myof.data[p.data['variable']] +=\
@@ -562,6 +569,33 @@ class LV_simulation():
                         self.gr.data[p.data['variable']] += \
                             self.gr.data[p.data['variable']] * p.data['precentage_change']
 
+
+        if self.infarct: 
+            for i in self.prot.infarct_activation:
+                if (self.t_counter >= i.data['t_start_ind'] and 
+                    self.t_counter < i.data['t_stop_ind']):
+                    if self.t_counter == i.data['t_start_ind']:
+                        self.infarct_regions, self.border_zone_regions = \
+                            self.handle_infarct(self.instruction_data['mesh']['infarct'])
+                    if self.infarct_model['level']== 'myofilaments':
+                        for r in self.infarct_regions:
+                            self.hs_objs_list[r].myof.data[self.infarct_model['variable']] +=\
+                                i.data['infarct_increment']
+
+                            #print self.hs_objs_list[r].myof.data[self.infarct.model['variable']]
+                        
+                        for b in self.border_zone_regions:
+                            self.hs_objs_list[b].myof.data[self.infarct_model['variable']] +=\
+                                i.data['boundary_zone_increment']
+
+                    elif self.infarct_model['level'] == 'membranes':
+                        for r in self.infarct_regions:
+                            self.hs_objs_list[r].memb.data[self.infarct_model['variable']] +=\
+                                i.data['infarct_increment']
+                        for b in self.border_zone_regions:
+                            self.hs_objs_list[b].memb.data[self.infarct_model['variable']] +=\
+                                i.data['boundary_zone_increment']
+        
         # Rubild system arrays
         self.rebuild_from_perturbations()
         # Proceed time
@@ -573,7 +607,12 @@ class LV_simulation():
             print 'Solving MyoSim ODEs across the mesh'
         start = time.time()
         for j in range(self.local_n_of_int_points):
-        
+            
+            for p in ['k_1','k_3','k_on','cb_number_density'] :
+                self.mesh.data[p][j] = self.hs_objs_list[j].myof.data[p]
+            for p in ['k_act','k_serca']:
+                self.mesh.data[p][j] = self.hs_objs_list[j].memb.data[p]
+
             self.hs_objs_list[j].update_simulation(time_step, 
                                                 self.delta_hs_length_list[j], 
                                                 activation,
@@ -586,7 +625,11 @@ class LV_simulation():
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
                 self.hs_objs_list[j].myof.y[:]
         end =time.time()
-
+        
+        for p in ['k_1','k_3','k_on','cb_number_density','k_act','k_serca'] :
+            self.mesh.model['functions'][p].vector()[:] = \
+                  self.mesh.data[p]
+                
         if self.comm.Get_rank() == 0:
             print 'Required time for solving myosim was'
             t = end-start 
@@ -596,22 +639,10 @@ class LV_simulation():
         self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
         self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
 
-        """###############"""
-        temp_vol = self.mesh.model['uflforms'].LVcavityvol()
-        if self.comm.Get_rank() == 0:
-            print "LV volume befor assigning LVCavityvol:" 
-            print temp_vol
-            print self.circ.data['v']
-        """###############"""
+
         # Update LV cavity volume fenics function        
         self.mesh.model['functions']['LVCavityvol'].vol = \
             self.circ.data['v'][-1]
-
-        """temp_vol = self.mesh.model['uflforms'].LVcavityvol()
-        if self.comm.Get_rank() == 0:
-            print "LV volume after assigning LVCavityvol:" 
-            print temp_vol
-            print self.circ.data['v'][-1]"""
 
         self.comm.Barrier()
         #Solve cardiac mechanics weak form
@@ -620,11 +651,7 @@ class LV_simulation():
             print 'solving weak form'
         self.solver.solvenonlinear()
         
-        """temp_vol = self.mesh.model['uflforms'].LVcavityvol()
-        if self.comm.Get_rank() == 0:
-            print "LV volume after solver:" 
-            print temp_vol
-            print self.circ.data['v']-[1]"""
+
         # Start updating variables after solving the weak form 
         # First pressure in circulation
         for i in range(self.circ.model['no_of_compartments']-1):
@@ -777,30 +804,7 @@ class LV_simulation():
                             if self.comm.Get_rank() == 0:
                                 print 'Reference volume before growth'
                                 print self.reference_LV_vol
-                           
-                            """########start#######"""
-                            # *** testing
-                            Fe_0 = self.gr.mechan.model['functions']['Fe']
-                            temp_Fe_0 = project(Fe_0,self.gr.mechan.model['function_spaces']['tensor_space'],
-                                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-                            Fg_0 = self.gr.mechan.model['functions']['Fg']
-                            temp_Fg_0 = project(Fg_0,self.gr.mechan.model['function_spaces']['tensor_space'],
-                                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-                            F_0 = self.gr.mechan.model['functions']['Fmat']
-                            temp_F_0 = project(F_0,self.gr.mechan.model['function_spaces']['tensor_space'],
-                                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-
-                            if self.comm.Get_rank() == 0:
-                                print 'Fg before updating Fg'
-                                print temp_Fg_0
-                                print 'Fe before updating Fg'
-                                print temp_Fe_0
-                                print 'F before updating Fg'
-                                print temp_F_0
-                            #self.gr.mechan.model['functions']['temp_theta_fiber'].vector()[:] = 1
-                            #self.gr.mechan.model['functions']['temp_theta_sheet'].vector()[:] = 1.1
-                            #self.gr.mechan.model['functions']['temp_theta_sheet_normal'].vector()[:] = 1.1
-                            """########end#######"""
+                         
 
                             # update dolfin functions for thetas that Fg is defined upon
                             # Fg = theta_f(f0xf0) + theta_s(s0xs0) + theta_n(n0xn0)
@@ -1050,13 +1054,6 @@ class LV_simulation():
                                 print 'F after reseting w'
                                 print temp_F
 
-                            temp_lv_vol = \
-                                self.mesh.model['uflforms'].LVcavityvol()
-                            lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
-                            if self.comm.Get_rank() == 0:
-                                print 'LV caviry vol after growth:'
-                                print temp_lv_vol
-                                print 'lv_p: %f' %lv_p
                             """#######end########"""
 
                             # now reload back to ED vol
@@ -1265,12 +1262,12 @@ class LV_simulation():
                     if m == 'hs_length':
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
                                                 self.mesh.model['function_spaces']["scalar_for_active"],
-                                                form_compiler_parameters={"representation":"uflacs"})
-                   
-                    if m in ['k_1','k_3','k_on','k_act','k_serca']:
+                                                form_compiler_parameters={"representation":"uflacs"})                  
+                    
+                    if m in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density']:
                             temp_obj = project(self.mesh.model['functions'][m], 
-                                                self.mesh.model['function_spaces']["scalar"],
-                                                form_compiler_parameters={"representation":"uflacs"})
+                                                self.mesh.model['function_spaces']["scalar"])
+
                     if m == 'active_stress':
                         #inner_p = self.mesh.model['functions']['Pactive']
                         #temp_obj= project(inner_p,Vq,form_compiler_parameters={"representation":"uflacs"})
@@ -1298,6 +1295,7 @@ class LV_simulation():
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})                    
+
                     if m == 'fiber_direction':
                             temp_obj = project(self.mesh.model['functions']['f0'],
                                         self.mesh.model['function_spaces']['vector_f'],
@@ -1414,7 +1412,7 @@ class LV_simulation():
             self.local_spatial_sim_data.at[self.write_counter,'time'] = self.data['time']
             for f in list(self.spatial_hs_data_fields):
                 data_field = []
-                for h in self.hs_objs_list:
+                for i,h in enumerate(self.hs_objs_list):
                     data_field.append(h.data[f]) 
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
@@ -1550,6 +1548,11 @@ class LV_simulation():
     def return_spherical_radius(self,xc,yc,zc,x,y,z):
 
         return ((xc-x)**2+(yc-y)**2+(zc-z)**2)**0.5 
+    
+
+
+    
+
 
     def initialize_dof_mapping(self):
         
@@ -1607,6 +1610,7 @@ class LV_simulation():
         if self.comm.Get_rank() == 1:
             print 'Total no if int points is %0.0f'\
                 %self.global_n_of_int_points
+            
     def handle_coordinates_of_geometry(self):
 
         """ Handle the coordinates of quadrature (integer) points"""
@@ -1714,4 +1718,39 @@ class LV_simulation():
             self.mesh.model['functions'][p].vector()[:] = \
                   self.mesh.data[p]
 
-    
+    def handle_infarct(self,infarct_struct):
+
+        self.infarct_model = dict()
+        for inf in infarct_struct.keys():
+            self.infarct_model[inf] = infarct_struct[inf][0]
+        #define the initial point of infarcted region 
+        y_m = 0
+        z_m = self.z_coord.min() * self.infarct_model['z_ratio']
+        z_m_upper = z_m * 0.99
+        z_m_lower = z_m * 1.01
+
+        x_mid_vent_slice = \
+            self.x_coord[np.where((self.z_coord>=z_m_lower)&\
+                        (self.z_coord<=z_m_upper))]
+        x_m = x_mid_vent_slice.max()
+
+
+        radius = []
+        for i,p in enumerate(self.z_coord):
+            radius.append(self.return_spherical_radius(x_m,y_m,z_m,
+                                self.x_coord[i],
+                                self.y_coord[i],
+                                self.z_coord[i]))
+        radius = np.array(radius)
+
+        local_points_r = np.zeros(self.local_n_of_int_points)
+        for i,j in enumerate(self.dofmap):
+            local_points_r[i] = radius[j]
+
+        infarct_regions = np.where(local_points_r<=self.infarct_model['infarct_radius'])[0]
+        border_zone_regions = \
+            np.where((local_points_r >= self.infarct_model['infarct_radius']) &\
+                    (local_points_r <= self.infarct_model['boundary_zone_radius']))[0]
+        
+        return infarct_regions, border_zone_regions
+
