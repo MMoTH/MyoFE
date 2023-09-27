@@ -148,7 +148,7 @@ def return_fluxes(self, y, Ca_conc):
         r_1 = np.minimum(self.implementation['max_rate'],
                         self.data['k_1'] * 
                         (1.0 + self.data['k_force'] *
-                             np.maximum(0, self.cb_stress)))
+                             np.maximum(0, self.total_stress)))
         J_1 = r_1 * M_SRX
 
         r_2 = np.minimum(self.implementation['max_rate'], self.data['k_2'])
@@ -199,7 +199,7 @@ def return_fluxes(self, y, Ca_conc):
         r_1 = np.minimum(self.implementation['max_rate'],
                         self.data['k_1'] * 
                         (1.0 + self.data['k_force'] *
-                             np.maximum(0, self.cb_stress)))
+                             np.maximum(0, self.total_stress)))
         J_1 = r_1 * M_SRX
 
         r_2 = np.minimum(self.implementation['max_rate'], self.data['k_2'])
@@ -262,7 +262,7 @@ def return_fluxes(self, y, Ca_conc):
         r_1 = np.minimum(self.implementation['max_rate'],
                          self.data['k_1'] *
                          (1.0 + self.data['k_force'] *
-                              np.maximum(0, self.cb_stress)))
+                              np.maximum(0, self.total_stress)))
         J_1 = r_1 * M_SRX
 
         r_2 = np.minimum(self.implementation['max_rate'],
@@ -351,7 +351,7 @@ def return_fluxes(self, y, Ca_conc):
         r_1 = np.minimum(self.implementation['max_rate'],
                          self.data['k_1'] *
                          (1.0 + self.data['k_force'] *
-                              np.maximum(0, self.cb_stress)))
+                              np.maximum(0, self.total_stress)))
         J_1 = r_1 * M_SRX
 
         r_2 = np.minimum(self.implementation['max_rate'],

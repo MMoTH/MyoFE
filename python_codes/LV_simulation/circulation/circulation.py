@@ -133,7 +133,7 @@ class Circulation():
         self.va = 0
         self.data['aortic_insufficiency_conductance'] = 0
         self.data['mitral_insufficiency_conductance'] = 0
-        
+
         # Define regurgitant volume
         self.data['mitral_reg_volume'] = 0
         self.data['aortic_reg_volume'] = 0
@@ -224,6 +224,7 @@ class Circulation():
             self.data['mitral_reg_volume'] = 0
         mrv = dmrv * time_step + self.data['mitral_reg_volume']
 
+
         darv = flows[0]
         if darv > 0:
             darv = 0
@@ -232,7 +233,7 @@ class Circulation():
         reg_volumes = [mrv,arv]
 
         return reg_volumes
-    
+
     def updata_data(self,time_step):
 
         #self.data['f'] = self.return_flows(self.data['v'])

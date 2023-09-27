@@ -28,10 +28,14 @@ class half_sarcomere():
 
     def update_simulation(self, time_step, delta_hsl, activation, cb_stress, pas_stress):
         
-        if (np.abs(delta_hsl) > 0.0):
+        #if (np.abs(delta_hsl) > 0.0):
+        if delta_hsl != 0:
             # Need to move some things
+            #print 'delta hsl before move cb distribution'
+            #print delta_hsl
             self.myof.move_cb_distributions(delta_hsl)
             self.data['hs_length'] = self.data['hs_length'] + delta_hsl
+            
 
         if (time_step > 0.0):
             # Need to do some kinetics stuff

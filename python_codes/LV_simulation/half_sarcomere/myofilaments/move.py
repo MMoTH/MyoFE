@@ -19,6 +19,8 @@ def move_cb_distributions(self, delta_hsl):
                                   kind='quadratic',
                                   fill_value=0,
                                   bounds_error=False)(interp_positions)
+        #print 'y_vec in move cb'
+        #print self.y
 
         # Make sure we don't have any negative populations
         temp = self.y[bin_indices]
