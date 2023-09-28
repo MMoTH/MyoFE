@@ -69,7 +69,7 @@ class LV_simulation():
         # Initialize the solver object 
         
         #self.solver_params = self.mesh.model['solver_params']
-        self.solver =  NSolver(self,comm)
+        self.solver =  NSolver(self,self.mesh,comm)
 
 
         self.y_vec = \
