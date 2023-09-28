@@ -1,16 +1,18 @@
 from dolfin import *
 import math
+import json
 import numpy as np
 from .solver import Problem, CustomSolver
  
 class NSolver(object):
 
 
-    def __init__(self,parent_params,comm):
+    def __init__(self,parent_params,mesh_obj,comm):
 
         self.parent = parent_params
-        self.parameters =  parent_params.mesh.model['solver_params']
-        self.uflforms = parent_params.mesh.model['uflforms']
+        self.mesh_obj = mesh_obj
+        self.parameters =  self.mesh_obj.model['solver_params']
+        self.uflforms = self.mesh_obj.model['uflforms']
         self.isfirstiteration = 0
         self.comm = comm
         
@@ -21,13 +23,13 @@ class NSolver(object):
                 for k in solver_struct['params'].keys():
                     self.solver_params[k] = solver_struct['params'][k][0]
         
-        if comm.Get_rank() == 0:
+        """if comm.Get_rank() == 0:
             print self.solver_params
             list_linear_solver_methods()
             print '****'
             list_krylov_solver_methods()
             print '****'
-            list_krylov_solver_preconditioners()
+            list_krylov_solver_preconditioners()"""
 
 
     def default_solver_parameters(self):
@@ -36,7 +38,250 @@ class NSolver(object):
                 "max_iter": 50,
                 'debugging_mode': False}
 
+    def solve_growth(self):
+        abs_tol = self.solver_params["abs_tol"]
+        rel_tol = self.solver_params["rel_tol"]
+        maxiter = self.solver_params["max_iter"]
+        debugging_mode = True#self.solver_params["debugging_mode"]
+        mode = self.parameters["mode"]
 
+        w = self.parameters["w"]
+        bcs = self.parameters["boundary_conditions"]
+        Jac_gr = self.parameters["Jac_gr"]
+        Ftotal_Gr = self.parameters["Ftotal_gr"]
+
+        F1 = self.parameters["F1"]
+        #F2 = self.parameters["F2"]
+        #F3 = self.parameters["F3"]
+        F4 = self.parameters["F4"]
+        w = self.parameters["w"]
+        bcs = self.parameters["boundary_conditions"]
+        F3_p = self.parameters["F3_p"]
+
+        f3_p_temp = assemble(F3_p, form_compiler_parameters={"representation":"uflacs"})
+        
+
+        if(not debugging_mode):
+
+            solve(Ftotal_Gr == 0, w, bcs, J = Jac_gr,
+                solver_parameters={"newton_solver":
+                                {"relative_tolerance":rel_tol, 
+                                 "absolute_tolerance":abs_tol, 
+                                 "maximum_iterations":maxiter}}, 
+                                 form_compiler_parameters={"representation":"uflacs"})
+
+            self.mesh_obj.model['functions']['w'] = w
+        
+        else:
+
+            it = 0
+            if(self.isfirstiteration  == 0):
+                A, b = assemble_system(Jac_gr, -Ftotal_Gr, bcs, \
+                form_compiler_parameters={"representation":"uflacs"}\
+                                                )
+                resid0 = b.norm("l2")
+                rel_res = b.norm("l2")/resid0
+                res = resid0
+                if(self.comm.Get_rank() == 0 and mode > 0):
+                    print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
+                solve(A, w.vector(), b)
+                #solve(A, w.vector(), b,'gmres')
+                #self.solver.solve(A, w.vector(), b)
+
+            it += 1
+            self.isfirstiteration = 1
+
+            B = assemble(Ftotal_Gr,\
+                        form_compiler_parameters={"representation":"uflacs"}\
+                                    )
+            F_labels = ['F1','F3_p','F4']
+            F_dict = dict()
+            for i,F in enumerate([F1,F3_p,F4]):
+                F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
+                for bc in bcs:
+                    bc.apply(F_temp)
+                            
+                F_dict[F_labels[i]] = F_temp.norm("l2")
+            if(self.comm.Get_rank() == 0 and mode > 0):
+                    print(json.dumps(F_dict, indent=4))
+
+            for bc in bcs:
+                bc.apply(B)
+
+                rel_res = 1.0
+                res = B.norm("l2")
+                resid0 = res
+
+                if(self.comm.Get_rank() == 0 and mode > 0):
+                    print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
+
+                dww = w.copy(deepcopy=True)
+                dww.vector()[:] = 0.0
+
+                #while (rel_res > rel_tol and res > abs_tol) and it < maxiter:
+                while (res > abs_tol) and it < maxiter: 
+
+                    it += 1
+
+                    A, b = assemble_system(Jac_gr, -Ftotal_Gr, bcs, \
+                            form_compiler_parameters={"representation":"uflacs"}\
+                                    )
+
+                    solve(A, dww.vector(), b)
+                    #solve(A, dww.vector(), b,'gmres')
+                    #self.solver.solve(A, w.vector(), b)
+                    #solve(A, dww.vector(), b,solver_parameters={"linear_solver": "gmres",
+                    #        "preconditioner": "hypre_euclid"})
+                    w.vector().axpy(1.0, dww.vector())
+
+
+                    B = assemble(Ftotal_Gr,form_compiler_parameters={"representation":"uflacs"})
+
+                    F_labels = ['F1','F3_p','F4']
+                    F_dict = dict()
+                    for i,F in enumerate([F1,F3_p,F4]):
+                        F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
+                        for bc in bcs:
+                            bc.apply(F_temp)
+                            
+                        F_dict[F_labels[i]] = F_temp.norm("l2")
+                    if(self.comm.Get_rank() == 0 and mode > 0):
+                        print(json.dumps(F_dict, indent=4))
+
+                    for bc in bcs:
+                            bc.apply(B)
+                    #if np.isnan(B.array().astype(float)).any():
+                    #    print "nan found in B assembly after bcs"
+                    rel_res = B.norm("l2")/resid0
+                    res = B.norm("l2")
+
+                    if(self.comm.Get_rank() == 0 and mode > 0):
+                        print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
+
+                    
+                    #print self.mesh_obj.model['functions']['incomp'].vector()
+                    #incomp = project(self.mesh_obj.model['functions']['incomp'],
+                    #            self.mesh_obj.model['function_spaces']['tensor_space'])
+
+                    
+                    
+                    """hsl_temp = project(self.mesh_obj.model['functions']['hsl'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"])
+                    #hsl_temp = self.mesh_obj.model['functions']['hsl_old']
+                    if np.isnan(hsl_temp.vector().array()).any():
+                        print 'nan in hsl'
+                    print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f before iteration'%(hsl_temp.vector().array().min(),
+                    hsl_temp.vector().array().max(),self.comm.Get_rank())
+                    
+                    cb_stress = project(self.mesh_obj.model['functions']['cb_stress'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"]).vector().array()
+                    print cb_stress
+                    print 'rank: %i' %self.comm.Get_rank()"""
+                    
+                    if(self.comm.Get_rank() == 0 and mode > 0):
+                        print "checking for nan!"
+                    if math.isnan(rel_res):
+                        if (self.comm.Get_rank() == 0):
+                            print "checking F terms"
+                        f1_temp = assemble(F1, form_compiler_parameters={"representation":"uflacs"})
+                        #f2_temp = assemble(F2, form_compiler_parameters={"representation":"uflacs"})
+                        #f3_temp = assemble(F3, form_compiler_parameters={"representation":"uflacs"})
+                        f4_temp = assemble(F4, form_compiler_parameters={"representation":"uflacs"})
+                
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print "checking nan\n"
+                            print 'checking f1\n'
+                        if np.isnan(f1_temp.array().astype(float)).any():
+                            print "nan in f1\n"
+                            print 'rank in f1 is: %f \n'%self.comm.Get_rank()
+                        
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking hsl\n'
+                        hsl_temp = project(self.mesh_obj.model['functions']['hsl'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"],
+                            form_compiler_parameters={"representation":"uflacs"})
+                        #hsl_temp = self.mesh_obj.model['functions']['hsl_old']
+                        if np.isnan(hsl_temp.vector().array()).any():
+                            print 'nan in hsl\n'
+                        print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f'%(hsl_temp.vector().array().min(),
+                        hsl_temp.vector().array().max(),self.comm.Get_rank())
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking y_vec\n'
+                        y_vec_temp = project(self.mesh_obj.model['functions']['y_vec'], 
+                            self.mesh_obj.model['function_spaces']["quad_vectorized_space"],
+                            form_compiler_parameters={"representation":"uflacs"})
+                        if np.isnan(y_vec_temp.vector().array()).any():
+                            print 'nan in y_vec\n'
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking Fmat\n'
+                        temp_F= project(self.mesh_obj.model['functions']['Fmat'],
+                                        self.mesh_obj.model['function_spaces']['tensor_space'],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                        if np.isnan(temp_F.vector().array()[:]).any():
+                            print 'nan in Fmat\n'
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking J\n'
+                        #print self.mesh_obj.model['functions']['J']
+                        
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking E\n'
+                        temp_E= project(self.mesh_obj.model['functions']['E'],
+                                        self.mesh_obj.model['function_spaces']['tensor_space'],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                        if np.isnan(temp_E.vector().array()[:]).any():
+                            print 'nan in E\n'
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking Sff \n'
+                        temp_sff = project(self.mesh_obj.model['functions']['Sff'], 
+                                    FunctionSpace(self.mesh_obj.model['mesh'], "DG", 1), 
+                                    form_compiler_parameters={"representation":"uflacs"})
+                        if np.isnan(temp_sff.vector().array().astype(float)).any():
+                            print 'nan in sff \n'
+                            print 'rank in sff is: %f \n'%self.comm.Get_rank()
+
+                        if (self.comm.Get_rank() == 0):
+                            print 'checking PK2\n'
+                        temp_PK2 = project(self.mesh_obj.model['functions']['PK2_local'],
+                                self.mesh_obj.model['function_spaces']['tensor_space'], 
+                                    form_compiler_parameters={"representation":"uflacs"})
+                        if np.isnan(temp_PK2.vector().array()[:]).any():
+                            print 'nan in PK2\n'
+                            print 'rank in PK2 is: %f \n'%self.comm.Get_rank()
+
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking f2\n'
+                        if np.isnan(f2_temp.array().astype(float)).any():
+                            print "nan in f2\n"
+
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking f3\n'
+                        if np.isnan(f3_temp.array().astype(float)).any():
+                            print "nan in f3\n"
+
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking f4\n'
+                        if np.isnan(f4_temp.array().astype(float)).any():
+                            print "nan in f4\n"
+
+                        #print A.array(), b.array()
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking A\n'
+                        if np.isnan(A.array().astype(float)).any():
+                            print "nan found in A assembly\n"
+
+                        if(self.comm.Get_rank() == 0 and mode > 0):
+                            print 'checking b\n'
+                        if np.isnan(b.array().astype(float)).any():
+                            print 'nan found in b (Ftotal) assembly\n'
+                    self.comm.Barrier()
+                if((rel_res > rel_tol and res > abs_tol) or  math.isnan(res)):
+                    #self.parameters["FileHandler"][4].close()
+                    raise RuntimeError("Failed Convergence")
     def solvenonlinear(self):
 
         abs_tol = self.solver_params["abs_tol"]
@@ -58,6 +303,7 @@ class NSolver(object):
         F4 = self.parameters["F4"]
         w = self.parameters["w"]
         bcs = self.parameters["boundary_conditions"]
+        
         
         hsl = self.parameters['hsl']
 
@@ -97,7 +343,7 @@ class NSolver(object):
                                  "maximum_iterations":maxiter}}, 
                                  form_compiler_parameters={"representation":"uflacs"})
 
-            self.parent.mesh.model['functions']['w'] = w
+            self.mesh_obj.model['functions']['w'] = w
                 
         else:
 
@@ -111,6 +357,17 @@ class NSolver(object):
                 res = resid0
                 if(self.comm.Get_rank() == 0 and mode > 0):
                     print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
+                """F_labels = ['F1','F2','F3','F4']
+                F_dict = dict()
+                for i,F in enumerate([F1,F2,F3,F4]):
+                    F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
+                    for bc in bcs:
+                        bc.apply(F_temp)
+                                
+                    F_dict[F_labels[i]] = F_temp.norm("l2")
+                if(self.comm.Get_rank() == 0 and mode > 0):
+                    print(json.dumps(F_dict, indent=4))
+                    print 'before first solve'"""
                 solve(A, w.vector(), b)
                 #solve(A, w.vector(), b,'gmres')
                 #self.solver.solve(A, w.vector(), b)
@@ -121,6 +378,17 @@ class NSolver(object):
             B = assemble(Ftotal,\
                         form_compiler_parameters={"representation":"uflacs"}\
                                     )
+            """F_labels = ['F1','F2','F3','F4']
+            F_dict = dict()
+            for i,F in enumerate([F1,F2,F3,F4]):
+                F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
+                for bc in bcs:
+                    bc.apply(F_temp)
+                            
+                F_dict[F_labels[i]] = F_temp.norm("l2")
+            if(self.comm.Get_rank() == 0 and mode > 0):
+                    print(json.dumps(F_dict, indent=4))"""
+
             for bc in bcs:
                 bc.apply(B)
 
@@ -151,9 +419,19 @@ class NSolver(object):
                     w.vector().axpy(1.0, dww.vector())
 
 
-                    B = assemble(Ftotal, \
-                            form_compiler_parameters={"representation":"uflacs"}\
-                            )
+                    B = assemble(Ftotal,form_compiler_parameters={"representation":"uflacs"})
+
+                    """F_labels = ['F1','F2','F3','F4']
+                    F_dict = dict()
+                    for i,F in enumerate([F1,F2,F3,F4]):
+                        F_temp = assemble(F,form_compiler_parameters={"representation":"uflacs"})
+                        for bc in bcs:
+                            bc.apply(F_temp)
+                                    
+                        F_dict[F_labels[i]] = F_temp.norm("l2")
+                    if(self.comm.Get_rank() == 0 and mode > 0):
+                        print(json.dumps(F_dict, indent=4))"""
+
                     for bc in bcs:
                             bc.apply(B)
                     #if np.isnan(B.array().astype(float)).any():
@@ -165,24 +443,24 @@ class NSolver(object):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
 
                     
-                    #print self.parent.mesh.model['functions']['incomp'].vector()
-                    #incomp = project(self.parent.mesh.model['functions']['incomp'],
-                    #            self.parent.mesh.model['function_spaces']['tensor_space'])
+                    #print self.mesh_obj.model['functions']['incomp'].vector()
+                    #incomp = project(self.mesh_obj.model['functions']['incomp'],
+                    #            self.mesh_obj.model['function_spaces']['tensor_space'])
 
                     
                     
-                    hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
-                            self.parent.mesh.model['function_spaces']["quadrature_space"])
-                    #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
+                    """hsl_temp = project(self.mesh_obj.model['functions']['hsl'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"])
+                    #hsl_temp = self.mesh_obj.model['functions']['hsl_old']
                     if np.isnan(hsl_temp.vector().array()).any():
                         print 'nan in hsl'
                     print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f before iteration'%(hsl_temp.vector().array().min(),
                     hsl_temp.vector().array().max(),self.comm.Get_rank())
                     
-                    cb_stress = project(self.parent.mesh.model['functions']['cb_stress'], 
-                            self.parent.mesh.model['function_spaces']["quadrature_space"]).vector().array()
+                    cb_stress = project(self.mesh_obj.model['functions']['cb_stress'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"]).vector().array()
                     print cb_stress
-                    print 'rank: %i' %self.comm.Get_rank()
+                    print 'rank: %i' %self.comm.Get_rank()"""
                     
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print "checking for nan!"
@@ -204,9 +482,9 @@ class NSolver(object):
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking hsl\n'
-                        hsl_temp = project(self.parent.mesh.model['functions']['hsl'], 
-                            self.parent.mesh.model['function_spaces']["quadrature_space"])
-                        #hsl_temp = self.parent.mesh.model['functions']['hsl_old']
+                        hsl_temp = project(self.mesh_obj.model['functions']['hsl'], 
+                            self.mesh_obj.model['function_spaces']["quadrature_space"])
+                        #hsl_temp = self.mesh_obj.model['functions']['hsl_old']
                         if np.isnan(hsl_temp.vector().array()).any():
                             print 'nan in hsl\n'
                         print 'min hsl:%0.0f, max hsl:%0.0f with rank: %f'%(hsl_temp.vector().array().min(),
@@ -214,33 +492,33 @@ class NSolver(object):
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking y_vec\n'
-                        y_vec_temp = project(self.parent.mesh.model['functions']['y_vec'], 
-                            self.parent.mesh.model['function_spaces']["quad_vectorized_space"])
+                        y_vec_temp = project(self.mesh_obj.model['functions']['y_vec'], 
+                            self.mesh_obj.model['function_spaces']["quad_vectorized_space"])
                         if np.isnan(y_vec_temp.vector().array()).any():
                             print 'nan in y_vec\n'
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking Fmat\n'
-                        temp_F= project(self.parent.mesh.model['functions']['Fmat'],
-                                        self.parent.mesh.model['function_spaces']['tensor_space'])
+                        temp_F= project(self.mesh_obj.model['functions']['Fmat'],
+                                        self.mesh_obj.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_F.vector().array()[:]).any():
                             print 'nan in Fmat\n'
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking J\n'
-                        #print self.parent.mesh.model['functions']['J']
+                        #print self.mesh_obj.model['functions']['J']
                         
                         if (self.comm.Get_rank() == 0):
                             print 'checking E\n'
-                        temp_E= project(self.parent.mesh.model['functions']['E'],
-                                        self.parent.mesh.model['function_spaces']['tensor_space'])
+                        temp_E= project(self.mesh_obj.model['functions']['E'],
+                                        self.mesh_obj.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_E.vector().array()[:]).any():
                             print 'nan in E\n'
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking Sff \n'
-                        temp_sff = project(self.parent.mesh.model['functions']['Sff'], 
-                                    FunctionSpace(self.parent.mesh.model['mesh'], "DG", 1), 
+                        temp_sff = project(self.mesh_obj.model['functions']['Sff'], 
+                                    FunctionSpace(self.mesh_obj.model['mesh'], "DG", 1), 
                                     form_compiler_parameters={"representation":"uflacs"})
                         if np.isnan(temp_sff.vector().array().astype(float)).any():
                             print 'nan in sff \n'
@@ -248,8 +526,8 @@ class NSolver(object):
 
                         if (self.comm.Get_rank() == 0):
                             print 'checking PK2\n'
-                        temp_PK2 = project(self.parent.mesh.model['functions']['PK2_local'],
-                                self.parent.mesh.model['function_spaces']['tensor_space'])
+                        temp_PK2 = project(self.mesh_obj.model['functions']['PK2_local'],
+                                self.mesh_obj.model['function_spaces']['tensor_space'])
                         if np.isnan(temp_PK2.vector().array()[:]).any():
                             print 'nan in PK2\n'
                             print 'rank in PK2 is: %f \n'%self.comm.Get_rank()
