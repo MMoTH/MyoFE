@@ -356,7 +356,7 @@ class MeshClass():
         # Need to tack on some other stuff, including an expression to keep track of
         # and manipulate the cavity volume
         LVCavityvol = Expression(("vol"), vol=0.0, degree=2)
-        Press = Expression(("P"),P=0.0,degree=2)
+        Press = Expression(("P"),P=0.0,degree=0)
         self.model['functions']["LVCavityvol"] = LVCavityvol
         self.model['functions']["Press"] = Press
         ventricle_params  = {
