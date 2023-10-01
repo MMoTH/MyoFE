@@ -10,8 +10,7 @@ import json
 from dolfin import *
 import os
 from ..dependencies.forms import Forms
-from ..dependencies.nsolver import NSolver
-#from ..dependencies.assign_heterogeneous_params import assign_heterogeneous_params as assign_params
+from ..dependencies.nsolver import NSolver#from ..dependencies.assign_heterogeneous_params import assign_heterogeneous_params as assign_params
 from ..dependencies.assign_heterogeneous_params import assign_heterogeneous_params 
 
 class MeshClass():
@@ -418,6 +417,16 @@ class MeshClass():
         self.model['functions']["delta_hsl"] = \
             self.model['functions']["hsl"] - self.model['functions']["hsl_old"]
 
+        #self.model['functions']['myofiber_stretch'] = \
+        #    project(sqrt(dot(f0, Cmat*f0)),self.model['function_spaces']['quadrature_space'])
+        
+        self.model['functions']['myofiber_stretch'] = conditional(alpha_f > 1.0, alpha_f ,1.0)
+        print 'Myofiber'
+        print project(self.model['functions']['myofiber_stretch'],
+                self.model['function_spaces']['quadrature_space']).vector()[:].get_local()
+        #self.model['functions']['myofiber_stretch'].vector()[self.model['functions']['myofiber_stretch'].vector()<1.0]=1.0
+        #print 'after checking myofiber '
+        #print self.model['functions']['myofiber_stretch'].vector()[:].get_local()
         self.y_split = np.array(split(self.model['functions']['y_vec']))
 
 
@@ -477,14 +486,15 @@ class MeshClass():
         temp_DG = project(self.model['functions']["Sff"], FunctionSpace(mesh, "DG", 1), form_compiler_parameters={"representation":"uflacs"})
         p_f = interpolate(temp_DG, self.model['function_spaces']['quadrature_space'])
         self.pass_stress_list = p_f.vector().get_local()[:]
-        
-        self.model['functions']['total_stress'] = \
-            self.model['functions']["total_passive_PK2"] + self.model['functions']['Pactive']
-
+         
         self.model['functions']['PK2_local'],self.model['functions']['incomp'] = \
             uflforms.passivestress(self.model['functions']["hsl"])
+        self.model['functions']['total_stress'] = Pactive + self.model['functions']["total_passive_PK2"]
 
-        F2 = inner(Fmat*Pactive, grad(v))*dx
+        #self.model['functions']['myofiber_stretch'] = self.model['functions']["hsl"]/self.model['functions']["hsl0"]
+        self.model['functions']['alpha_f'] = alpha_f
+        #F2 = inner(Fmat*Pactive, grad(v))*dx
+        F2 = inner(F*Pactive, grad(v))*dx
         self.F_list.append(F2)
         # LV volume increase
         Wvol = uflforms.LVV0constrainedE()
@@ -576,7 +586,7 @@ class MeshClass():
         #    print "appending fcn"
         if isinstance(temp_dict[key][0],str):
             #do nothing
-            print temp_dict[key][0]
+            #print temp_dict[key][0]
             if MPI.rank(self.comm) == 0:
                 print "string, not creating function"
         else:
@@ -634,10 +644,10 @@ class MeshClass():
             
             bin_pops = self.y_split[2 + np.arange(0, self.hs.myof.no_of_x_bins)]
             cb_stress = \
-                self.model['functions']['cb_number_density'] * \
-                self.model['functions']['k_cb'] * 1e-9 * \
+                self.hs.myof.data['cb_number_density'] * \
+                self.hs.myof.data['k_cb'] * 1e-9 * \
                 np.sum(bin_pops *
-                    (self.hs.myof.x + self.model['functions']['x_ps'] +
+                    (self.hs.myof.x + self.hs.myof.data['x_ps'] +
                         (self.hs.myof.implementation['filament_compliance_factor'] *
                         delta_hsl)))
             return cb_stress
@@ -648,13 +658,13 @@ class MeshClass():
             post_ind = 2 + self.hs.myof.no_of_x_bins + np.arange(0, self.hs.myof.no_of_x_bins)
             
             cb_stress = \
-                self.model['functions']['cb_number_density'] * self.model['functions']['k_cb'] * 1e-9 * \
+                self.hs.myof.data['cb_number_density'] * self.hs.myof.data['k_cb'] * 1e-9 * \
                     (np.sum(self.y_split[pre_ind] *
                             (self.hs.myof.x + 
                             (self.hs.myof.implementation['filament_compliance_factor']
                             * delta_hsl))) +
                     np.sum(self.y_split[post_ind] * \
-                            (self.hs.myof.x + self.model['functions']['x_ps'] +
+                            (self.hs.myof.x + self.hs.myof.data['x_ps'] +
                             (self.hs.myof.implementation['filament_compliance_factor'] *
                             delta_hsl))))
 
