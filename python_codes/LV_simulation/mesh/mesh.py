@@ -494,7 +494,7 @@ class MeshClass():
         #self.model['functions']['myofiber_stretch'] = self.model['functions']["hsl"]/self.model['functions']["hsl0"]
         self.model['functions']['alpha_f'] = alpha_f
         #F2 = inner(Fmat*Pactive, grad(v))*dx
-        F2 = inner(F*Pactive, grad(v))*dx
+        F2 = inner(Fmat*Pactive, grad(v))*dx
         self.F_list.append(F2)
         # LV volume increase
         Wvol = uflforms.LVV0constrainedE()
