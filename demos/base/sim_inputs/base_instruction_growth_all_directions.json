@@ -1,13 +1,23 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [10],
+        "no_of_time_steps": [50000],
         "time_step": [0.001],
         "baroreflex": 
         {
             "activations": [
                 {
-                    "t_start_s": [50],
+                    "t_start_s": [300],
+                    "t_stop_s": [400]
+                }
+            ]
+        },
+        "growth":
+        {
+            "activations": 
+            [
+                {
+                    "t_start_s": [8],
                     "t_stop_s": [400]
                 }
             ]
@@ -21,7 +31,7 @@
                     "variable": ["aorta_resistance"],
                     "t_start_s": [0.005],
                     "t_stop_s": [0.006],
-                    "total_change": [20]
+                    "total_change": [0]
                 },
                 {
                     "level": ["baroreflex"],
@@ -29,6 +39,12 @@
                     "t_start_s": [5],
                     "t_stop_s": [10],
                     "total_change": [0]
+                },
+                {
+                    "level": ["growth"],
+                    "variable": ["gr_set_fiber"],
+                    "t_start_s": [700],
+                    "precentage_change": [0]
                 }
             ]
 
@@ -38,7 +54,7 @@
     "heart_rate": {
         "t_active_period": [0.003],
         "t_quiescent_period": [0.92],
-        "t_first_activation": [0.2]
+        "t_first_activation": [0.1]
     },
     "mesh":
     {
@@ -60,6 +76,18 @@
             },
             {
                 "name":["tensor_space"],
+                "type":["tensor"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["growth_scalar_FS"],
+                "type":["scalar"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["growth_tensor_FS"],
                 "type":["tensor"],
                 "element_type":["DG"],
                 "degree": [1]
@@ -113,17 +141,12 @@
         {
             "params":
             {
-                "rel_tol": [1e-10],
-                "abs_tol": [1e-10],
+                "rel_tol": [1e-11],
+                "abs_tol": [1e-11],
                 "max_iter": [100],
                 "debugging_mode": [false]
             }
-        },
-        "pericardial":
-        {
-            "type": ["spring"],
-            "k_spring": [200]
-        }  
+        } 
     },
     "model":
     {
@@ -313,23 +336,56 @@
                     }
                 ]
             }
+        },
+        "growth":
+        {
+            "growth_frequency_n": [2],
+            "components":
+            [
+                {
+                    "type": ["fiber"],
+                    "signal": ["myofiber_passive_stress"],
+                    "tau": [1000],
+                    "theta_max": [1.5],
+                    "theta_min": [0.5]
+                },
+                {
+                    "type": ["sheet"],
+                    "signal": ["total_stress"],
+                    "tau": [1000],
+                    "theta_max": [1.5],
+                    "theta_min": [0.5]
+                },
+                {
+                    "type": ["sheet_normal"],
+                    "signal": ["total_stress"],
+                    "tau": [1000],
+                    "theta_max": [1.5],
+                    "theta_min": [0.5]
+                }
+            ]
         }
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/base/sim_output/new_test/data.csv"],
-        "mesh_output_path": ["../demos/base/sim_output/new_test/mesh_output"],
+        "output_data_path": ["../demos/base/sim_output/growth_all_dir/data.csv"],
+        "mesh_output_path": ["../demos/base/sim_output/growth_all_dir/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
             "active_stress",
             "hs_length",
-	    "k_1",
-	    "k_3",
-	    "k_on",
-	    "k_act",
-	    "k_serca"
+            "facetboundaries",
+            "k_1",
+            "k_3",
+            "k_on",
+            "k_act",
+            "k_serca",
+            "theta_vis_fiber",
+            "stimulus_fiber",
+            "deviation_fiber"
         ],
+        "growth_mesh_path": ["../demos/base/sim_output/growth_all_dir/mesh_output"],     
         "dumping_spatial_in_average":[true],
         "frequency_n": [10]
         

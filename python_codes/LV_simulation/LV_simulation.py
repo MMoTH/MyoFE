@@ -26,6 +26,7 @@ from .dependencies.forms import Forms
 from .dependencies.nsolver import NSolver
 from .output_handler.output_handler import output_handler as oh
 from .baroreflex import baroreflex as br
+from .growth import growth as gr
 from .half_sarcomere import half_sarcomere as hs 
 from .fiber_reorientation import fiber_reorientation as fr
 from .dependencies.assign_local_coordinate_system import assign_local_coordinate_system as lcs
@@ -63,11 +64,8 @@ class LV_simulation():
         # function spaces, functions)
         self.mesh = MeshClass(self)
 
- 
-                                
-
-        # Initialize the solver object 
         
+        # Initialize the solver object 
         #self.solver_params = self.mesh.model['solver_params']
         self.solver =  NSolver(self,self.mesh,comm)
 
@@ -75,22 +73,13 @@ class LV_simulation():
         self.y_vec = \
             self.mesh.model['functions']['y_vec'].vector().get_local()[:]
 
-        """Lets handle dof mapping for quadrature points """
-        self.dofmap_list = []
-        self.dofmap = self.mesh.model['function_spaces']['quadrature_space'].dofmap().dofs()
-        
-        # Send dof mapping and list of coords to root core (i.e. 0)
-        if self.comm.Get_rank() != 0:
-            self.comm.send(self.dofmap,dest = 0, tag = 0)
-        else: # Root core recieves  from other cores
-            self.dofmap_list.append(self.dofmap)
-            for i in range(1,self.comm.Get_size()):
-                self.dofmap_list.append(self.comm.recv(source = i, tag = 0))
-        # Now broadcast the list to all cores
-        self.dofmap_list = \
-            self.comm.bcast(self.dofmap_list)
-
+        self.initialize_dof_mapping()
+        if self.comm.Get_rank() == 0:
+            print 'dof mapping on core 0'
+            print self.dofmap
+        self.initialize_integer_points()
         """ Create a data structure for holding """
+
         # half_sarcomere parameters spatially 
         # 4 comes from using degree 2
         #self.hs_params_mesh = dict()
@@ -127,6 +116,7 @@ class LV_simulation():
             print 'Total no if int points is %0.0f'\
                 %self.global_n_of_int_points
 
+
         """ Generating arrays for holding half-sarcomere data"""
         # accross the mesh
         # Start with half-saromere length
@@ -145,6 +135,7 @@ class LV_simulation():
             #""" Assign the hs length according to what used in the mesh"""
             self.hs_objs_list[-1].data['hs_length'] = \
                 self.hs_length_list[i]
+
             
 
         
@@ -190,35 +181,17 @@ class LV_simulation():
                 self.coord = \
                         np.append(self.coord,
                             self.comm.recv(source = i, tag = 3),axis = 0)
+
+
+        self.handle_coordinates_of_geometry()
+
         
-        self.coord = self.comm.bcast(self.coord)
-
-        """Handle the coordinates """
-        x_coord = []
-        y_coord = []
-        z_coord = []
-        for i, c in enumerate(self.coord):
-            x_coord.append(c[0])
-            y_coord.append(c[1])
-            z_coord.append(c[2])
-
-        self.x_coord = np.array(x_coord)
-        self.y_coord = np.array(y_coord)
-        self.z_coord = np.array(z_coord)
-
-        """ Reduce the contractility of gaussian points near apex"""
-        # First assume the corrdinates of apex
-        xc = 0.0
-        yc = 0.0
-        zc = self.z_coord.min()
-
-        # then calculate the distance of all gaussian points wrt apex
-        self.apex_r = []
-        for i,p in enumerate(self.z_coord):
-            self.apex_r.append(self.return_spherical_radius(xc,yc,zc,
-                                self.x_coord[i],self.y_coord[i],self.z_coord[i]))
-        self.apex_r = np.array(self.apex_r)
         
+        self.handle_apex_contractility(instruction_data)
+
+        
+        self.handle_hs_visualization_on_mesh()
+
         #now build an array for storing radius of apex for local integer points
         self.apex_r_local = np.zeros(self.local_n_of_int_points)
         for i,j in enumerate(self.dofmap):
@@ -277,18 +250,30 @@ class LV_simulation():
                 self.mesh.data[p][i] = h.memb.data[p]
             self.mesh.model['functions'][p].vector()[:] = \
                   self.mesh.data[p]
+
  
         rank_id = self.comm.Get_rank()
         print '%0.0f integer points have been assigned to core %0.0f'\
              %(self.local_n_of_int_points,rank_id)
-
+        self.local_n_of_elements = self.mesh.model['mesh'].num_cells()
+        self.global_n_of_elements = \
+            self.comm.reduce(self.local_n_of_elements)
+        # Then broadcast to all other cores
+        self.global_n_of_elements = \
+            self.comm.bcast(self.global_n_of_elements)
+        if self.comm.Get_rank() == 0:
+            print 'Mesh contains %0.0f elements' %(self.global_n_of_elements)
         """ Create a circulatory system object"""
         circ_struct = instruction_data['model']['circulation']
         self.circ = circ(circ_struct,self.mesh)
+        self.reference_LV_vol = self.circ.data['v'][-1]
 
         if self.comm.Get_rank() == 0:
             print self.circ.data['v']
 
+        self.data['myocardium_vol'] = \
+            assemble(1.0*dx(domain = self.mesh.model['mesh']), 
+                    form_compiler_parameters={"representation":"uflacs"})
         """ Create a heart-rate object"""
         hr_struct = instruction_data['heart_rate']
         self.hr = hr(hr_struct)
@@ -297,7 +282,10 @@ class LV_simulation():
         
         """ Initialize simulation time and counter"""
         self.data['time'] = 0
+        self.data['new_beat'] = 0
         self.t_counter = 0
+        self.end_diastolic = 0
+
 
         """ If requried, create the baroreceptor"""
         self.data['baroreflex_active'] = 0
@@ -309,7 +297,13 @@ class LV_simulation():
         else:
             self.br = []
         # If required, create the growth object
-        self.gr = []
+        if 'growth' in instruction_data['model']:
+            if self.comm.Get_rank() == 0:
+                print 'Initializing growth module'
+            self.gr = gr.growth(instruction_data['model']['growth'],
+                                self)
+        else:
+            self.gr = [] 
         # If required, create the vad object
         self.va = []
 
@@ -340,6 +334,35 @@ class LV_simulation():
         self.fdiff_ang = [] 
         self.f0_mag = [] 
 
+
+        """self.mesh.model['functions']['LVCavityvol'].vol = \
+            self.mesh.model['uflforms'].LVcavityvol()
+        lv_vol = self.mesh.model['uflforms'].LVcavityvol()
+        #lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+        expression_vol = self.mesh.model['functions']['LVCavityvol'].vol 
+                        
+        if self.comm.Get_rank() == 0: 
+            print 'lv vol right before starting'
+            print lv_vol
+            print "expression vol before starting"
+            print expression_vol
+                            
+        self.solver.solvenonlinear()"""
+
+        self.sff_tracker = []
+        Sff = project(self.mesh.model['functions']['Sff'], 
+                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+        self.data['sff_mean']= Sff
+
+        self.data['alpha_f'] = project(self.mesh.model['functions']['alpha_f'], 
+                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+        inner_p = inner(self.mesh.model['functions']['f0'],
+                        self.mesh.model['functions']['total_stress']*\
+                            self.mesh.model['functions']['f0'])
+
+        #total_stress = project(inner_p,self.mesh.model['function_spaces']['growth_scalar_FS'],
+        #                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
+        #self.data['total_stress_spatial'] = total_stress
     def create_data_structure(self,no_of_data_points, frequency = 1):
         """ returns a data frame from the data dicts of each component """
 
@@ -362,8 +385,12 @@ class LV_simulation():
         # Add in fields from optional modules
         if (self.br != []):
             data_fields = data_fields + list(self.br.data.keys())
-        if (self.gr != [] ):
-            data_fields = data_fields + list(self.gr.data.keys())
+        
+        if self.gr: 
+            for f in list(self.gr.data.keys()):
+                if f.split('_')[-1] == 'active':
+                    data_fields.append(f)
+
         if (self.va != []):
             data_fields = data_fields + list(self.va.data.keys())
         if (self.fr != []):
@@ -388,8 +415,8 @@ class LV_simulation():
                                                     in_average = False,
                                                     frequency = 1):
         """ return a data structure for each spatial variables, specially for MyoSim parameters"""
-
-        print 'creating spatial sim data'
+        if self.comm.Get_rank() == 0:
+            print 'creating spatial sim data'
         
         rows = int(no_of_data_points/frequency) +1 # 1 for time zero
         i = np.zeros(rows)
@@ -399,7 +426,11 @@ class LV_simulation():
         self.spatial_myof_data_fields = []
         self.spatial_memb_data_fields = []
         self.spatial_hs_data_fields = []
+
         self.spatial_fiber_data_fields = []
+
+        self.spatial_gr_data_fields = []
+
         if spatial_data_fields:
             # create data fileds based on what user has asked
             for sd in spatial_data_fields:
@@ -422,6 +453,7 @@ class LV_simulation():
                                                 #'n_bound']
             self.spatial_memb_data_fields = list(self.hs.memb.data.keys())#['Ca_cytosol','Ca_SR']
 
+
             for f in ['f01','f02','f03','s01','s02','s03','n01','n02','n03','lx','ly','lz','endo_dist']:
                 self.spatial_fiber_data_fields.append(f)
 
@@ -429,21 +461,42 @@ class LV_simulation():
                         self.spatial_myof_data_fields+\
                             self.spatial_memb_data_fields+\
                             self.spatial_fiber_data_fields
+
+        if (self.gr != [] ):
+            
+            for k in self.gr.data.keys():
+                if k in ['gr_local_theta_fiber','gr_global_theta_fiber','gr_stimulus_fiber','gr_setpoint_fiber','gr_deviation_fiber',
+                        'gr_local_theta_sheet','gr_global_theta_sheet','gr_stimulus_sheet','gr_setpoint_sheet','gr_deviation_sheet',
+                        'gr_local_theta_sheet_normal','gr_global_theta_sheet_normal','gr_setpoint_sheet_normal',
+                        'gr_stimulus_sheet_normal','gr_deviation_sheet_normal',]:
+    
+                    self.spatial_gr_data_fields.append(k)
+
+        data_field = self.spatial_hs_data_fields +\
+                        self.spatial_myof_data_fields+\
+                        self.spatial_memb_data_fields+ \
+                        self.spatial_gr_data_fields
+
         if in_average:
             spatial_data = pd.DataFrame()
             data_field.append('time')
+            data_field = data_field + ['Sff','sff_mean','alpha_f','total_stress_spatial']
 
             for f in data_field:
                 s = pd.Series(data=np.zeros(rows), name=f)
                 spatial_data = pd.concat([spatial_data, s], axis=1)
                 #spatial_data[f]['time'] = pd.Series()
+            
         else:
             spatial_data = dict()
             for f in data_field:
                 spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
+            for f in ['Sff','sff_mean','alpha_f','total_stress_spatial']:
+                spatial_data[f] = pd.DataFrame(0,index = i,columns=c)
                 #spatial_data[f]['time'] = pd.Series(0)
-        print 'spatial simulation data is created'
-        
+        if self.comm.Get_rank() == 0:
+            print 'spatial simulation data is created'
+
         return spatial_data
 
     def run_simulation(self,protocol_struct,output_struct=[]):
@@ -509,13 +562,15 @@ class LV_simulation():
                     self.check_output_directory_folder(path = mesh_out_path)
                 
                 if "mesh_object_to_save" in output_struct:
-                    print 'mesh obj is defined'
+                    if self.comm.Get_rank() == 0:
+                        print 'mesh obj is defined'
                     self.mesh_obj_to_save = output_struct['mesh_object_to_save']
                     # start creating file for mesh objects
                     file_path = os.path.join(mesh_out_path,'solution.xdmf') 
                     self.solution_mesh = XDMFFile(mpi_comm_world(),file_path)
                     self.solution_mesh.parameters.update({"functions_share_mesh": True,
                                             "rewrite_function_mesh": False})
+
                     
                     Quadelem = FiniteElement("Quadrature", tetrahedron, degree=2, quad_scheme="default")
                     Quadelem._quad_scheme = 'default'
@@ -524,17 +579,29 @@ class LV_simulation():
                     FE_DG0 = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
                     FS_DG0 = FunctionSpace(self.mesh.model['mesh'],FE_DG0)
 
+                    # if multiple cores are being used then save
+                    # a mesh object to visualize core assignments
+                    if self.comm.Get_size()>1:
+                        self.mesh_path_for_mpi = mesh_out_path
+                        xdmf = XDMFFile(mesh_out_path+"/mesh_with_mpi" + ".xdmf")
+                        xdmf.write(self.mesh.model['functions']['core_ranks'])
+                        xdmf.close()
+
+
                     for m in self.mesh_obj_to_save:
-                        
                         if m == 'displacement':
                             temp_obj = self.mesh.model['functions']['w'].sub(0)
                         if m == 'hs_length':
                             temp_obj = project(self.mesh.model['functions']['hsl'], 
-                                                self.mesh.model['function_spaces']["scalar"])
+                                                self.mesh.model['function_spaces']["scalar_for_active"],
+                                                form_compiler_parameters={"representation":"uflacs"})
+                        
+                       
 
                         if m in ['k_1','k_3','k_on','k_act','k_serca']:
                             temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scalar"])
+
                             
 
                         if m in ['k_1_DG0']:
@@ -550,10 +617,12 @@ class LV_simulation():
                                                 self.mesh.model['function_spaces']["scalar"])
 
 
+
                         if m == 'active_stress':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
+
                                         self.mesh.model['function_spaces']["scalar"])
                             
 
@@ -633,11 +702,73 @@ class LV_simulation():
                         temp_obj.rename(m,'')
                         self.solution_mesh.write(temp_obj,0)
 
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                            #dolfin.parameters["form_compiler"]["representation"] = "quadrature"
+                            #temp_obj = interpolate(temp_proj, self.mesh.model['function_spaces']["quadrature_space"])
+                        if m == 'total_stress':
+                            temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['total_stress']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                        if m == 'total_passive':
+                            temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['total_passive_PK2']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                        if m == 'myofiber_passive':
+                            temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['Sff']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                            
+
+                        if m == 'fiber_direction':
+                            temp_obj = project(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['function_spaces']['vector_f'],
+                                        form_compiler_parameters={"representation":"uflacs"})
+
+                        if m in ['local_theta_vis_fiber','local_theta_vis_sheet','local_theta_vis_sheet_normal',
+                                'global_theta_vis_fiber','global_theta_vis_sheet','global_theta_vis_sheet_normal'
+                                'stimulus_fiber', 'stimulus_sheet', 'stimulus_sheet_normal',
+                                'deviation_fiber', 'deviation_sheet','deviation_sheet_normal',
+                                'setpoint_fiber','setpoint_sheet','setpoint_sheet_normal'] and \
+                                    'growth' in self.instruction_data['model']:
+
+                                temp_obj = project(self.mesh.model['functions'][m],
+                                                self.mesh.model['function_spaces']["scalar_for_growth"],
+                                                form_compiler_parameters={"representation":"uflacs"})
+
+                        if m == 'facetboundaries':
+                            xdmf = XDMFFile(mesh_out_path+"/facet_boundaries" + ".xdmf")
+                            xdmf.write(self.mesh.model['functions']['facetboundaries'])
+                            xdmf.close()
+                        else:
+                            temp_obj.rename(m,'')
+                            self.solution_mesh.write(temp_obj,0)
+
+            if 'growth_mesh_path' in output_struct:
+                # create mesh object and visualize the growth of reference config
+                path = output_struct['growth_mesh_path'][0]
+                self.growth_path = path
+                file_path = os.path.join(path,'growth.xdmf')
+
+                self.growth_mesh = XDMFFile(mpi_comm_world(),file_path)
+                self.growth_mesh.parameters.update({"functions_share_mesh": True,
+                                            "rewrite_function_mesh": True})
+                #temp_obj = self.mesh.model['functions']['w'].sub(0)
+                #temp_obj.rename('Dis','')
+                self.growth_mesh.write(self.mesh.model['mesh'],0)
+
+
             if 'output_data_path' in output_struct:
                 self.output_data_str = output_struct['output_data_path'][0]
                 if self.comm.Get_rank() == 0: 
                     self.check_output_directory_folder(path = self.output_data_str)
-
+            
         for i in np.arange(self.prot.data['no_of_time_steps']+1):
             #self.implement_time_step(self.prot.data['time_step'])
             try:
@@ -664,14 +795,16 @@ class LV_simulation():
         if self.comm.Get_rank() == 0:
             print '******** NEW TIME STEP ********'
             print (self.data['time'])
-
+            print 'Myocardium Vol is: %f' %self.data['myocardium_vol']
+        
             if (self.t_counter % 10 == 0):
-                print('Sim time (s): %.0f  %.0f%% complete' %
+                print('Sim time (s): %.00f  %.0f%% complete' %
                     (self.data['time'],
                     100*self.t_counter/self.prot.data['no_of_time_steps']))
 
                 vol, press, flow = self.return_system_values()
                 
+
                 print(json.dumps(vol, indent=4))
                 print(json.dumps(press, indent=4))
                 print(json.dumps(flow, indent=4))
@@ -679,6 +812,12 @@ class LV_simulation():
         # Update circulation and FE function for LV cavity volume
         self.circ.data['v'] = \
                 self.circ.evolve_volume(time_step, self.circ.data['v'])
+
+        #update regurgitant volvumes
+        reg_volumes = self.circ.evolve_regurgitant_volumes(time_step, self.circ.data['v'])
+        self.circ.data['mitral_reg_volume'] = reg_volumes[0]
+        self.circ.data['aortic_reg_volume'] = reg_volumes[-1]
+
         # Check for baroreflex and implement
         if (self.br):
             self.data['baroreflex_active'] = 0
@@ -701,29 +840,44 @@ class LV_simulation():
                   self.mesh.data[p]
 
 
+        
 
+
+        self.data['myocardium_vol'] = \
+            assemble(1.0*dx(domain = self.mesh.model['mesh']), 
+                    form_compiler_parameters={"representation":"uflacs"})
 
         # check for any perturbation
         for p in self.prot.perturbations:
             if (self.t_counter >= p.data['t_start_ind'] and 
                 self.t_counter < p.data['t_stop_ind']):
-                if p.data['level'] == 'circulation':
-                    self.circ.data[p.data['variable']] += \
-                        p.data['increment']
-                elif p.data['level'] == 'baroreflex':
-                    self.br.data[p.data['variable']] += \
-                        p.data['increment']
-                elif p.data['level'] == 'myofilaments':
-                    for j in range(self.local_n_of_int_points):
-                        self.hs_objs_list[j].myof.data[p.data['variable']] +=\
+                if 'increment' in  p.data.keys():
+                    if p.data['level'] == 'circulation':
+                        self.circ.data[p.data['variable']] += \
                             p.data['increment']
-                elif p.data['level'] == 'membranes':
-                    for j in range(self.local_n_of_int_points):
-                        self.hs_objs_list[j].memb.data[p.data['variable']] +=\
+                    elif p.data['level'] == 'baroreflex':
+                        self.br.data[p.data['variable']] += \
                             p.data['increment']
+
                 elif p.data['level'] == 'fiber_reorientation':
                     self.fr.data[p.data['variable']] += \
                         p.data['increment']
+
+
+                    elif p.data['level'] == 'myofilaments':
+                        for j in range(self.local_n_of_int_points):
+                            self.hs_objs_list[j].myof.data[p.data['variable']] +=\
+                                p.data['increment']
+                    elif p.data['level'] == 'membranes':
+                        for j in range(self.local_n_of_int_points):
+                            self.hs_objs_list[j].memb.data[p.data['variable']] +=\
+                                p.data['increment']
+                elif 'precentage_change' in p.data.keys():
+                    if p.data['level'] == 'growth':
+                        self.gr.data[p.data['variable']] += \
+                            self.gr.data[p.data['variable']] * p.data['precentage_change']
+
+
 
         if self.infarct: 
             for i in self.prot.infarct_activation:
@@ -754,7 +908,7 @@ class LV_simulation():
         # Rubild system arrays
         self.rebuild_from_perturbations()
         # Proceed time
-        (activation, new_beat) = \
+        (activation, new_beat,self.end_diastolic) = \
             self.hr.implement_time_step(time_step)
 
         if self.comm.Get_rank() == 0:
@@ -777,8 +931,6 @@ class LV_simulation():
                                                 self.pass_stress_list[j])
             self.hs_objs_list[j].update_data()
             
-            
-            
             if j%1000==0 and self.comm.Get_rank() == 0:
                 print '%.0f%% of integer points are updated' % (100*j/self.local_n_of_int_points)
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
@@ -798,7 +950,6 @@ class LV_simulation():
         self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
         self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
 
-        
 
         # Update LV cavity volume fenics function        
         self.mesh.model['functions']['LVCavityvol'].vol = \
@@ -810,6 +961,7 @@ class LV_simulation():
         if self.comm.Get_rank() == 0:
             print 'solving weak form'
         self.solver.solvenonlinear()
+        
 
         # Start updating variables after solving the weak form 
         # First pressure in circulation
@@ -826,14 +978,18 @@ class LV_simulation():
                                 self.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
 
         self.mesh.model['functions']['hsl_old'].vector()[:] = \
-            project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+            project(self.mesh.model['functions']['hsl'], 
+            self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
         new_hs_length_list = \
-            project(self.mesh.model['functions']['hsl'], self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+            project(self.mesh.model['functions']['hsl'], 
+            self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
         self.delta_hs_length_list = new_hs_length_list - self.hs_length_list
         self.hs_length_list = new_hs_length_list
         
+        #self.mesh.model['functions']['myofiber_stretch'].vector()[self.mesh.model['functions']['myofiber_stretch'].vector()<1.0]=1.0
+
         temp_DG = project(self.mesh.model['functions']['Sff'], 
                     FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
                     form_compiler_parameters={"representation":"uflacs"})
@@ -843,9 +999,559 @@ class LV_simulation():
         
         # Convert negative passive stress in half-sarcomeres to 0
         self.pass_stress_list[self.pass_stress_list<0] = 0
-    
+
         self.comm.Barrier()
         # Update sim data for non-spatial variables on root core (i.e. 0)
+        """###############"""
+        # check Sff
+        if self.comm.Get_rank() == 0:
+            print 'Checking Sff values'
+        Sff = project(self.mesh.model['functions']['Sff'], 
+                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+
+        inner_p = inner(self.mesh.model['functions']['f0'],
+                        self.mesh.model['functions']['total_stress']*\
+                            self.mesh.model['functions']['f0'])
+
+        #total_stress = project(inner_p,self.mesh.model['function_spaces']['growth_scalar_FS'],
+        #                    form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]   
+        
+        neg_sff = np.array(Sff[Sff<0])
+        num_of_neg_sff = len(neg_sff)
+        self.data['Sff'] = Sff
+        print 'Core: %d, num of points with negative Sff:%d' %(self.comm.Get_rank(),num_of_neg_sff)
+
+        #self.data['total_stress_spatial'] = total_stress
+        self.sff_tracker.append(Sff)
+        """###############"""
+        """###############"""
+        if self.end_diastolic:
+            self.data['sff_mean'] = np.mean(self.sff_tracker,axis=0)
+            neg_ind_local = np.where(self.data['sff_mean']<0)[0]
+            neg_ind_global = self.dofmap[neg_ind_local]
+            z_neg_sff = self.z_coord[neg_ind_global]
+            #print 'z_neg_sff'
+            #print z_neg_sff
+            self.sff_tracker = []
+
+        # check myofiber stretch
+
+        #alpha_f = project(self.mesh.model['functions']['alpha_f'], 
+        #            FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+        #            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        myo_stretch = project(self.mesh.model['functions']['myofiber_stretch'], 
+                    self.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
+        #self.data['hsl0'] = hsl0
+        self.data['hsl'] = new_hs_length_list
+        self.data['alpha_f'] = myo_stretch
+        """if self.comm.Get_rank() == 0:
+            print 'Checking myofiber stretch'
+            print 'hsl:'
+            print new_hs_length_list
+
+            print 'myo_stretch:'
+            print myo_stretch 
+            print 'Sff:'
+            print Sff """
+        """###############"""
+        if self.gr:            
+            #self.data['growth_active'] = 0
+            for g in self.prot.growth_activations:
+                # Initilize indicies for growth
+                # 'gr_start_active': identify the first cycle after growth is activated
+                # 'gr_active': identify the activation of growth onward
+                # initial_gr_cycle_counter: counter for initial growth step
+                if self.t_counter == g.data['t_start_ind']:
+                    self.gr.data['gr_start_active'] = 1
+                    self.gr.data['gr_active'] = 0
+                    self.gr.initial_gr_cycle_counter = 1
+
+                # identify if we are not in the initial growth steps anymore
+                if self.gr.initial_gr_cycle_counter > self.gr.initial_gr_cycles:
+                    self.gr.data['gr_start_active'] = 0
+
+                # Implement growth when is
+                if ((self.t_counter >= g.data['t_start_ind']) and
+                        (self.t_counter < g.data['t_stop_ind'])):
+                    
+                    if self.comm.Get_rank() == 0:
+                        print 'Growth module is activated'
+                    
+                    # identify the cycle before happening of growth cycles for 
+                    # calculating setpoint
+                    self.gr.data['gr_setpoint_active'] = 0
+                    if self.gr.initial_gr_cycle_counter == self.gr.initial_gr_cycles - 1:
+                        self.gr.data['gr_setpoint_active'] = 1
+                        self.gr.store_setpoint(self.gr.data['gr_setpoint_active'])
+                        
+                        # assign setpoint when it is at end diastole 
+                        if self.end_diastolic:
+                            self.gr.assign_setpoint()
+                            self.gr.data['gr_active'] = 1
+                    else: 
+                         self.gr.data['gr_setpoint_active'] = 0
+
+                    # calculate stimulus at the last cycle before hapening of growth
+                    self.gr.data['gr_stimulus_active'] = 0
+                    if self.gr.initial_gr_cycle_counter >= (self.gr.initial_gr_cycles - 1) and \
+                        self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n:
+                        #print 'True for theta'
+                        self.gr.data['gr_stimulus_active'] = 1
+
+                    # implement growth, it will handle storing data and tracking the changes
+                    # updating dolfin functions like 'local_thetas' and 'global_thetas'
+                    self.gr.implement_growth(self.end_diastolic,time_step)
+                    
+                    # let's grow the geometry when thetas are calculated and time-step is
+                    # at end-diastole
+                    if self.end_diastolic:
+
+                        if self.gr.growth_frequency_n_counter == self.gr.growth_frequency_n and\
+                             self.gr.initial_gr_cycle_counter >= self.gr.initial_gr_cycles:
+
+                            #print 'True for growth' 
+                            # store cavity volume before growth to reload back to this vol
+                            ED_vol = self.mesh.model['uflforms'].LVcavityvol()
+                            if self.comm.Get_rank() == 0:
+                                print 'Reference volume before growth'
+                                print self.reference_LV_vol
+                         
+
+                            # update dolfin functions for thetas that Fg is defined upon
+                            # Fg = theta_f(f0xf0) + theta_s(s0xs0) + theta_n(n0xn0)
+                            for dir in ['fiber','sheet','sheet_normal']:
+                                name = 'theta_' + dir
+                                temp_name = 'temp_' + name
+                                local_theta = self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
+                                self.gr.mechan.model['functions'][name].vector()[:] = local_theta
+                                   
+                                    #self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
+                                #print self.gr.mechan.model['functions'][temp_name].vector().get_local()[:]
+                            """########start#######"""
+                            Fg = self.gr.mechan.model['functions']['Fg']
+                            Fe = self.gr.mechan.model['functions']['Fe']
+
+                            temp_Fg = project(Fg,self.gr.mechan.model['function_spaces']['tensor_space'],
+                                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                            temp_Fe = project(Fe,self.gr.mechan.model['function_spaces']['tensor_space'],
+                                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                            F = self.gr.mechan.model['functions']['Fmat']
+                            temp_F = project(F,self.gr.mechan.model['function_spaces']['tensor_space'],
+                                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                            #print Fg
+                            if self.comm.Get_rank() == 0:
+                                print 'Fg after updating Fg'
+                                print temp_Fg
+                                print 'Fe after updating Fg'
+                                print temp_Fe
+                                print 'F after updating Fg'
+                                print temp_F
+                            """============================== """
+                            #do stuff for printing Fg and Fe
+                            min_Fg = temp_Fg.min()
+                            max_Fg = temp_Fg.max()
+                            min_Fe = temp_Fe.min()
+                            max_Fe = temp_Fe.max()
+                            if self.comm.Get_rank() != 0:
+                                self.comm.send(min_Fg,dest = 0,tag = 10)
+                                self.comm.send(max_Fg,dest = 0,tag = 11)
+                                self.comm.send(min_Fe,dest = 0,tag = 12)
+                                self.comm.send(max_Fe,dest = 0,tag = 13)
+
+                            if self.comm.Get_rank() == 0:
+                                min_Fg_array = [temp_Fg.min()]
+                                max_Fg_array = [temp_Fg.max()]
+                                min_Fe_array = [temp_Fe.min()]
+                                max_Fe_array = [temp_Fe.max()]
+
+                                for i in range(1,self.comm.Get_size()):
+                                        min_Fg_array.append(self.comm.recv(source = i, tag = 10))
+                                        max_Fg_array.append(self.comm.recv(source = i, tag = 11))
+                                        min_Fe_array.append(self.comm.recv(source = i, tag = 12))
+                                        max_Fe_array.append(self.comm.recv(source = i, tag = 13))
+                            
+                            if self.comm.Get_rank() == 0:
+                                print 'min of Fg'
+                                print np.array(min_Fg_array).min()
+                                print 'max of Fg'
+                                print np.array(max_Fg_array).max()
+                                print 'min of Fe'
+                                print np.array(min_Fe_array).min()
+                                print 'max of Fe'
+                                print np.array(max_Fe_array).max()
+
+                            #do stuff for printing theta
+                            for n,comp in enumerate(self.gr.components):
+                                theta_name = 'gr_local_theta' + '_' +  comp.data['type']
+                                min_theta = self.gr.data[theta_name].min()
+                                max_theta = self.gr.data[theta_name].max()
+                                j= 14 + n
+                                if self.comm.Get_rank() != 0:
+                                    self.comm.send(min_theta,dest = 0,tag = j+1)
+                                    self.comm.send(max_theta,dest = 0,tag = j+2)
+                                if self.comm.Get_rank() == 0:
+                                    min_theta_array = [self.gr.data[theta_name].min()]
+                                    max_theta_array = [self.gr.data[theta_name].max()]
+                                    for i in range(1,self.comm.Get_size()):
+                                        min_theta_array.append(self.comm.recv(source = i, tag = j+1))
+                                        max_theta_array.append(self.comm.recv(source = i, tag = j+2))
+                                
+                                rank_of_min = 0
+                                rank_of_max = 0
+                                if self.comm.Get_rank() == 0:
+                                    rank_of_min = np.argmin(min_theta_array)
+                                    rank_of_max = np.argmax(max_theta_array)
+                                rank_of_min = self.comm.bcast(rank_of_min,root=0)
+                                rank_of_max = self.comm.bcast(rank_of_max,root=0)
+
+                                if self.comm.Get_rank() == rank_of_min:
+                                    index = np.argmin(self.gr.data[theta_name])
+                                    report_dict = dict()
+                                    report_dict['Type'] = 'Min Theta'
+                                    report_dict['direction'] = comp.data['type']
+                                    report_dict['Rank'] = self.comm.Get_rank()
+                                    report_dict['int_point'] = index
+                                    report_dict['deviation'] = self.gr.data['gr_deviation_' + comp.data['type']][index]
+                                    report_dict['global_theta'] = self.gr.data['gr_global_theta_' + comp.data['type']][index]
+                                    report_dict['local_theta'] = self.gr.data['gr_local_theta_' +  comp.data['type']][index]
+                                    report_dict['stimulus'] = self.gr.data['gr_stimulus_'+comp.data['type']][index]
+                                    report_dict['setpoint'] = self.gr.data['gr_setpoint_'+comp.data['type']][index]
+                                    dofmap = self.dofmap[index]
+                                    #report_dict['dofmap'] = dofmap
+                                    report_dict['x_ccord'] = self.x_coord[dofmap]
+                                    report_dict['y_ccord'] = self.y_coord[dofmap]
+                                    report_dict['z_ccord'] = self.z_coord[dofmap]
+
+                                    print(json.dumps(report_dict, indent=4))
+                                    
+                                if self.comm.Get_rank() == rank_of_max:
+                                    index = np.argmin(self.gr.data[theta_name])
+                                    report_dict = dict()
+                                    report_dict['Type'] = 'Max Theta'
+                                    report_dict['direction'] = comp.data['type']
+                                    report_dict['Rank'] = self.comm.Get_rank()
+                                    report_dict['int_point'] = index
+                                    report_dict['deviation'] = self.gr.data['gr_deviation_' + comp.data['type']][index]
+                                    report_dict['global_theta'] = self.gr.data['gr_global_theta_' + comp.data['type']][index]
+                                    report_dict['local_theta'] = self.gr.data['gr_local_theta_' +  comp.data['type']][index]
+                                    report_dict['stimulus'] = self.gr.data['gr_stimulus_'+comp.data['type']][index]
+                                    report_dict['setpoint'] = self.gr.data['gr_setpoint_'+comp.data['type']][index]
+                                    dofmap = self.dofmap[index]
+                                    #report_dict['dofmap'] = dofmap
+                                    report_dict['x_ccord'] = self.x_coord[dofmap]
+                                    report_dict['y_ccord'] = self.y_coord[dofmap]
+                                    report_dict['z_ccord'] = self.z_coord[dofmap]
+                                    
+                                    print(json.dumps(report_dict, indent=4))
+
+                                n_of_min_theta = len(self.gr.data[theta_name][self.gr.data[theta_name]<0.5])
+                                n_of_max_theta = len(self.gr.data[theta_name][self.gr.data[theta_name]>1.5])
+                                if self.comm.Get_rank() != 0:
+                                    self.comm.send(n_of_min_theta,dest = 0,tag = j+3)
+                                    self.comm.send(n_of_max_theta,dest = 0,tag = j+4)
+                                if self.comm.Get_rank() == 0:
+                                    n_min_theta_array = [n_of_min_theta]
+                                    n_max_theta_array = [n_of_max_theta]
+                                    for i in range(1,self.comm.Get_size()):
+                                        n_min_theta_array.append(self.comm.recv(source = i, tag = j+3))
+                                        n_max_theta_array.append(self.comm.recv(source = i, tag = j+4))
+                                    print 'n_min_theta_array'
+                                    print n_min_theta_array
+                                    print 'n_max_theta_array'
+                                    print n_max_theta_array
+
+                                n_total_min_theta = self.comm.reduce(n_of_min_theta)
+                                n_total_max_theta = self.comm.reduce(n_of_max_theta)
+
+                                n_total_min_theta = self.comm.bcast(n_total_min_theta)
+                                n_total_max_theta = self.comm.bcast(n_total_max_theta)
+                                if self.comm.Get_rank() == 0:
+                                    print 'n_total_min_theta'
+                                    print n_total_min_theta
+                                    print 'n_total_max_theta'
+                                    print n_total_max_theta
+                                
+                                
+                            """============================== """
+                            """#######end########"""
+                            # Grow reference configuration
+                            self.gr.grow_reference_config()
+
+                            # reset Fg = 1
+                            for dir in ['fiber','sheet','sheet_normal']:
+                                name = 'theta_' + dir
+                                self.gr.mechan.model['functions'][name].vector()[:] = 1
+                            #self.update_theta_Fg()
+
+                            # reinitialize mesh onjects everywhere
+                            if self.comm.Get_rank() == 0:
+                                print 'Updating Mesh class'
+
+                            # store information for updating the reference geometry
+                            predefined_functions = dict()
+                            predefined_functions['facetboundaries'] = self.gr.mechan.model['functions']['facetboundaries']
+                            predefined_functions['hsl0'] = self.gr.mechan.model['functions']['hsl0']
+                            predefined_functions['f0'] = self.gr.mechan.model['functions']['f0']
+                            predefined_functions['s0'] = self.gr.mechan.model['functions']['s0']
+                            predefined_functions['n0'] = self.gr.mechan.model['functions']['n0']
+                            
+                            #reinitialize mesh class with the geometry from growth
+                            self.mesh = MeshClass(self,predefined_mesh = self.gr.mechan.model['mesh'],
+                                                    predefined_functions = predefined_functions)
+                            #reinitialize growth mechanics class with the geometry from growth
+                            self.gr.reinitialize_mesh_object_for_growth(predefined_functions)
+
+                            # reinitialize solver object
+                            self.solver =  NSolver(self,self.mesh,self.comm)
+
+                            # reinitialize dof mapping
+                            self.initialize_dof_mapping()
+                            # reinitialize integer points
+                            self.initialize_integer_points()
+
+                            rank_id = self.comm.Get_rank()
+                            print '%0.0f integer points have been assigned to core %0.0f'\
+                                %(self.local_n_of_int_points,rank_id)
+                            # update coordinates of nodes over updated reference geometry
+                            self.handle_coordinates_of_geometry()
+                            # adjust apex contractility if needed 
+                            self.handle_apex_contractility(self.instruction_data)
+                            # handle half-sarocomere visualization
+                            self.handle_hs_visualization_on_mesh()
+                            # update mesh in circulatory object 
+                            self.circ.mesh = self.mesh
+                        # check if the pressure is zero 
+                            
+                            # reset solution to zero 
+                            self.mesh.model['functions']['w'].vector()[:] = 0.0
+                            """#######start########"""
+                            sol = self.mesh.model['functions']['w'].vector().array()[:] 
+                            sol_gr = self.gr.mechan.model['functions']['w'].vector().array()[:] 
+                            if self.comm.Get_rank() == 0:
+                                print 'Checking solution in mesh class is reset to 0'
+                                print sol
+                                print 'Checking solution in gr class is reset to 0'
+                                print sol_gr
+                            """#######end########"""
+
+                            # now save mesh file for reference geometry 
+                            file_path = os.path.join(self.growth_path,'growth_' + str(self.data['time']) +'.xdmf') 
+                            self.growth_mesh = XDMFFile(mpi_comm_world(),file_path)
+                            self.growth_mesh.parameters.update({"functions_share_mesh": True,
+                                                        "rewrite_function_mesh": True})
+                            self.growth_mesh.write(self.mesh.model['mesh'])
+                            
+                            
+                            """#######start########"""
+                            Fg = self.gr.mechan.model['functions']['Fg']
+                    
+                            Fe = self.gr.mechan.model['functions']['Fe']
+                                            #Fg = self.mesh.model['functions']['Fg']
+                            temp_Fg = project(Fg,self.gr.mechan.model['function_spaces']['tensor_space'],
+                                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                            temp_Fe = project(Fe,self.gr.mechan.model['function_spaces']['tensor_space'],
+                                                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                            F = self.gr.mechan.model['functions']['Fmat']
+                            temp_F = project(F,self.gr.mechan.model['function_spaces']['tensor_space'],
+                                            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                            #E = self.mesh.model['functions']['E']
+                            #temp_E = project(E,self.mesh.model['function_spaces']['tensor_space'],
+                            #                form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                            if self.comm.Get_rank() == 0:
+                                print 'Fg after reseting w'
+                                print temp_Fg
+                                print 'Fe after reseting w'
+                                print temp_Fe
+                                print 'F after reseting w'
+                                print temp_F
+
+                            """#######end########"""
+
+                            # now reload back to ED vol
+                            self.reference_LV_vol = \
+                                self.mesh.model['uflforms'].LVcavityvol()
+                            
+                            self.mesh.model['functions']['LVCavityvol'].vol = \
+                                self.mesh.model['uflforms'].LVcavityvol()
+                            """#######start########"""
+                            lv_vol = self.mesh.model['uflforms'].LVcavityvol()
+                            #lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+                            expression_vol = self.mesh.model['functions']['LVCavityvol'].vol 
+                            
+                            if self.comm.Get_rank() == 0: 
+                                print 'lv vol right before solve nonlinear'
+                                print lv_vol
+                                print "expression vol right before solve nonlinear "
+                                print expression_vol
+                                #print'lv press'
+                                #print lv_p
+                            #self.solver.solvenonlinear()
+
+                            lv_vol = self.mesh.model['uflforms'].LVcavityvol()
+                            lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+                            expression_vol = self.mesh.model['functions']['LVCavityvol'].vol 
+                            
+                            if self.comm.Get_rank() == 0: 
+                                print 'lv vol'
+                                print lv_vol
+                                print "expression vol "
+                                print expression_vol
+                                print'lv press'
+                                print lv_p
+                            """#######end########"""
+                            # redefine hs attributes 
+                            # Start with half-saromere length
+                            self.hs_length_list = self.mesh.hs_length_list
+                            # Delta half-sarcomere length
+                            self.delta_hs_length_list = np.zeros(self.local_n_of_int_points)
+                            # Active stress generated by cross-bridge cycling of myosin
+                            self.cb_stress_list = self.mesh.cb_stress_list
+                            # Passive stress in half-sarcomeres
+                            self.pass_stress_list = self.mesh.pass_stress_list
+
+                            """ Generating half-sarcomere object list"""
+                            for i in np.arange(self.local_n_of_int_points):
+                                #""" Assign the hs length according to what used in the mesh"""
+                                self.hs_objs_list[i].data['hs_length'] = \
+                                    self.hs_length_list[i]
+                                self.hs_objs_list[i].myof.y = \
+                                    self.hs.myof.y
+                                
+                            """#######start########"""
+                            y_vec = self.mesh.model['functions']['y_vec'].vector().array()[:]
+                            if self.comm.Get_rank() == 0:
+                                print 'y_vec in hs obj'
+                                print self.hs_objs_list[0].myof.y
+                                print 'y_vec in hs class' 
+                                print self.hs.myof.y
+                                
+                            if self.comm.Get_rank() == 0:
+                                print 'y_vec in meshclass'
+                                print y_vec
+                            """#######end########"""
+
+                            # now reload back to ED vol in 10 steps
+                            n_step = 10.0
+                            loading_vol = ED_vol - self.reference_LV_vol
+                            delta_vol = loading_vol / n_step
+                            activation = 0
+                            if self.comm.Get_rank() == 0:
+                                print 'Diastolic loading/unloading ...'
+                                #print 'Seting the LV cavity vol expression to be real current LV vol'
+                            
+                            #self.solver.solvenonlinear()
+                            for n in range(int(n_step)):
+                                expres_vol = self.mesh.model['functions']['LVCavityvol'].vol
+                                if self.comm.Get_rank() == 0:
+                                    print 'Inc vol: %f'%delta_vol
+                                    print expres_vol
+
+                                # solve hs to update y_vec while we are loading back to ED
+                                for j in range(self.local_n_of_int_points):
+                                    self.hs_objs_list[j].update_simulation(time_step,
+                                                                            self.delta_hs_length_list[j], 
+                                                                            activation,
+                                                                            self.cb_stress_list[j],
+                                                                            self.pass_stress_list[j])
+                                    """if self.comm.Get_rank() == 0:
+                                        print 'y_vec from hs obj class while reloading'
+                                        print self.hs_objs_list[j].myof.y"""
+                                    self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
+                                        self.hs_objs_list[j].myof.y[:]
+                                    if j%1000==0 and self.comm.Get_rank() == 0:
+                                        print '%.0f%% of integer points are updated' % (100*j/self.local_n_of_int_points)
+
+                                self.mesh.model['functions']['y_vec'].vector()[:] = self.y_vec
+                                y_vec = self.mesh.model['functions']['y_vec'].vector().array()[:]
+                                if self.comm.Get_rank() == 0:
+                                    print 'y_vec while reloading'
+                                    print y_vec
+                                self.mesh.model['functions']['hsl_old'].vector()[:] = self.hs_length_list
+
+                                # Fill the LV with more blood
+                                self.mesh.model['functions']['LVCavityvol'].vol += delta_vol
+                                #lv_vol = self.mesh.model['functions']['LVCavityvol'].vol
+                                lv_vol = self.mesh.model['uflforms'].LVcavityvol()
+                                if self.comm.Get_rank() == 0:
+                                    print 'Lv vol before solving %f' %lv_vol
+                                
+                                self.comm.Barrier()
+                                self.solver.solvenonlinear()
+                                lv_vol = self.mesh.model['uflforms'].LVcavityvol()
+                                #remained_steps = n_step - (n+1)
+                                if self.comm.Get_rank() == 0:
+                                    print 'LV vol at step %d of loading/unloading is: %f' %(n,lv_vol)
+                                
+                                # update 
+                                self.cb_stress_list = project(self.mesh.model['functions']['cb_stress'],
+                                    self.mesh.model['function_spaces']['quadrature_space']).vector().get_local()[:]
+
+                                self.mesh.model['functions']['hsl_old'].vector()[:] = \
+                                    project(self.mesh.model['functions']['hsl'], 
+                                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+
+                                new_hs_length_list = \
+                                    project(self.mesh.model['functions']['hsl'], 
+                                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+
+                                self.delta_hs_length_list = new_hs_length_list - self.hs_length_list
+                                if self.comm.Get_rank() == 0:
+                                    print 'delta hsl' 
+                                    print self.delta_hs_length_list
+                                self.hs_length_list = new_hs_length_list
+                                
+                                temp_DG = project(self.mesh.model['functions']['Sff'], 
+                                            FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
+                                            form_compiler_parameters={"representation":"uflacs"})
+
+                                p_f = interpolate(temp_DG, self.mesh.model['function_spaces']["quadrature_space"])
+                                self.pass_stress_list = p_f.vector().get_local()[:]
+                                
+                                # Convert negative passive stress in half-sarcomeres to 0
+                                self.pass_stress_list[self.pass_stress_list<0] = 0
+                            
+                                self.comm.Barrier()
+
+                            """#######start########"""
+                            #self.diastolic_loading(loading_vol)
+                        
+                            # reset y_vec back to its original value before growth
+
+                            # solve with updted y_vec
+                            hs_l = project(self.mesh.model['functions']['hsl'], 
+                                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+                            if self.comm.Get_rank() == 0:
+                                print 'hsl after reloading'
+                                print hs_l
+                            #print 'solving weak form after reseting y_vec back to its original values'
+                            #self.solver.solvenonlinear()
+                            y_vec = self.mesh.model['functions']['y_vec'].vector().array()[:]
+                            if self.comm.Get_rank() == 0:
+                                print 'y_vec after reloading'
+                                print y_vec
+                            
+                            lv_p = 0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+                            
+                            if self.comm.Get_rank() == 0: 
+                                print'lv press after reload back to ED'
+                                print lv_p
+                            # save LV geometry at ED 
+                            file_path_ED = os.path.join(self.growth_path,'growth_ED' + str(self.data['time']) +'.xdmf') 
+                            growth_mesh_ED = XDMFFile(mpi_comm_world(),file_path_ED)
+                            growth_mesh_ED.parameters.update({"functions_share_mesh": True,
+                                                        "rewrite_function_mesh": True})
+                            growth_mesh_ED.write(self.mesh.model['mesh'])
+                            """#######end########"""
+                            # update the LV pressure in circultaion with new mesh 
+                            self.circ.data['p'][-1] = \
+                                0.0075*self.mesh.model['uflforms'].LVcavitypressure()
+                        
+                            self.gr.growth_frequency_n_counter = 0
+                        
+                        else:
+                            self.gr.growth_frequency_n_counter += 1
+                        
+                        self.gr.initial_gr_cycle_counter += 1
 
 
 
@@ -999,6 +1705,7 @@ class LV_simulation():
                     if m == 'hs_length':
                         
                         temp_obj = project(self.mesh.model['functions']['hsl'], 
+
                                                 self.mesh.model['function_spaces']["scalar"])
                         
 
@@ -1020,10 +1727,14 @@ class LV_simulation():
                             temp_obj = project(self.mesh.model['functions']["cb_number_density"], 
                                                 self.mesh.model['function_spaces']["scalar"])
 
+
                     if m == 'active_stress':
+                        #inner_p = self.mesh.model['functions']['Pactive']
+                        #temp_obj= project(inner_p,Vq,form_compiler_parameters={"representation":"uflacs"})
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
+
                                         self.mesh.model['function_spaces']["scalar"])
                         
                     if m == 'active_stress_DG0':
@@ -1087,13 +1798,49 @@ class LV_simulation():
                         temp_obj =  project(self.mesh.model['functions']['endo_dist'],self.mesh.model['function_spaces']["scalar"])
                                
 
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                        #dolfin.parameters["form_compiler"]["representation"] = "quadrature"
+                    if m == 'total_stress':
+                        temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['total_stress']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                    if m == 'total_passive':
+                        temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['total_passive_PK2']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                    if m == 'myofiber_passive':
+                        temp_obj = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['Sff']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        form_compiler_parameters={"representation":"uflacs"})                    
+
+                    if m == 'fiber_direction':
+                            temp_obj = project(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['function_spaces']['vector_f'],
+                                        form_compiler_parameters={"representation":"uflacs"})
+                    if m in ['local_theta_vis_fiber','local_theta_vis_sheet','local_theta_vis_sheet_normal',
+                                'global_theta_vis_fiber','global_theta_vis_sheet','global_theta_vis_sheet_normal',
+                                'stimulus_fiber', 'stimulus_sheet', 'stimulus_sheet_normal',
+                                'deviation_fiber', 'deviation_sheet','deviation_sheet_normal',
+                                'setpoint_fiber','setpoint_sheet','setpoint_sheet_normal'] and \
+                                    'growth' in self.instruction_data['model']:
+
+                            temp_obj = project(self.mesh.model['functions'][m],
+                                                self.mesh.model['function_spaces']["scalar_for_growth"],
+                                                form_compiler_parameters={"representation":"uflacs"})
+
+
                     temp_obj.rename(m,'')
                     
                     self.solution_mesh.write(temp_obj,self.data['time'])
                     
-                    
 
-        
         # Update the t counter for the next step
         self.t_counter = self.t_counter + 1
         self.data['time'] = self.data['time'] + time_step
@@ -1108,6 +1855,10 @@ class LV_simulation():
                 print "SAVING F0 VS TIME ARRAY"
                 np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"f0_vs_time.npy",f0_vs_time_array)
                 self.instruction_data'''
+
+        
+        self.data['new_beat'] = new_beat
+
 
    
     def update_data(self, time_step):
@@ -1172,12 +1923,17 @@ class LV_simulation():
     
 
         for f in list(self.data.keys()):
+
             
             
             print (self.data[f])
             
            
             if (f not in ['fr_active']):
+                self.sim_data[f][self.write_counter] = self.data[f]
+
+
+            if f not in ['Sff','sff_mean','hsl','alpha_f','total_stress_spatial']:
                 self.sim_data[f][self.write_counter] = self.data[f]
 
         for f in list(self.circ.data.keys()):
@@ -1192,11 +1948,16 @@ class LV_simulation():
                 self.sim_data[f][self.write_counter] = self.br.data[f]
         if (self.gr):
             for f in list(self.gr.data.keys()):
+
                 self.sim_data[f][self.write_counter] = self.gr.data[f]
         #if (self.fr):
             #for f in list(self.fr.data.keys()):
                 #self.sim_data[f][self.write_counter] = self.fr.data[f]
 
+
+
+                if f not in self.spatial_gr_data_fields:
+                    self.sim_data[f][self.write_counter] = self.gr.data[f]
 
     
         self.sim_data['write_mode'] = 1
@@ -1207,10 +1968,9 @@ class LV_simulation():
         print 'Writing spatial variables on core id: %0.0f' %rank
 
         if self.spatial_data_to_mean:
-            
 
-            self.local_spatial_sim_data.at[self.write_counter,'time'] = \
-                self.data['time']
+            self.local_spatial_sim_data.at[self.write_counter,'time'] = self.data['time']
+
             for f in list(self.spatial_hs_data_fields):
                 data_field = []
                 for i,h in enumerate(self.hs_objs_list):
@@ -1234,6 +1994,7 @@ class LV_simulation():
                     data_field.append(h.memb.data[f]) 
                 self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
 
+
            
            
             '''for f in list(self.spatial_fiber_data_fields):
@@ -1251,6 +2012,18 @@ class LV_simulation():
 
             
             
+
+            
+            if self.gr:
+                for f in list(self.spatial_gr_data_fields):
+                    data_field = self.gr.data[f]
+                    self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+            
+            for f in ['Sff','sff_mean','alpha_f']:
+                data_field = self.data[f]
+                self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+
+
         else:
 
             
@@ -1281,6 +2054,14 @@ class LV_simulation():
             
                 #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
                 #    self.data['time']
+            if self.gr:
+                for f in self.spatial_gr_data_fields:
+                    data_field = self.gr.data[f]
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+            
+            for f in ['Sff','sff_mean','alpha_f']:
+                data_field = self.data[f]
+                self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
 
 
@@ -1437,12 +2218,178 @@ class LV_simulation():
     
 
 
+    
+
+
+    def initialize_dof_mapping(self):
+        
+        """Lets handle dof mapping for quadrature points """
+        if self.comm.Get_rank() == 0:
+            print 'Initializing dof mapping'
+        self.dofmap_list = []
+        self.dofmap = self.mesh.model['function_spaces']['quadrature_space'].dofmap().dofs()
+        
+        # Send dof mapping and list of coords to root core (i.e. 0)
+        if self.comm.Get_rank() != 0:
+            self.comm.send(self.dofmap,dest = 0, tag = 0)
+        else: # Root core recieves  from other cores
+            self.dofmap_list.append(self.dofmap)
+            for i in range(1,self.comm.Get_size()):
+                self.dofmap_list.append(self.comm.recv(source = i, tag = 0))
+        # Now broadcast the list to all cores
+        self.dofmap_list = \
+            self.comm.bcast(self.dofmap_list)
+    
+    def initialize_integer_points(self):
+
+        if self.comm.Get_rank() == 0:
+            print 'Initializing integer points on each core.'
+        # half_sarcomere parameters spatially 
+        # 4 comes from using degree 2
+        #self.hs_params_mesh = dict()
+        self.local_n_of_int_points = \
+            4 * np.shape(self.mesh.model['mesh'].cells())[0]
+        
+        """ Calculate the total no of integration points"""
+        # First on the root core
+        self.global_n_of_int_points = \
+            self.comm.reduce(self.local_n_of_int_points)
+        # Then broadcast to all other cores
+        self.global_n_of_int_points = \
+            self.comm.bcast(self.global_n_of_int_points)
+
+        """ Now generate a list (with len = total num of cores) """
+        # that holds the num of integer points for each core
+        self.int_points_per_core = \
+                np.zeros(self.comm.Get_size())
+        # Send local num of integer points to root core (i.e. 0)
+        if self.comm.Get_rank() != 0:
+            self.comm.send(self.local_n_of_int_points,dest = 0, tag = 1)
+        else: # Root core recieves local num of int points from other cores
+            self.int_points_per_core[0] = self.local_n_of_int_points
+            for i in range(1,self.comm.Get_size()):
+                self.int_points_per_core[i] = \
+                    self.comm.recv(source = i, tag = 1)
+        # Now broadcast the list to all cores
+        self.int_points_per_core = \
+            self.comm.bcast(self.int_points_per_core)
+
+        if self.comm.Get_rank() == 1:
+            print 'Total no if int points is %0.0f'\
+                %self.global_n_of_int_points
+            
+    def handle_coordinates_of_geometry(self):
+
+        """ Handle the coordinates of quadrature (integer) points"""
+        gdim = self.mesh.model['mesh'].geometry().dim()
+
+        self.coord = self.mesh.model['function_spaces']['quadrature_space'].\
+                tabulate_dof_coordinates().reshape((-1, gdim))
+        if self.comm.Get_rank()!=0:
+                self.comm.send(self.coord,dest=0,tag = 3)
+        else:
+            for i in range(1,self.comm.Get_size()):
+                self.coord = \
+                        np.append(self.coord,
+                            self.comm.recv(source = i, tag = 3),axis = 0)
+        
+        self.coord = self.comm.bcast(self.coord)
+
+        """Handle the coordinates """
+        x_coord = []
+        y_coord = []
+        z_coord = []
+        for i, c in enumerate(self.coord):
+            x_coord.append(c[0])
+            y_coord.append(c[1])
+            z_coord.append(c[2])
+
+        self.x_coord = np.array(x_coord)
+        self.y_coord = np.array(y_coord)
+        self.z_coord = np.array(z_coord)
+
+        print 'dimensions of LV'
+        print self.z_coord.min()
+        print self.x_coord.max()
+    
+    def handle_apex_contractility(self,instruction_data):
+
+        """ Reduce the contractility of gaussian points near apex"""
+        # First assume the corrdinates of apex
+        xc = 0.0
+        yc = 0.0
+        zc = self.z_coord.min()
+        if self.comm.Get_rank()==0:
+            print 'Z of apex:'
+            print zc
+
+        # then calculate the distance of all gaussian points wrt apex
+        self.apex_r = []
+        for i,p in enumerate(self.z_coord):
+            self.apex_r.append(self.return_spherical_radius(xc,yc,zc,
+                                self.x_coord[i],self.y_coord[i],self.z_coord[i]))
+        self.apex_r = np.array(self.apex_r)
+        
+        #now build an array for storing radius of apex for local integer points
+        self.apex_r_local = np.zeros(self.local_n_of_int_points)
+        for i,j in enumerate(self.dofmap):
+            self.apex_r_local[i] = self.apex_r[j]
+
+        # Now start selecting the points and change the active properties
+        if 'apex_contractility' in instruction_data['mesh']:
+            apex_components = []
+            for ci,comp in enumerate(instruction_data['mesh']['apex_contractility']['components']):
+                apex_components.append(dict())
+                for k in comp.keys():
+                    apex_components[ci][k] = comp[k][0]
+            
+                # then apply
+                indicies = np.where(self.apex_r<self.apex_r.max()*\
+                    apex_components[ci]['radius_ratio'])
+
+                mask = np.isin(self.dofmap,indicies)
+                hs_list = np.array(self.hs_objs_list)
+
+                for i,j  in enumerate(hs_list[mask]):
+                    r = self.apex_r_local[mask][i]
+                    if apex_components[ci]['level']=='myofilaments':
+                        #j.myof.data[apex_components[ci]['variable']] *= \
+                        #    apex_components[ci]['factor']
+                        p = j.myof.data[apex_components[ci]['variable']]
+                        j.myof.data[apex_components[ci]['variable']] = \
+                            p * (1-apex_components[ci]['factor']) * r / \
+                                (self.apex_r.max()*apex_components[ci]['radius_ratio']) + \
+                                   p * apex_components[ci]['factor']
+                    elif apex_components[ci]['level']=='memberanes':
+                        #j.memb.data[apex_components[ci]['variable']] *= \
+                        #    apex_components[ci]['factor']
+                        p = j.memb.data[apex_components[ci]['variable']]
+                        j.memb.data[apex_components[ci]['variable']] = \
+                            p * (1-apex_components[ci]['factor']) * r / \
+                                (self.apex_r.max()*apex_components[ci]['radius_ratio']) + \
+                                   p * apex_components[ci]['factor']
+    
+    def handle_hs_visualization_on_mesh(self):
+
+        # assign the values from the half-sarcomere isntances
+        # to spatial variables that baroreflex can regulate
+        # (for visualizaton purpose)
+        for p in ['k_1','k_3','k_on'] :
+            for i, h in enumerate(self.hs_objs_list):
+                self.mesh.data[p][i] = h.myof.data[p]
+            self.mesh.model['functions'][p].vector()[:] = \
+                  self.mesh.data[p]
+        for p in ['k_act','k_serca']:
+            for i, h in enumerate(self.hs_objs_list):
+                self.mesh.data[p][i] = h.memb.data[p]
+            self.mesh.model['functions'][p].vector()[:] = \
+                  self.mesh.data[p]
+
     def handle_infarct(self,infarct_struct):
 
         self.infarct_model = dict()
         for inf in infarct_struct.keys():
             self.infarct_model[inf] = infarct_struct[inf][0]
-
         #define the initial point of infarcted region 
         y_m = 0
         z_m = self.z_coord.min() * self.infarct_model['z_ratio']
@@ -1473,3 +2420,4 @@ class LV_simulation():
                     (local_points_r <= self.infarct_model['boundary_zone_radius']))[0]
         
         return infarct_regions, border_zone_regions
+

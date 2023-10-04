@@ -46,10 +46,31 @@ class heart_rate():
         else:
             new_beat = 0
 
-        return (self.data['activation'], new_beat)
+        end_diastolic, total_time_step_per_cycle = \
+            self.check_end_diastolic(time_step)
+     
+
+        return (self.data['activation'], new_beat, end_diastolic)
 
     def return_heart_rate(self):
         """ returns heart rate in beats per minute """
 
         return 60 * 1 / (self.data['t_active_period'] +
                              self.data['t_quiescent_period'])
+    
+    def check_end_diastolic(self,time_step):
+        temp_t_RR = self.data['t_RR']
+        temp_t_RR -= time_step
+
+        end_diastolic = 0
+        total_time_step_per_cycle = 1
+        if temp_t_RR <= 0:
+            end_diastolic = 1
+            total_time_step_per_cycle = \
+                int((self.data['t_active_period'] + \
+                self.data['t_quiescent_period'])/time_step)
+        
+        return end_diastolic ,total_time_step_per_cycle
+
+
+         
