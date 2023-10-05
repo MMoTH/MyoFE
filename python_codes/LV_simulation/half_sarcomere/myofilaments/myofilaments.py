@@ -43,6 +43,7 @@ class myofilaments():
        # Initialise stresses
         self.cb_stress = 0.0
         self.pas_stress = 0.0
+        self.total_stress = self.cb_stress + self.pas_stress
         #self.set_myofilament_stresses()
     
     def set_up_3_state_with_SRX(self):
