@@ -63,7 +63,7 @@ def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
     VQuadelem._quad_scheme = 'default'
     fiberFS = FunctionSpace(mesh, VQuadelem)
     isepiflip = True #False
-    isendoflip = False #True #True
+    isendoflip = True #True #True
     #endo_angle = 60; epi_angle = -60; 
     casedir="./"
     hslFS = FunctionSpace(mesh,Quadelem)

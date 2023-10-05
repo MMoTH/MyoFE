@@ -1,8 +1,19 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [2000],
+        "no_of_time_steps": [10000],
         "time_step": [0.001],
+        "fiber_reorientation":
+        {
+            "activations":
+            [
+                {
+                    "t_start_s":[10],
+                    "t_stop_s":[14]
+
+                } 
+            ]
+        },
         "baroreflex": 
         {
             "activations": [
@@ -277,13 +288,20 @@
                     "thick_wall_approximation": [true]
                 }
             }
+        },
+        "fiber_reorientation":
+        {
+            "stress_type":["total_stress"],
+            "law":["new_stress_kroon"],
+            "time_constant":[4],
+            "reorient_t_start":[0.5,"ms"]
         }
         
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/press_deg2/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/press_deg2/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/merge_test_no_fr/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/merge_test_no_fr/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
