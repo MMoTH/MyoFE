@@ -1,13 +1,13 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [10000],
+        "no_of_time_steps": [5000],
         "time_step": [0.001],
         "baroreflex": 
         {
             "activations": [
                 {
-                    "t_start_s": [5],
+                    "t_start_s": [50],
                     "t_stop_s": [2000]
                 }
             ]
@@ -378,8 +378,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/mnt/gpfs2_4m/scratch/hsh245/new_master/test_baseline/data.csv"],
-        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/hsh245/new_master/test_baseline/mesh_output"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/hsh245/new_master/baseline/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/hsh245/new_master/baseline/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -402,7 +402,7 @@
 	    "setpoint_sheet",
 	    "setpoint_sheet_normal"
         ],
-        "growth_mesh_path": ["/mnt/gpfs2_4m/scratch/hsh245/new_master/test_baseline/mesh_output"],     
+        "growth_mesh_path": ["/mnt/gpfs2_4m/scratch/hsh245/new_master/baseline/mesh_output"],     
         "dumping_spatial_in_average":[true],
         "frequency_n": [10]
         
