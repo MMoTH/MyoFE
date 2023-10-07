@@ -41,7 +41,7 @@
                     "level": ["circulation"],
                     "variable": ["aorta_resistance"],
                     "t_start_s": [20],
-                    "t_stop_s": [20],
+                    "t_stop_s": [30],
                     "total_change": [0]
                 },
                 {
