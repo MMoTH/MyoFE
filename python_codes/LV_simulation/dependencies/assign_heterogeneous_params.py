@@ -685,24 +685,45 @@ class assign_heterogeneous_params(object):
 
     def df_rat_ellipsoid_infarct(dolfin_functions,base_value,k,scaling_factor,no_of_int_points,geo_options):
         xq = geo_options["xq"] # coordinate of quadrature points
+        base_CB_density = 6.96e16
+    
+    ## small Infarc with size from Kurtis model
+    #centerZ = .44089
+        centerZ = .3   ## shift up the infart to get away form apex
+        R_inf =  0.2 
+        R_tot = 0.25
+
+
+        
         for jj in np.arange(no_of_int_points):
         
-            r = np.sqrt(xq[jj][1]**2 + (xq[jj][2]+.44089)**2)
+            ### cylindrical formula for mid wall
 
-            if xq[jj][0] > 0 and (r < .2044):
+            r = np.sqrt(xq[jj][1]**2 + (xq[jj][2]+centerZ)**2)
+            
+
+
+
+            if xq[jj][0] > 0 and (r < R_inf):
+            # for apical
+            #if (r < R_inf):   
                 dolfin_functions["passive_params"][k][-1].vector()[jj] = base_value*scaling_factor
-                dolfin_functions["passive_params"]["bt"][-1].vector()[jj] = 10
+                dolfin_functions["passive_params"]["bt"][-1].vector()[jj] = 8
                 dolfin_functions["passive_params"]["bf"][-1].vector()[jj] = 10
                 dolfin_functions["passive_params"]["bfs"][-1].vector()[jj] = 10
                 dolfin_functions["cb_number_density"][-1].vector()[jj] = 0
 
-            if xq[jj][0] > 0 and (r >= .2044):
-                if r < (0.25):
+            if xq[jj][0] > 0 and (r >= R_inf):
+            # for apical
+            #if  (r >= R_inf):    
+                if r < (R_tot):
                     #dolfin_functions["passive_params"][k][-1].vector()[jj] = base_value*scaling_factor
                     #dolfin_functions["passive_params"]["bt"][-1].vector()[jj] = 10
                     #dolfin_functions["passive_params"]["bf"][-1].vector()[jj] = 10
                     #dolfin_functions["passive_params"]["bfs"][-1].vector()[jj] = 10
-                    dolfin_functions["cb_number_density"][-1].vector()[jj] = 1.513157e18*(r-.2044)    
+                    dolfin_functions["cb_number_density"][-1].vector()[jj] = base_CB_density*((r-R_inf)/(R_tot-R_inf)) + 0.5*base_CB_density*((R_tot-r)/(R_tot-R_inf))
+                
+                    #1.513157e18*(r-.2044)      
         return dolfin_functions
 
     def df_transmural_law(self,dolfin_functions,base_value,k,epi_value,transition_type,no_of_cells,endo_dist):

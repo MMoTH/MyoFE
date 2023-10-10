@@ -905,6 +905,24 @@ class LV_simulation():
                         for b in self.border_zone_regions:
                             self.hs_objs_list[b].memb.data[self.infarct_model['variable']] +=\
                                 i.data['boundary_zone_increment']
+                            
+
+
+                    elif self.infarct_model['level'] == 'chronic':
+                        for r in self.infarct_regions:
+                            self.hs_objs_list[r].memb.data[self.infarct_model['variable']] +=\
+                                i.data['infarct_increment']
+                            
+
+                            dolfin_functions["passive_params"][k][-1].vector()[jj] = base_value*scaling_factor
+                            dolfin_functions["passive_params"]["bt"][-1].vector()[jj] = 8
+                            dolfin_functions["passive_params"]["bf"][-1].vector()[jj] = 10
+                            dolfin_functions["passive_params"]["bfs"][-1].vector()[jj] = 10
+                            dolfin_functions["cb_number_density"][-1].vector()[jj] = 0
+                            
+                        for b in self.border_zone_regions:
+                            self.hs_objs_list[b].memb.data[self.infarct_model['variable']] +=\
+                                i.data['boundary_zone_increment']
         
         # Rubild system arrays
         self.rebuild_from_perturbations()
@@ -2216,10 +2234,10 @@ class LV_simulation():
 
         return ((xc-x)**2+(yc-y)**2+(zc-z)**2)**0.5 
     
+    def return_cylindrical_radius(self,yc,zc,y,z):
 
-
+        return ((yc-y)**2+(zc-z)**2)**0.5 
     
-
 
     def initialize_dof_mapping(self):
         
@@ -2403,9 +2421,59 @@ class LV_simulation():
 
 
         radius = []
+
+        if self.infarct_model['shape'] == "spherical":
+
+            for i,p in enumerate(self.z_coord):
+                radius.append(self.return_spherical_radius(x_m,y_m,z_m,
+                                    self.x_coord[i],
+                                    self.y_coord[i],
+                                    self.z_coord[i]))
+            radius = np.array(radius)
+
+        if self.infarct_model['shape'] == "cylindrical":
+
+            for i,p in enumerate(self.z_coord):
+                radius.append(self.return_cylindrical_radius(y_m,z_m,
+                                    self.y_coord[i],
+                                    self.z_coord[i]))
+            radius = np.array(radius)
+
+
+
+
+        local_points_r = np.zeros(self.local_n_of_int_points)
+        for i,j in enumerate(self.dofmap):
+            local_points_r[i] = radius[j]
+
+        infarct_regions = np.where(local_points_r<=self.infarct_model['infarct_radius'])[0]
+        border_zone_regions = \
+            np.where((local_points_r >= self.infarct_model['infarct_radius']) &\
+                    (local_points_r <= self.infarct_model['boundary_zone_radius']))[0]
+        
+        return infarct_regions, border_zone_regions
+    
+
+    def handle_infarct_MM(self,infarct_struct):
+
+        self.infarct_model = dict()
+        for inf in infarct_struct.keys():
+            self.infarct_model[inf] = infarct_struct[inf][0]
+        #define the initial point of infarcted region 
+        y_m = 0
+        z_m = self.z_coord.min() * self.infarct_model['z_ratio']
+        z_m_upper = z_m * 0.99
+        z_m_lower = z_m * 1.01
+
+        x_mid_vent_slice = \
+            self.x_coord[np.where((self.z_coord>=z_m_lower)&\
+                        (self.z_coord<=z_m_upper))]
+        x_m = x_mid_vent_slice.max()
+
+
+        radius = []
         for i,p in enumerate(self.z_coord):
-            radius.append(self.return_spherical_radius(x_m,y_m,z_m,
-                                self.x_coord[i],
+            radius.append(self.return_cylindrical_radius(y_m,z_m,
                                 self.y_coord[i],
                                 self.z_coord[i]))
         radius = np.array(radius)
@@ -2420,4 +2488,4 @@ class LV_simulation():
                     (local_points_r <= self.infarct_model['boundary_zone_radius']))[0]
         
         return infarct_regions, border_zone_regions
-
+    

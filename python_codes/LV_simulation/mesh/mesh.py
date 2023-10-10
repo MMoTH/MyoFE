@@ -219,7 +219,8 @@ class MeshClass():
         ##MM in the general form there used to be more inputs for below function, but for LV het modeling only below inputs are needed
         dolfin_functions = het_class.assign_heterogeneous_params(dolfin_functions,self.no_of_cells,endo_dist)
        
-
+        ### infarct note: for chronic infarcts we apply it here as material is alterred but for acute infarcts it is applied fin protocol and uses handle_infarct function in the main code
+        # as acute infacrt is like a purtubation and can be applied after few normal cycles
 
 
         ###### note
