@@ -683,7 +683,7 @@ class assign_heterogeneous_params(object):
 
         return dolfin_functions
 
-    def df_rat_ellipsoid_infarct(dolfin_functions,base_value,k,scaling_factor,no_of_int_points,geo_options):
+    def rat_ellipsoid_infarct(dolfin_functions,base_value,k,scaling_factor,no_of_int_points,geo_options):
         xq = geo_options["xq"] # coordinate of quadrature points
         base_CB_density = 6.96e16
     
