@@ -667,31 +667,27 @@ class LV_simulation():
 
                         if m == 'Transverse_Angle':
 
-                            TA= Function(Quad) 
-                            temp = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ell.vector().array().reshape((-1,3)))
-                            temp2 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ecc.vector().array().reshape((-1,3)))
-                            temp3 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),err.vector().array().reshape((-1,3)))
-                            TA.vector()[:] = (180/np.pi)*(np.arctan(temp3/temp2))
+                            self.TA= Function(Quad) 
+                            temp = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['ell'].vector().array().reshape((-1,3)))
+                            temp2 = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['ecc'].vector().array().reshape((-1,3)))
+                            temp3 = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['err'].vector().array().reshape((-1,3)))
+                            self.TA.vector()[:] = (180/np.pi)*(np.arctan(temp3/temp2))
 
-                            temp_obj =  project(TA,FS_DG0)
+                            temp_obj =  project(self.TA,FS_DG0)
 
 
-            
+                
                         if m == 'Helical_Angle':
 
-                            HA= Function(Quad) 
-                            temp = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ell.vector().array().reshape((-1,3)))
-                            temp2 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ecc.vector().array().reshape((-1,3)))
-                            temp3 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),err.vector().array().reshape((-1,3)))
-                            HA.vector()[:]  = (180/np.pi)*(np.arctan(temp/temp2))
+                            self.HA= Function(Quad) 
+                            temp = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['ell'].vector().array().reshape((-1,3)))
+                            temp2 = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['ecc'].vector().array().reshape((-1,3)))
+                            temp3 = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['err'].vector().array().reshape((-1,3)))
+                            self.HA.vector()[:]  = (180/np.pi)*(np.arctan(temp/temp2))
 
-                            temp_obj =  project(HA,FS_DG0)
+                            temp_obj =  project(self.HA,FS_DG0)
                         
-                        
-                        
-                        
-                        
-                        
+
                         if m == 'total_stress':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['total_stress']*
@@ -1702,7 +1698,6 @@ class LV_simulation():
             self.write_counter = self.write_counter + 1
 
 
-
             FE_DG0 = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
             FS_DG0 = FunctionSpace(self.mesh.model['mesh'],FE_DG0)
             
@@ -1792,25 +1787,25 @@ class LV_simulation():
                                
                     if m == 'Transverse_Angle':
 
-                        TA= Function(Quad) 
-                        temp = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ell.vector().array().reshape((-1,3)))
-                        temp2 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ecc.vector().array().reshape((-1,3)))
-                        temp3 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),err.vector().array().reshape((-1,3)))
-                        TA.vector()[:] = (180/np.pi)*(np.arctan(temp3/temp2))
+                        
+                        temp = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['ell'].vector().array().reshape((-1,3)))
+                        temp2 = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['ecc'].vector().array().reshape((-1,3)))
+                        temp3 = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['err'].vector().array().reshape((-1,3)))
+                        self.TA.vector()[:] = (180/np.pi)*(np.arctan(temp3/temp2))
 
-                        temp_obj =  project(TA,FS_DG0)
+                        temp_obj =  project(self.TA,FS_DG0)
 
 
             
                     if m == 'Helical_Angle':
 
-                        HA= Function(Quad) 
-                        temp = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ell.vector().array().reshape((-1,3)))
-                        temp2 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ecc.vector().array().reshape((-1,3)))
-                        temp3 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),err.vector().array().reshape((-1,3)))
-                        HA.vector()[:]  = (180/np.pi)*(np.arctan(temp/temp2))
+                        
+                        temp = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['ell'].vector().array().reshape((-1,3)))
+                        temp2 = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['ecc'].vector().array().reshape((-1,3)))
+                        temp3 = np.einsum('ij,ij->i',self.mesh.model['functions']['f0'].vector().array().reshape((-1,3)),self.mesh.model['functions']['err'].vector().array().reshape((-1,3)))
+                        self.HA.vector()[:]  = (180/np.pi)*(np.arctan(temp/temp2))
 
-                        temp_obj =  project(HA,FS_DG0)
+                        temp_obj =  project(self.HA,FS_DG0)
 
 
 

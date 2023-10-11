@@ -203,7 +203,7 @@ class MeshClass():
         ell = Function(fiberFS)
         err = Function(fiberFS)
         ecc = Function(fiberFS)
-        
+
         self.f.read(ell,"ellipsoidal/eL")
         self.f.read(err,"ellipsoidal/eR")
         self.f.read(ecc,"ellipsoidal/eC")
@@ -326,6 +326,11 @@ class MeshClass():
         functions["f00"] = f0
         functions["s0"] = s0
         functions["n0"] = n0
+        functions["ell"] = ell
+        functions["ecc"] = ecc
+        functions["err"] = err
+
+
         functions["c11"] = c11
         functions["pendo"] = pendo
         functions["p"] = p
