@@ -11,7 +11,7 @@ class assign_heterogeneous_params(object):
     
 
        ## define heterogeneous parameters based on some rule
-    def assign_heterogeneous_params(self,dolfin_functions,no_of_cells,endo_dist):
+    def assign_heterogeneous_params(self,dolfin_functions,no_of_cells,endo_dist,xq):
 
         # Going to directly go through hs_params_list and then dolfin_functions and check for heterogeneity
         # hs_params_template is the base copy of myosim parameters, loop through this
@@ -39,50 +39,13 @@ class assign_heterogeneous_params(object):
         print(het_dolfin_dict)
 
         # assign heterogeneous parametrs based on the desired law
-        dolfin_functions = self.assign_dolfin_functions(dolfin_functions,het_dolfin_dict,no_of_cells,endo_dist)
+        dolfin_functions = self.assign_dolfin_functions(dolfin_functions,het_dolfin_dict,no_of_cells,endo_dist,xq)
 
         # Kurtis needs to update this
         #--------------------------------------------------------
         # For fiber simulations, ends need to not contract, and may have different
         # stiffness than the contractile tissue
-        """if sim_params["simulation_geometry"][0] == "cylinder" or sim_params["simulation_geometry"][0] == "box_mesh" or sim_params["simulation_geometry"][0] == "gmesh_cylinder":
-
-            end_marker_array = geo_options["end_marker_array"]
-
-            fibrous_c  = geo_options["fibrous_c"]
-            fibrous_c2 = geo_options["fibrous_c2"]
-            fibrous_c3 = geo_options["fibrous_c3"]
-
-            for jj in np.arange(no_of_int_points):
-                #print "type" +str(end_marker_array[jj])
-
-                if end_marker_array[jj] > 9.0 or end_marker_array[jj] < 1.0:
-                    hs_params_list[jj]["myofilament_parameters"]["k_3"][0] = 0.0
-                    passive_params_list[jj]["c"]  = fibrous_c[0]
-                    passive_params_list[jj]["c2"] = fibrous_c2[0]
-                    passive_params_list[jj]["c3"] = fibrous_c3[0]
-
-                    fcn_list[0].vector()[jj] = fibrous_c[0]
-                    fcn_list[1].vector()[jj] = fibrous_c2[0]
-                    fcn_list[2].vector()[jj] = fibrous_c3[0]
-                else:
-
-                    #passive_params_list[jj]["c"] = passive_params_list[jj]["c"]
-                    #passive_params_list[jj]["c2"] = passive_params_list[jj]["c2"]
-                    #passive_params_list[jj]["c3"] = passive_params_list[jj]["c3"]
-                    fcn_list[0].vector()[jj] = passive_params_list[jj]["c"][0]
-                    fcn_list[1].vector()[jj] = passive_params_list[jj]["c2"][0]
-                    fcn_list[2].vector()[jj] = passive_params_list[jj]["c3"][0]
-
-        else:
-
-            for jj in np.arange(no_of_int_points):
-
-                # assign them to be homogeneous until I put the option into the instruction files
-                fcn_list[0].vector()[jj] = passive_params_list[0]["c"][0]
-                fcn_list[1].vector()[jj] = passive_params_list[0]["c2"][0]
-                fcn_list[2].vector()[jj] = passive_params_list[0]["c3"][0]"""
-
+        
 
         return dolfin_functions
 
@@ -277,7 +240,7 @@ class assign_heterogeneous_params(object):
                                 het_dolfin_dict[k].append(width)
                                 het_dolfin_dict[k].append(scaling_factor)
                                 het_dolfin_dict[k].append(contract_option)
-                            if temp_law == "rat_ellipsoid_infarct":
+                            if temp_law == "chronic_infarct":
                                 if "scaling_factor" in j:
                                     scaling_factor = j["scaling_factor"]
                                     het_dolfin_dict[k].append(scaling_factor)
@@ -299,7 +262,7 @@ class assign_heterogeneous_params(object):
 
         return het_dolfin_dict
 
-    def assign_dolfin_functions(self,dolfin_functions,het_dolfin_dict,no_of_cells,endo_dist):
+    def assign_dolfin_functions(self,dolfin_functions,het_dolfin_dict,no_of_cells,endo_dist,xq):
 
         for k in het_dolfin_dict.keys():
             #print "het_dolfin_dict"
@@ -334,8 +297,9 @@ class assign_heterogeneous_params(object):
             if hetero_law == "percent_contractile":
                 dolfin_functions = df_contractile_law(dolfin_functions,base_value,k,het_dolfin_dict[k][-4],het_dolfin_dict[k][-3],het_dolfin_dict[k][-2],het_dolfin_dict[k][-1],no_of_cells,geo_options)
 
-            if hetero_law == "rat_ellipsoid_infarct":
-                dolfin_functions = df_rat_ellipsoid_infarct(dolfin_functions,base_value,k,het_dolfin_dict[k][-1],no_of_int_points,geo_options)
+            if hetero_law == "chronic_infarct":
+
+                dolfin_functions = self.df_infarct(dolfin_functions,base_value,k,het_dolfin_dict[k][-1],no_of_cells,xq)
 
             if hetero_law == "transmural":
                 dolfin_functions =  self.df_transmural_law(dolfin_functions,base_value,k,het_dolfin_dict[k][-2],het_dolfin_dict[k][-1],no_of_cells,endo_dist)
@@ -683,9 +647,14 @@ class assign_heterogeneous_params(object):
 
         return dolfin_functions
 
-    def rat_ellipsoid_infarct(dolfin_functions,base_value,k,scaling_factor,no_of_int_points,geo_options):
-        xq = geo_options["xq"] # coordinate of quadrature points
-        base_CB_density = 6.96e16
+    def df_infarct(self,dolfin_functions,base_value,k,scaling_factor,no_of_cells,xq):
+        
+        ##Note MM: self is needed in the definition as dolfin function is both an input and output of this funtion. without self dolfin function in the input is assume as a new het object with includes two params inside and cause an error
+        
+       
+
+        all_cells = no_of_cells*4
+        base_CB_density = 6.9e16
     
     ## small Infarc with size from Kurtis model
     #centerZ = .44089
@@ -693,9 +662,13 @@ class assign_heterogeneous_params(object):
         R_inf =  0.2 
         R_tot = 0.25
 
-
+        l_c = dolfin_functions["passive_params"][k][-1].vector().get_local()[:] 
+        l_bt =dolfin_functions["passive_params"]["bt"][-1].vector().get_local()[:] 
+        l_bf =dolfin_functions["passive_params"]["bf"][-1].vector().get_local()[:] 
+        l_bfs = dolfin_functions["passive_params"]["bfs"][-1].vector().get_local()[:] 
+        l_cb_n_density = dolfin_functions["cb_number_density"][-1].vector().get_local()[:] 
         
-        for jj in np.arange(no_of_int_points):
+        for jj in np.arange(all_cells):
         
             ### cylindrical formula for mid wall
 
@@ -707,11 +680,14 @@ class assign_heterogeneous_params(object):
             if xq[jj][0] > 0 and (r < R_inf):
             # for apical
             #if (r < R_inf):   
-                dolfin_functions["passive_params"][k][-1].vector()[jj] = base_value*scaling_factor
-                dolfin_functions["passive_params"]["bt"][-1].vector()[jj] = 8
-                dolfin_functions["passive_params"]["bf"][-1].vector()[jj] = 10
-                dolfin_functions["passive_params"]["bfs"][-1].vector()[jj] = 10
-                dolfin_functions["cb_number_density"][-1].vector()[jj] = 0
+                        
+
+                l_c[jj] = base_value*scaling_factor
+                l_bt[jj] = 10
+                l_bf[jj] = 10
+                l_bfs[jj] = 10
+                l_cb_n_density[jj] = 0
+
 
             if xq[jj][0] > 0 and (r >= R_inf):
             # for apical
@@ -721,9 +697,19 @@ class assign_heterogeneous_params(object):
                     #dolfin_functions["passive_params"]["bt"][-1].vector()[jj] = 10
                     #dolfin_functions["passive_params"]["bf"][-1].vector()[jj] = 10
                     #dolfin_functions["passive_params"]["bfs"][-1].vector()[jj] = 10
-                    dolfin_functions["cb_number_density"][-1].vector()[jj] = base_CB_density*((r-R_inf)/(R_tot-R_inf)) + 0.5*base_CB_density*((R_tot-r)/(R_tot-R_inf))
+                    l_cb_n_density[jj] = base_CB_density*((r-R_inf)/(R_tot-R_inf)) + 0.5*base_CB_density*((R_tot-r)/(R_tot-R_inf))
                 
-                    #1.513157e18*(r-.2044)      
+                    #1.513157e18*(r-.2044)   
+                    # 
+
+
+        dolfin_functions["cb_number_density"][-1].vector()[:] = l_cb_n_density 
+        dolfin_functions["passive_params"]["c"][-1].vector()[:] = l_c 
+        dolfin_functions["passive_params"]["bt"][-1].vector()[:] = l_bt
+        dolfin_functions["passive_params"]["bf"][-1].vector()[:] = l_bf
+        dolfin_functions["passive_params"]["bfs"][-1].vector()[:] = l_bfs   
+
+
         return dolfin_functions
 
     def df_transmural_law(self,dolfin_functions,base_value,k,epi_value,transition_type,no_of_cells,endo_dist):

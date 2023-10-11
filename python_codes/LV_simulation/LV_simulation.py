@@ -636,80 +636,78 @@ class LV_simulation():
                             
 
                         if m == 'reorienting_angle':
-                            #temp_obj = project(self.mesh.model['functions']['f0'],
-                                        #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]  # should be checked: .vector().get_local()[:]   just added
-                            #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
-                            #temp_obj = project(self.mesh.model['functions']["fdiff_ang"],self.mesh.model['function_spaces']["scalar"])  # should be checked: .vector().get_local()[:]   just added
-                            
-                            
+
                             fdiff_ang= Function(Quad)   
                             finite_element_R0 = FiniteElement("DG",self.mesh.model['mesh'].ufl_cell(),0)
                             finite_elemet_R00 = FunctionSpace(self.mesh.model['mesh'],finite_element_R0)
 
                             temp_obj = project(fdiff_ang,finite_elemet_R00)
 
-
-                            '''f0_mag_proj = project(self.mesh.model['functions']["f0_mag"],self.mesh.model['function_spaces']["scalar"])
-                            self.solution_mesh.write('f0_mag_proj',0)
-
-                            fdiff_mag_proj = project(self.mesh.model['functions']["fdiff_mag"],self.mesh.model['function_spaces']["scalar"])
-                            self.solution_mesh.write('fdiff_mag_proj' ,0)
-                        
-                            fdiff_ang_proj = project( self.mesh.model['functions']["fdiff_ang"],self.mesh.model['function_spaces']["scalar"])
-                            self.solution_mesh.write('fdiff_ang_proj',0)'''
-
-                            #f0_vs_time_temp = project(self.mesh.model['functions']['f0'],
-                                        #self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:] 
     
                         if m == 'c_param_DG0':
 
-
-
-                        
                             temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FS_DG0)
                             #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
 
                         if m == 'c_param':
-
-
                             temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],self.mesh.model['function_spaces']["scalar_CG"])
                         
   
                         if m == 'fiber_direction':
-
-                        #temp_obj = project(self.mesh.model['functions']['f0'],FunctionSpace(self.mesh.model['mesh'], "CG", 1),form_compiler_parameters={"representation":"uflacs"})
                             
                             Velem0 = VectorElement("CG",self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
                             Velem0._quad_scheme = 'default'
                             Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem0)
                             temp_obj = project(self.mesh.model['functions']['f0'],Velem_FS)
 
-                        if m == 'fiber_direction2':
-
-                            '''Velem = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
-                            Velem._quad_scheme = 'default'
-                            Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem)'''
-
-                            #Fiber_vis = (self.mesh.model['function_spaces']["fiber_vis2"])
-                            #temp_obj = project(self.mesh.model['functions']['f0'],Fiber_vis)
-                        
-                        
 
                         if m == 'endo_distance':
 
                             temp_obj =  project(self.mesh.model['functions']['endo_dist'],self.mesh.model['function_spaces']["scalar"])
-                         
-                                                                    
+
+                        if m == 'Transverse_Angle':
+
+                            TA= Function(Quad) 
+                            temp = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ell.vector().array().reshape((-1,3)))
+                            temp2 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ecc.vector().array().reshape((-1,3)))
+                            temp3 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),err.vector().array().reshape((-1,3)))
+                            TA.vector()[:] = (180/np.pi)*(np.arctan(temp3/temp2))
+
+                            temp_obj =  project(TA,FS_DG0)
 
 
-                            #dolfin.parameters["form_compiler"]["representation"] = "quadrature"
-                            #temp_obj = interpolate(temp_proj, self.mesh.model['function_spaces']["quadrature_space"])
+            
+                        if m == 'Helical_Angle':
+
+                            HA= Function(Quad) 
+                            temp = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ell.vector().array().reshape((-1,3)))
+                            temp2 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ecc.vector().array().reshape((-1,3)))
+                            temp3 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),err.vector().array().reshape((-1,3)))
+                            HA.vector()[:]  = (180/np.pi)*(np.arctan(temp/temp2))
+
+                            temp_obj =  project(HA,FS_DG0)
+                        
+                        
+                        
+                        
+                        
+                        
                         if m == 'total_stress':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['total_stress']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
+                            
+                        if m == 'total_stress_vector':
+
+                            Velem0 = VectorElement("CG",self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
+                            Velem0._quad_scheme = 'default'
+                            Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem0)
+
+                            temp_obj = project((self.mesh.model['functions']['total_stress']*self.mesh.model['functions']['f0']),Velem_FS,
+                                        form_compiler_parameters={"representation":"uflacs"})
+                            
                         if m == 'total_passive':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['total_passive_PK2']*
@@ -722,12 +720,7 @@ class LV_simulation():
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
-                            
 
-                        '''if m == 'fiber_direction':
-                            temp_obj = project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['vector_f'],
-                                        form_compiler_parameters={"representation":"uflacs"})'''
 
                         if m in ['local_theta_vis_fiber','local_theta_vis_sheet','local_theta_vis_sheet_normal',
                                 'global_theta_vis_fiber','global_theta_vis_sheet','global_theta_vis_sheet_normal'
@@ -1786,29 +1779,40 @@ class LV_simulation():
                         #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
 
                     if m == 'fiber_direction':
-
-                        #temp_obj = project(self.mesh.model['functions']['f0'],FunctionSpace(self.mesh.model['mesh'], "CG", 1),form_compiler_parameters={"representation":"uflacs"})
-                            
-                        #Velem = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
-                        #Velem._quad_scheme = 'default'
-                        #Velem_FS = FunctionSpace(self.mesh.model['mesh'],self.mesh.model['function_spaces']["fiber_vis"])
-                        #temp_obj = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']["fiber_vis"])
-                        
                         
                         Velem0 = VectorElement("CG", self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
                         Velem0._quad_scheme = 'default'
                         Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem0)
                         temp_obj = project(self.mesh.model['functions']['f0'],Velem_FS)
 
-
-
-                        
-
-
                     if m == 'endo_distance':
 
+                        
                         temp_obj =  project(self.mesh.model['functions']['endo_dist'],self.mesh.model['function_spaces']["scalar"])
                                
+                    if m == 'Transverse_Angle':
+
+                        TA= Function(Quad) 
+                        temp = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ell.vector().array().reshape((-1,3)))
+                        temp2 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ecc.vector().array().reshape((-1,3)))
+                        temp3 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),err.vector().array().reshape((-1,3)))
+                        TA.vector()[:] = (180/np.pi)*(np.arctan(temp3/temp2))
+
+                        temp_obj =  project(TA,FS_DG0)
+
+
+            
+                    if m == 'Helical_Angle':
+
+                        HA= Function(Quad) 
+                        temp = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ell.vector().array().reshape((-1,3)))
+                        temp2 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),ecc.vector().array().reshape((-1,3)))
+                        temp3 = np.einsum('ij,ij->i',f0.vector().array().reshape((-1,3)),err.vector().array().reshape((-1,3)))
+                        HA.vector()[:]  = (180/np.pi)*(np.arctan(temp/temp2))
+
+                        temp_obj =  project(HA,FS_DG0)
+
+
 
                         #dolfin.parameters["form_compiler"]["representation"] = "quadrature"
                     if m == 'total_stress':
@@ -1817,6 +1821,16 @@ class LV_simulation():
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
+
+                    if m == 'total_stress_vector':
+
+                            Velem0 = VectorElement("CG",self.mesh.model['mesh'].ufl_cell(), 1, quad_scheme="default")
+                            Velem0._quad_scheme = 'default'
+                            Velem_FS = FunctionSpace(self.mesh.model['mesh'],Velem0)
+                            
+                            temp_obj = project((self.mesh.model['functions']['total_stress']*self.mesh.model['functions']['f0']),Velem_FS,
+                                        form_compiler_parameters={"representation":"uflacs"})
+                            
                     if m == 'total_passive':
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['total_passive_PK2']*
@@ -1830,10 +1844,7 @@ class LV_simulation():
                                         self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})                    
 
-                    '''if m == 'fiber_direction':
-                            temp_obj = project(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['function_spaces']['vector_f'],
-                                        form_compiler_parameters={"representation":"uflacs"})'''
+                    
                             
                     if m in ['local_theta_vis_fiber','local_theta_vis_sheet','local_theta_vis_sheet_normal',
                                 'global_theta_vis_fiber','global_theta_vis_sheet','global_theta_vis_sheet_normal',
@@ -2405,6 +2416,9 @@ class LV_simulation():
 
     def handle_infarct(self,infarct_struct):
 
+
+        ### note MM: here we can assign the acute MI since it can start at any time. for chronic MI we use het function as an initialization 
+
         self.infarct_model = dict()
         for inf in infarct_struct.keys():
             self.infarct_model[inf] = infarct_struct[inf][0]
@@ -2441,42 +2455,6 @@ class LV_simulation():
 
 
 
-
-        local_points_r = np.zeros(self.local_n_of_int_points)
-        for i,j in enumerate(self.dofmap):
-            local_points_r[i] = radius[j]
-
-        infarct_regions = np.where(local_points_r<=self.infarct_model['infarct_radius'])[0]
-        border_zone_regions = \
-            np.where((local_points_r >= self.infarct_model['infarct_radius']) &\
-                    (local_points_r <= self.infarct_model['boundary_zone_radius']))[0]
-        
-        return infarct_regions, border_zone_regions
-    
-
-    def handle_infarct_MM(self,infarct_struct):
-
-        self.infarct_model = dict()
-        for inf in infarct_struct.keys():
-            self.infarct_model[inf] = infarct_struct[inf][0]
-        #define the initial point of infarcted region 
-        y_m = 0
-        z_m = self.z_coord.min() * self.infarct_model['z_ratio']
-        z_m_upper = z_m * 0.99
-        z_m_lower = z_m * 1.01
-
-        x_mid_vent_slice = \
-            self.x_coord[np.where((self.z_coord>=z_m_lower)&\
-                        (self.z_coord<=z_m_upper))]
-        x_m = x_mid_vent_slice.max()
-
-
-        radius = []
-        for i,p in enumerate(self.z_coord):
-            radius.append(self.return_cylindrical_radius(y_m,z_m,
-                                self.y_coord[i],
-                                self.z_coord[i]))
-        radius = np.array(radius)
 
         local_points_r = np.zeros(self.local_n_of_int_points)
         for i,j in enumerate(self.dofmap):

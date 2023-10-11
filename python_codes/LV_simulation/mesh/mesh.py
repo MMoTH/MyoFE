@@ -175,11 +175,16 @@ class MeshClass():
             f0 = Function(fiberFS)
             s0 = Function(fiberFS)
             n0 = Function(fiberFS)
+
+
+
             self.f.read(facetboundaries, "ellipsoidal"+"/"+"facetboundaries")
             # Load these in from f
             self.f.read(f0,"ellipsoidal/eF")
             self.f.read(s0,"ellipsoidal/eS")
             self.f.read(n0,"ellipsoidal/eN")
+
+            
         else: 
             facetboundaries = predefined_functions['facetboundaries']
             f0 = predefined_functions['f0']
@@ -193,6 +198,15 @@ class MeshClass():
 
         self.f.read(endo_dist,"ellipsoidal/endo_dist")
         self.f.read(epi_dist,"ellipsoidal/epi_dist")
+
+
+        ell = Function(fiberFS)
+        err = Function(fiberFS)
+        ecc = Function(fiberFS)
+        
+        self.f.read(ell,"ellipsoidal/eL")
+        self.f.read(err,"ellipsoidal/eR")
+        self.f.read(ecc,"ellipsoidal/eC")
 
         # Initializing passive parameters as functions, in the case of introducing
         # heterogeneity later
@@ -209,6 +223,17 @@ class MeshClass():
 
 
 
+        ### here we just extract nodal coordinates for assigning het params
+        Quadelem = FiniteElement("Quadrature", tetrahedron, degree=2, quad_scheme="default")
+        Quadelem._quad_scheme = 'default'
+        Quad = FunctionSpace(self.model['mesh'], Quadelem)
+        # go ahead and get coordinates of quadrature points
+        gdim = self.model['mesh'].geometry().dim()
+        xq = Quad.tabulate_dof_coordinates().reshape((-1,gdim))
+
+
+
+
         dolfin_functions = \
             self.initialize_dolfin_functions(dolfin_functions,
                                 self.model['function_spaces']['quadrature_space'])
@@ -217,7 +242,7 @@ class MeshClass():
         het_class = assign_heterogeneous_params()
 
         ##MM in the general form there used to be more inputs for below function, but for LV het modeling only below inputs are needed
-        dolfin_functions = het_class.assign_heterogeneous_params(dolfin_functions,self.no_of_cells,endo_dist)
+        dolfin_functions = het_class.assign_heterogeneous_params(dolfin_functions,self.no_of_cells,endo_dist,xq)
        
         ### infarct note: for chronic infarcts we apply it here as material is alterred but for acute infarcts it is applied fin protocol and uses handle_infarct function in the main code
         # as acute infacrt is like a purtubation and can be applied after few normal cycles
