@@ -14,15 +14,6 @@
                 } 
             ]
         },
-        "baroreflex": 
-        {
-            "activations": [
-                {
-                    "t_start_s": [500],
-                    "t_stop_s": [2000]
-                }
-            ]
-        },
         "growth":
         {
             "activations": 
@@ -32,35 +23,8 @@
                     "t_stop_s": [400]
                 }
             ]
-        },
-        "perturbation":
-        {
-            "perturbations":
-            [
-                {
-                    "level": ["circulation"],
-                    "variable": ["aorta_resistance"],
-                    "t_start_s": [30],
-                    "t_stop_s": [70],
-                    "total_change": [0]
-                },
-                {
-                    "level": ["circulation"],
-                    "variable": ["mitral_insufficiency_conductance"],
-                    "t_start_s": [30],
-		    "t_stop_s":[40],
-                    "total_change": [0.005]
-                },
-		{
-                    "level": ["circulation"],
-                    "variable": ["mitral_insufficiency_conductance"],
-                    "t_start_s": [1000],
-                    "t_stop_s":[1100],
-                    "total_change": [-0.00]
-                }
-            ]
-
         }
+     
 
     },
     "heart_rate": {
@@ -307,6 +271,7 @@
             "displacement",
             "active_stress",
             "active_stress_DG0",
+            "total_stress",
             "hs_length",
             "reorienting_angle",
             "c_param",
@@ -322,7 +287,7 @@
             "Helical_Angle"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [10]
+        "frequency_n": [1]
         
         
     }

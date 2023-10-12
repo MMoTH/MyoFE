@@ -293,20 +293,21 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[2],
+            "time_constant":[3],
             "reorient_t_start":[0.5,"ms"]
         }
         
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.2/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.2/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
             "active_stress",
             "active_stress_DG0",
+            "total_stress",
             "hs_length",
             "reorienting_angle",
             "c_param",

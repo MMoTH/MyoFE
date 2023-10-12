@@ -521,8 +521,8 @@ class MeshClass():
         
         self.model['functions']['myofiber_stretch'] = conditional(alpha_f > 1.0, alpha_f ,1.0)
         print 'Myofiber'
-        print project(self.model['functions']['myofiber_stretch'],
-                self.model['function_spaces']['quadrature_space']).vector()[:].get_local()
+        '''print project(self.model['functions']['myofiber_stretch'],
+                self.model['function_spaces']['quadrature_space']).vector()[:].get_local()'''
         #self.model['functions']['myofiber_stretch'].vector()[self.model['functions']['myofiber_stretch'].vector()<1.0]=1.0
         #print 'after checking myofiber '
         #print self.model['functions']['myofiber_stretch'].vector()[:].get_local()
@@ -749,10 +749,10 @@ class MeshClass():
             
             bin_pops = self.y_split[2 + np.arange(0, self.hs.myof.no_of_x_bins)]
             cb_stress = \
-                self.hs.myof.data['cb_number_density'] * \
-                self.hs.myof.data['k_cb'] * 1e-9 * \
+                self.model['functions']['cb_number_density'] * \
+                self.model['functions']['k_cb'] * 1e-9 * \
                 np.sum(bin_pops *
-                    (self.hs.myof.x + self.hs.myof.data['x_ps'] +
+                    (self.hs.myof.x + self.model['functions']['x_ps'] +
                         (self.hs.myof.implementation['filament_compliance_factor'] *
                         delta_hsl)))
             return cb_stress
@@ -763,13 +763,13 @@ class MeshClass():
             post_ind = 2 + self.hs.myof.no_of_x_bins + np.arange(0, self.hs.myof.no_of_x_bins)
             
             cb_stress = \
-                self.hs.myof.data['cb_number_density'] * self.hs.myof.data['k_cb'] * 1e-9 * \
+                self.model['functions']['cb_number_density'] * self.model['functions']['k_cb'] * 1e-9 * \
                     (np.sum(self.y_split[pre_ind] *
                             (self.hs.myof.x + 
                             (self.hs.myof.implementation['filament_compliance_factor']
                             * delta_hsl))) +
                     np.sum(self.y_split[post_ind] * \
-                            (self.hs.myof.x + self.hs.myof.data['x_ps'] +
+                            (self.hs.myof.x + self.model['functions']['x_ps'] +
                             (self.hs.myof.implementation['filament_compliance_factor'] *
                             delta_hsl))))
 

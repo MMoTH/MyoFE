@@ -137,8 +137,8 @@ class LV_simulation():
                 self.hs_length_list[i]
 
             
-
-        
+        print("self.mesh.model['functions']['dolfin_functions']")
+        print(self.mesh.model['functions']['dolfin_functions'])
         
         #### MM here we assign het params to the LV
 
@@ -147,9 +147,16 @@ class LV_simulation():
                 if self.comm.Get_rank() == 0:  
                     print("cb altered in hs_objs")
                     print("k=",kk)
+
+                cb_inf = 0 
                 for i in np.arange(self.local_n_of_int_points):
                     self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['cb_number_density'][-1].vector().get_local()[i]
-                    
+
+                       
+                    if self.mesh.model['functions']['dolfin_functions']['cb_number_density'][-1].vector().get_local()[i] == 0:
+                        cb_inf = cb_inf +1
+                print("cb_inf")    
+                print(cb_inf)
 
             if kk == "k_1":
                 if self.comm.Get_rank() == 0:  
@@ -624,15 +631,15 @@ class LV_simulation():
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-
-                                        self.mesh.model['function_spaces']["scalar"])
+                                        self.mesh.model['function_spaces']["scalar"],
+                                        form_compiler_parameters={"representation":"uflacs"})
                             
 
                         if m == 'active_stress_DG0':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        FS_DG0)
+                                        FS_DG0,form_compiler_parameters={"representation":"uflacs"})
                             
 
                         if m == 'reorienting_angle':
@@ -692,7 +699,7 @@ class LV_simulation():
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['total_stress']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        self.mesh.model['function_spaces']["scalar"],
                                         form_compiler_parameters={"representation":"uflacs"})
                             
                         if m == 'total_stress_vector':
@@ -729,8 +736,7 @@ class LV_simulation():
                                                 self.mesh.model['function_spaces']["scalar_for_growth"],
                                                 form_compiler_parameters={"representation":"uflacs"})
 
-                        temp_obj.rename(m,'')
-                        self.solution_mesh.write(temp_obj,0)
+                        
 
                         if m == 'facetboundaries':
                             xdmf = XDMFFile(mesh_out_path+"/facet_boundaries" + ".xdmf")
@@ -775,9 +781,6 @@ class LV_simulation():
         # spatial variables if multiple cores have been used
         self.handle_output(output_struct)
        
-    
-    
-
 
     def implement_time_step(self, time_step):
         """ Implements time step """
@@ -897,7 +900,7 @@ class LV_simulation():
                             
 
 
-                    elif self.infarct_model['level'] == 'chronic':
+                    '''elif self.infarct_model['level'] == 'chronic':
                         for r in self.infarct_regions:
                             self.hs_objs_list[r].memb.data[self.infarct_model['variable']] +=\
                                 i.data['infarct_increment']
@@ -911,7 +914,7 @@ class LV_simulation():
                             
                         for b in self.border_zone_regions:
                             self.hs_objs_list[b].memb.data[self.infarct_model['variable']] +=\
-                                i.data['boundary_zone_increment']
+                                i.data['boundary_zone_increment']'''
         
         # Rubild system arrays
         self.rebuild_from_perturbations()
@@ -923,12 +926,15 @@ class LV_simulation():
             # Solve MyoSim ODEs across the mesh
             print 'Solving MyoSim ODEs across the mesh'
         start = time.time()
+
+        
         for j in range(self.local_n_of_int_points):
             
             #for p in ['k_1','k_3','k_on'] :
                 ##MM note: below is overriding het stuff
             for p in ['k_1','k_3','k_on','cb_number_density'] :
                 self.mesh.data[p][j] = self.hs_objs_list[j].myof.data[p]
+                   
             for p in ['k_act','k_serca']:
                 self.mesh.data[p][j] = self.hs_objs_list[j].memb.data[p]
 
@@ -943,8 +949,13 @@ class LV_simulation():
                 print '%.0f%% of integer points are updated' % (100*j/self.local_n_of_int_points)
             self.y_vec[j*self.y_vec_length+np.arange(self.y_vec_length)]= \
                 self.hs_objs_list[j].myof.y[:]
+            
+
+
         end =time.time()
         
+    
+
         for p in ['k_1','k_3','k_on','cb_number_density','k_act','k_serca'] :
             self.mesh.model['functions'][p].vector()[:] = \
                   self.mesh.data[p]
@@ -1740,15 +1751,14 @@ class LV_simulation():
                         #temp_obj= project(inner_p,Vq,form_compiler_parameters={"representation":"uflacs"})
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
-                                        self.mesh.model['functions']['f0']),
-
-                                        self.mesh.model['function_spaces']["scalar"])
+                                        self.mesh.model['functions']['f0']),self.mesh.model['function_spaces']["scalar"],
+                                        form_compiler_parameters={"representation":"uflacs"})
                         
                     if m == 'active_stress_DG0':
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
                                         self.mesh.model['functions']['f0']),
-                                        FS_DG0)
+                                        FS_DG0,form_compiler_parameters={"representation":"uflacs"})
 
                     if m == 'reorienting_angle':
 
@@ -1814,7 +1824,7 @@ class LV_simulation():
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['total_stress']*
                                         self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar_for_active"],
+                                        self.mesh.model['function_spaces']["scalar"],
                                         form_compiler_parameters={"representation":"uflacs"})
 
                     if m == 'total_stress_vector':
@@ -1877,7 +1887,6 @@ class LV_simulation():
         self.data['new_beat'] = new_beat
 
 
-   
     def update_data(self, time_step):
         """ Update data after a time step """
 
@@ -2150,10 +2159,6 @@ class LV_simulation():
                 #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
                 #    self.data['time'
 
-            
-
-
-        
 
     def check_output_directory_folder(self, path=""):
         """ Check output folder"""
@@ -2243,7 +2248,6 @@ class LV_simulation():
     def return_cylindrical_radius(self,yc,zc,y,z):
 
         return ((yc-y)**2+(zc-z)**2)**0.5 
-    
 
     def initialize_dof_mapping(self):
         
