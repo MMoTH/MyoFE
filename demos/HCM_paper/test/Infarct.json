@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [22000],
+        "no_of_time_steps": [12000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -300,8 +300,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25_12cycle/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25_12cycle/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
