@@ -52,13 +52,13 @@
             }
         ], 
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/hsh245/new_master/baroreflex_MI/sim_output/"
+            "/mnt/gpfs2_4m/scratch/hsh245/new_master/baroreflex_MI_correct_mesh/sim_output/"
         ], 
         "dumping_spatial_in_average": [
             false
         ], 
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/hsh245/new_master/baroreflex_MI/sim_output/data.csv"
+            "/mnt/gpfs2_4m/scratch/hsh245/new_master/baroreflex_MI_correct_mesh/sim_output/data.csv"
         ], 
         "frequency_n": [
             10
@@ -679,7 +679,7 @@
             ]
         }, 
         "mesh_path": [
-            "../demos/baseline/sim_inputs/ellipsoidal.hdf5"
+            "../demos/baroreflex_MI/sim_inputs/ellipsoidal_baro.hdf5"
         ], 
         "relative_path": [
             true
