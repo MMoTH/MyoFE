@@ -246,15 +246,15 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[20],
+            "time_constant":[426],
             "reorient_t_start":[0.5,"ms"]
         }
         
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25_kappa20/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25_kappa20/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25_kappa426/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25_kappa426/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",

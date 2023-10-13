@@ -683,7 +683,7 @@ class assign_heterogeneous_params(object):
                         
 
                 l_c[jj] = base_value*scaling_factor
-                l_bt[jj] = 10
+                l_bt[jj] = 8
                 l_bf[jj] = 10
                 l_bfs[jj] = 10
                 l_cb_n_density[jj] = 0
