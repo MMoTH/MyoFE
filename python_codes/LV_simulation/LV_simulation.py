@@ -2225,8 +2225,9 @@ class LV_simulation():
                     '''out_path = output_dir + '/'  + 'coord_data.csv'
                     coord = list(self.coord)
                     coord.to_csv(out_path)'''
-                    
-
+        
+        if self.comm.Get_rank() == 0:
+            print("Out_path:",out_path)
 
         return 
     def rebuild_from_perturbations(self):
