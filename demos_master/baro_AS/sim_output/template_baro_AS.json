@@ -1,0 +1,557 @@
+{
+    "layout":
+    {
+        "fig_width": 12,
+        "top_margin": 0,
+        "left_margin": 0,
+        "right_margin": 0,
+        "panel_height": 1.5,
+        "grid_wspace": 0
+    },
+    "x_display":{
+        "global_x_field": "time",
+        "label": "Time (s)",
+        "global_x_ticks": [0,80]
+    },
+    "formatting":
+    {
+        "x_label_fontsize": 14,
+        "y_label_fontsize": 14,
+        "tick_fontsize": 12,
+        "legend_fontsize": 10,
+        "y_label_pad": 50,
+        "legend_bbox_to_anchor": [0.6, 0.65],
+        "palette": "muted",
+        "patch_alpha": 0.5
+    },
+    "processing":
+    {
+        "envelope_n": 500
+    },
+    "annotations":
+    [
+        
+        {
+            "panel": "all",
+            "type": "v_line",
+            "x_value": 5,
+            "linestyle": "--",
+            "linewidth": "1.5"
+        },
+        {
+            "panel": "all",
+            "type": "v_line",
+            "x_value": 30,
+            "linestyle": "--",
+            "linewidth": "1.5"
+        },
+        {
+            "panel": "all",
+            "type": "v_line",
+            "x_value": 40,
+            "linestyle": "--",
+            "linewidth": "1.5"
+        },
+        {
+            "panel": 0,
+            "type": "box",
+            "x_coord": 0,
+            "y_rel_coord": 1.1,
+            "width": 30,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 0,
+            "type": "box",
+            "x_coord": 30,
+            "y_rel_coord": 1.1,
+            "width": 10,
+            "rel_height": 0.35,
+            "face_color": "gray"
+        },
+        {
+            "panel": 0,
+            "type": "box",
+            "x_coord": 40,
+            "y_rel_coord": 1.1,
+            "width": 40,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 0,
+            "type": "text",
+            "label": "R$\\mathregular{_{aorta}}$ (mmHg L$\\mathregular{^{-1}}$ s)",
+            "x_coord": 40,
+            "y_rel_coord": 1.62
+        },
+        {
+            "panel": 0,
+            "type": "text",
+            "label": "20",
+            "x_coord": 15,
+            "y_rel_coord": 1.25
+        },
+        {
+            "panel": 0,
+            "type": "text",
+            "label": "220",
+            "x_coord": 60,
+            "y_rel_coord": 1.25
+        },
+
+        {
+            "panel": 7,
+            "type": "box",
+            "x_coord": 0,
+            "y_rel_coord": 1.1,
+            "width": 30,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 7,
+            "type": "box",
+            "x_coord": 30,
+            "y_rel_coord": 1.1,
+            "width": 10,
+            "rel_height": 0.35,
+            "face_color": "gray"
+        },
+        {
+            "panel": 7,
+            "type": "box",
+            "x_coord": 40,
+            "y_rel_coord": 1.1,
+            "width": 40,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 7,
+            "type": "text",
+            "label": "R$\\mathregular{_{aorta}}$ (mmHg L$\\mathregular{^{-1}}$ s)",
+            "x_coord": 40,
+            "y_rel_coord": 1.62
+        },
+        {
+            "panel": 7,
+            "type": "text",
+            "label": "20",
+            "x_coord": 15,
+            "y_rel_coord": 1.25
+        },
+        {
+            "panel": 7,
+            "type": "text",
+            "label": "220",
+            "x_coord": 60,
+            "y_rel_coord": 1.25
+        },
+
+        {
+            "panel": 14,
+            "type": "box",
+            "x_coord": 0,
+            "y_rel_coord": 1.1,
+            "width": 30,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 14,
+            "type": "box",
+            "x_coord": 30,
+            "y_rel_coord": 1.1,
+            "width": 10,
+            "rel_height": 0.35,
+            "face_color": "gray"
+        },
+        {
+            "panel": 14,
+            "type": "box",
+            "x_coord": 40,
+            "y_rel_coord": 1.1,
+            "width": 40,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 14,
+            "type": "text",
+            "label": "R$\\mathregular{_{aorta}}$ (mmHg L$\\mathregular{^{-1}}$ s)",
+            "x_coord": 40,
+            "y_rel_coord": 1.62
+        },
+        {
+            "panel": 14,
+            "type": "text",
+            "label": "20",
+            "x_coord": 15,
+            "y_rel_coord": 1.25
+        },
+        {
+            "panel": 14,
+            "type": "text",
+            "label": "220",
+            "x_coord": 60,
+            "y_rel_coord": 1.25
+        }
+
+    ],
+    "panels":
+    [
+        
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Baro\nactivation",
+                "ticks": [0, 1],
+                "series":
+                [
+                    {
+                        "field": "baroreflex_active",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Arterial\npressure\n(mmHg)",
+                
+                "series":
+                [
+                    {
+                        "field": "pressure_arteries",
+                        "field_label": "P$\\mathregular{_{arteries}}$",
+                        "style": "line",
+                        "field_color":"#A4BCE5"
+                    },
+                    {
+                        "field": "baro_b_setpoint",
+                        "field_label": "P$\\mathregular{_{set}}$",
+                        "field_color":"red",
+                        "style": "line"
+                    }
+                    
+                ]
+            }
+        },
+        
+        
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "B$\\mathregular{_{a}}$",
+                "ticks": [0, 1],
+                "series":
+                [
+                    {
+                        "field": "baro_b",
+                        "style": "envelope"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "B$\\mathregular{_{b}}$",
+                "ticks": [0, 1],
+                "series":
+                [
+                    {
+                        "field": "baro_c",
+                        "style": "line",
+                        "field_color":"#A4BCE5"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "B$\\mathregular{_{c,1..4k+3}}$",
+                "ticks": [0.4, 0.6],
+                "scaling_type":"close_fit",
+                "series":
+                [
+                    {
+                        "field": "heart_rate_t_quiescent_period_rc",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label":"Ventricular\npressure\n(mmHg)",
+                "ticks": [0, 200],
+                "series":
+                [
+                    {
+                        "field": "pressure_ventricle",
+                        "style": "envelope"
+                    }
+
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label":"Ventricular\nvolume\n(liters)",
+                "series":
+                [
+                    {
+                        "field": "volume_ventricle",
+                        "style": "envelope"
+                    }
+
+                ]
+            }
+        },
+        
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "Heart\nrate\n(bpm)",
+                "ticks": [50, 80],
+                "series":
+                [
+                    {
+                        "field": "heart_rate",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "R$\\mathregular{_{arterioles}}$\n(mmHg L$\\mathregular{^{-1}}$ s)",
+                "ticks": [0.0, 1600],
+                "series":
+                [
+                    {
+                        "field": "arterioles_resistance",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "C$\\mathregular{_{veins}}$\n([mmHg]$\\mathregular{^{-1}}$ L)",
+                "series":
+                [
+                    {
+                        "field": "veins_compliance",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "k$\\mathregular{_{1}}$\n$(\\mathregular{s^{-1}}$)",
+                "ticks": [0.0, 7.7],
+                "series":
+                [
+                    {
+                        "field": "k_1",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "k$\\mathregular{_{on}}$\n$(\\mathregular{nM^{-1}s^{-1}}$)",
+                "series":
+                [
+                    {
+                        "field": "k_on",
+                        "style": "line",
+                        "scaling_factor": 1e-9
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "k$\\mathregular{_{act}}$\n$(\\mathregular{M^{-1}s^{-1}}$)",
+                "ticks": [0.0, 0.14],
+                "series":
+                [
+                    {
+                        "field": "k_act",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "k$\\mathregular{_{SERCA}}$\n$(\\mathregular{M^{-1}s^{-1}}$)",
+                "ticks": [0.0, 14],
+                
+                "series":
+                [
+                    {
+                        "field": "k_serca",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 3,
+            "y_info":
+            {
+                "label":"Half-\nsarcomere\nlength\n(nm)",
+                "ticks": [600, 1200],
+                "series":
+                [
+                    {
+                        "field": "hs_length",
+                        "style": "envelope"
+                    }
+
+                ]
+            }
+        },
+        {
+            "column": 3,
+            "y_info":
+            {
+                "label":"Thin\nfilaments",
+                "series":
+                [
+                    {
+                        "field": "n_on",
+                        "style": "envelope",
+                        "field_label":"ON"
+                    },
+                    {
+                        "field": "n_off",
+                        "style": "envelope",
+                        "field_label":"OFF"
+                    }
+
+                ]
+            }
+        },
+        {
+            "column": 3,
+            "y_info":
+            {
+                "label":"Thick\nfilaments",
+                "series":
+                [
+                    {
+                        "field": "M_SRX",
+                        "style": "envelope",
+                        "field_label":"SRX"
+                    },
+                    {
+                        "field": "M_DRX",
+                        "style": "envelope",
+                        "field_label":"DRX"
+                    },
+                    {
+                        "field": "M_FG",
+                        "style": "envelope",
+                        "field_label":"FG"
+                    }
+
+                ]
+            }
+        },
+        {
+            "column": 3,
+            "y_info":
+            {
+                "label":"Total\nstress\n(kN $\\mathregular{m^{-2}}$)",
+                "ticks": [0, 90],
+                "series":
+                [
+                    {
+                        "field": "total_stress",
+                        "style": "envelope",
+                        "scaling_factor": 1e-3
+                    }
+
+                ]
+            }
+        },
+        {
+            "column": 3,
+            "y_info":
+            {
+                "label":"Active\nstress\n(kN $\\mathregular{m^{-2}}$)",
+                "ticks": [0, 90],
+                "series":
+                [
+                    {
+                        "field": "cb_stress",
+                        "style": "envelope",
+                        "scaling_factor": 1e-3
+                    }
+
+                ]
+            }
+        },
+        {
+            "column": 3,
+            "y_info":
+            {
+                "label":"Passive\nstress\n(kN $\\mathregular{m^{-2}}$)",
+                "series":
+                [
+                    
+                    {
+                        "field": "pas_stress",
+                        "style": "envelope",
+                        "scaling_factor": 1e-3
+                    }
+
+                ]
+            }
+        },
+        {
+            "column": 3,
+            "y_info":
+            {
+                "label":"Ca$\\mathregular{_{myo}}$\n($\\mathregular{\\mu}$M)",
+                "series":
+                [
+                    {
+                        "field": "Ca_cytosol",
+                        "style": "envelope",
+                        "scaling_factor": 1e6
+                    }
+
+                ]
+            }
+        }
+    ]
+}

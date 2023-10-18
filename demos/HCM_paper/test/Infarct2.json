@@ -253,8 +253,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25_kappa426/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25_kappa426/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25lower_kappa20/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/infarct_0.25lower_kappa20/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",

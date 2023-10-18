@@ -137,8 +137,8 @@ class LV_simulation():
                 self.hs_length_list[i]
 
             
-        print("self.mesh.model['functions']['dolfin_functions']")
-        print(self.mesh.model['functions']['dolfin_functions'])
+        '''print("self.mesh.model['functions']['dolfin_functions']")
+        print(self.mesh.model['functions']['dolfin_functions'])'''
         
         #### MM here we assign het params to the LV
 
@@ -1667,7 +1667,10 @@ class LV_simulation():
         #f0_vs_time_temp = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
         
         
-        f0_vs_time_temp = self.mesh.model['functions']['f0'].vector().get_local()[:]
+#### below is one way of saving fiber data, which for now is not needed as we are saving fiber data in excell files as other params
+
+
+        '''f0_vs_time_temp = self.mesh.model['functions']['f0'].vector().get_local()[:]
         f0_vs_time_temp2_global = self.comm.gather(f0_vs_time_temp)
                             
         if self.comm.Get_rank() == 0:
@@ -1680,7 +1683,7 @@ class LV_simulation():
 
 
             print "SAVING F0 VS TIME ARRAY"
-            np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)
+            np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)'''
 
 
         ##MM to save the data in case of failure, fiber data of all time steps is being saved here, later we can implement saveing freq
@@ -1950,20 +1953,6 @@ class LV_simulation():
 
         for f in list(self.data.keys()):
 
-            
-            '''print(f)
-            print (self.data[f])
-            
-           
-
-           #MM note: below should be ckecked
-            if (f not in ['fr_active','baroreflex_active']):
-
-                print("check")
-                print(f)
-                print (self.data[f])
-                self.sim_data[f][self.write_counter] = self.data[f]'''
-
 
             if f not in ['Sff','sff_mean','hsl','alpha_f','total_stress_spatial','fr_active']:
                 self.sim_data[f][self.write_counter] = self.data[f]
@@ -1981,7 +1970,7 @@ class LV_simulation():
         if (self.gr):
             for f in list(self.gr.data.keys()):
 
-                self.sim_data[f][self.write_counter] = self.gr.data[f]
+                
         #if (self.fr):
             #for f in list(self.fr.data.keys()):
                 #self.sim_data[f][self.write_counter] = self.fr.data[f]

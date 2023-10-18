@@ -658,7 +658,7 @@ class assign_heterogeneous_params(object):
     
     ## small Infarc with size from Kurtis model
     #centerZ = .44089
-        centerZ = 0.3   ## shift up the infart to get away form apex
+        centerZ = 0.35   ## shift up the infart to get away form apex
         R_inf =  0.25 
         R_tot = 0.3
 
