@@ -196,8 +196,11 @@ class MeshClass():
         endo_dist = Function(self.model['function_spaces']['quadrature_space'])
         epi_dist = Function(self.model['function_spaces']['quadrature_space'])
 
-        self.f.read(endo_dist,"ellipsoidal/endo_dist")
-        self.f.read(epi_dist,"ellipsoidal/epi_dist")
+        try:
+            self.f.read(endo_dist,"ellipsoidal/endo_dist")
+            self.f.read(epi_dist,"ellipsoidal/epi_dist")
+        except:
+            print("endo_dist not available in the mesh")
 
         ## for the old mesh
         #self.f.read(endo_dist,"ellipsoidal/norm_dist_endo")
