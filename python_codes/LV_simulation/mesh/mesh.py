@@ -555,7 +555,7 @@ class MeshClass():
             if kk == "cb_number_density":
                 if MPI.rank(self.comm) == 0:  
                     print("cb alterred in function_space")
-                    print("k=",kk)
+                    print("k =",kk)
                     
 
                 self.model['functions']['cb_number_density'].vector()[:] = self.model['functions']['dolfin_functions']['cb_number_density'][-1].vector().get_local()[:]
