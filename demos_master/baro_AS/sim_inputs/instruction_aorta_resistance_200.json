@@ -14,10 +14,10 @@
             true
         ], 
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/hsh245/new_master/baro_AS//sim_output/data.csv"
+            "/project/jfwe223_uksr/Mohammad_data/merge_test/baro_AS/data.csv"
         ], 
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/hsh245/new_master/baro_AS//sim_output/"
+            "/project/jfwe223_uksr/Mohammad_data/merge_test/baro_AS/mesh_output"
         ], 
         "frequency_n": [
             10
@@ -624,7 +624,7 @@
             ]
         }, 
         "mesh_path": [
-            "../demos/baro_AS/sim_inputs/ellipsoidal_correct_fiber.hdf5"
+            "../demos_master/baro_AS/sim_inputs/ellipsoidal_correct_fiber.hdf5"
         ], 
         "relative_path": [
             true

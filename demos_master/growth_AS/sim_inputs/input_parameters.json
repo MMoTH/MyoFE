@@ -308,8 +308,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/growth_AS/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/growth_AS/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/growth_AS2/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/growth_AS2/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -335,7 +335,7 @@
       	    "stimulus_sheet_normal",
       	    "setpoint_sheet_normal"
         ],
-        "growth_mesh_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/growth_AS/mesh_output"],
+        "growth_mesh_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/growth_AS2/mesh_output"],
         "dumping_spatial_in_average":[true],
         "frequency_n": [10]
 
