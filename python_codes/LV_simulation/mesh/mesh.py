@@ -129,6 +129,8 @@ class MeshClass():
         fcn_spaces["quadrature_space"] = Quad
         fcn_spaces["quad_vectorized_space"] = Quad_vectorized_Fspace
 
+        
+
         # Now handle if manual elements need to be defined 
         if 'function_spaces' in mesh_struct:
             for fs in mesh_struct['function_spaces']:
@@ -165,6 +167,14 @@ class MeshClass():
         half_sarcomere_params = \
             self.parent_parameters.instruction_data['model']['half_sarcomere']
         # mesh function needed later
+
+        ## if endo dist was available in the mesh, it will be written in these functionspaces. if not, it would be zero and just let the code run where it is called
+        endo_dist = Function(self.model['function_spaces']['quadrature_space'])
+        epi_dist = Function(self.model['function_spaces']['quadrature_space'])
+
+        ell = Function(fiberFS)
+        err = Function(fiberFS)
+        ecc = Function(fiberFS)
         
         if not predefined_functions:
             facetboundaries = MeshFunction('size_t', self.model['mesh'], 
@@ -185,8 +195,7 @@ class MeshClass():
             self.f.read(n0,"ellipsoidal/eN")
 
                 #MM for post processing purpusses here we save more data from the mesh
-            endo_dist = Function(self.model['function_spaces']['quadrature_space'])
-            epi_dist = Function(self.model['function_spaces']['quadrature_space'])
+            
 
             try:
                 self.f.read(endo_dist,"ellipsoidal/endo_dist")
@@ -196,12 +205,7 @@ class MeshClass():
 
             ## for the old mesh
             #self.f.read(endo_dist,"ellipsoidal/norm_dist_endo")
-                
-
-            ell = Function(fiberFS)
-            err = Function(fiberFS)
-            ecc = Function(fiberFS)
-
+            
             self.f.read(ell,"ellipsoidal/eL")
             self.f.read(err,"ellipsoidal/eR")
             self.f.read(ecc,"ellipsoidal/eC")
