@@ -378,13 +378,15 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/baseline/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/baseline/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/baseline2/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/baseline2/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
             "active_stress",
             "hs_length",
+            "fiber_direction",
+            "cb_number_density_DG0",
             "facetboundaries",
             "k_1",
             "k_3",
@@ -402,7 +404,7 @@
 	    "setpoint_sheet",
 	    "setpoint_sheet_normal"
         ],
-        "growth_mesh_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/baseline/mesh_output"],     
+        "growth_mesh_path": ["/project/jfwe223_uksr/Mohammad_data/merge_test/baseline2/mesh_output"],     
         "dumping_spatial_in_average":[true],
         "frequency_n": [10]
         
