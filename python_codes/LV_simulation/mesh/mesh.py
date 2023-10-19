@@ -184,6 +184,28 @@ class MeshClass():
             self.f.read(s0,"ellipsoidal/eS")
             self.f.read(n0,"ellipsoidal/eN")
 
+                #MM for post processing purpusses here we save more data from the mesh
+            endo_dist = Function(self.model['function_spaces']['quadrature_space'])
+            epi_dist = Function(self.model['function_spaces']['quadrature_space'])
+
+            try:
+                self.f.read(endo_dist,"ellipsoidal/endo_dist")
+                self.f.read(epi_dist,"ellipsoidal/epi_dist")
+            except:
+                print("endo_dist not available in the mesh")
+
+            ## for the old mesh
+            #self.f.read(endo_dist,"ellipsoidal/norm_dist_endo")
+                
+
+            ell = Function(fiberFS)
+            err = Function(fiberFS)
+            ecc = Function(fiberFS)
+
+            self.f.read(ell,"ellipsoidal/eL")
+            self.f.read(err,"ellipsoidal/eR")
+            self.f.read(ecc,"ellipsoidal/eC")
+
             
         else: 
             facetboundaries = predefined_functions['facetboundaries']
@@ -192,27 +214,7 @@ class MeshClass():
             n0 = predefined_functions['n0']
 
 
-        #MM for post processing purpusses here we save more data from the mesh
-        endo_dist = Function(self.model['function_spaces']['quadrature_space'])
-        epi_dist = Function(self.model['function_spaces']['quadrature_space'])
-
-        try:
-            self.f.read(endo_dist,"ellipsoidal/endo_dist")
-            self.f.read(epi_dist,"ellipsoidal/epi_dist")
-        except:
-            print("endo_dist not available in the mesh")
-
-        ## for the old mesh
-        #self.f.read(endo_dist,"ellipsoidal/norm_dist_endo")
-            
-
-        ell = Function(fiberFS)
-        err = Function(fiberFS)
-        ecc = Function(fiberFS)
-
-        self.f.read(ell,"ellipsoidal/eL")
-        self.f.read(err,"ellipsoidal/eR")
-        self.f.read(ecc,"ellipsoidal/eC")
+        
 
         # Initializing passive parameters as functions, in the case of introducing
         # heterogeneity later
