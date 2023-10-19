@@ -171,7 +171,8 @@ class MeshClass():
         ## if endo dist was available in the mesh, it will be written in these functionspaces. if not, it would be zero and just let the code run where it is called
         endo_dist = Function(self.model['function_spaces']['quadrature_space'])
         epi_dist = Function(self.model['function_spaces']['quadrature_space'])
-
+        
+        fiberFS = self.model['function_spaces']["material_coord_system_space"]
         ell = Function(fiberFS)
         err = Function(fiberFS)
         ecc = Function(fiberFS)
