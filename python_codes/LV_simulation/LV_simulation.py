@@ -2425,22 +2425,16 @@ class LV_simulation():
 
         radius = []
 
-        if self.infarct_model['shape'] == "spherical":
 
-            for i,p in enumerate(self.z_coord):
-                radius.append(self.return_spherical_radius(x_m,y_m,z_m,
+
+        for i,p in enumerate(self.z_coord):
+            radius.append(self.return_spherical_radius(x_m,y_m,z_m,
                                     self.x_coord[i],
                                     self.y_coord[i],
                                     self.z_coord[i]))
-            radius = np.array(radius)
+        radius = np.array(radius)
 
-        if self.infarct_model['shape'] == "cylindrical":
 
-            for i,p in enumerate(self.z_coord):
-                radius.append(self.return_cylindrical_radius(y_m,z_m,
-                                    self.y_coord[i],
-                                    self.z_coord[i]))
-            radius = np.array(radius)
 
 
 
