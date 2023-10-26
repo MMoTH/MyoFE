@@ -127,12 +127,6 @@
                 "type":["vector"],
                 "element_type":["Quadrature"],
                 "degree" :[2]
-            }, 
-            {
-                "name":["fiber_vis2"],
-                "type":["vector"],
-                "element_type":["Quadrature"],
-                "degree" :[2]
             }
         ],
         "forms_parameters": 
@@ -293,8 +287,8 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[4],
-            "reorient_t_start":[0.5,"ms"]
+            "time_constant":[10]
+            
         }
         
     },
@@ -316,7 +310,10 @@
             "cb_number_density_DG0",
             "cb_number_density",
             "k_1",
-            "k_1_DG0"
+            "k_1_DG0",
+            "total_stress_vector",
+            "Transverse_Angle",
+            "Helical_Angle"
         ],
         "dumping_spatial_in_average":[false],
         "frequency_n": [10]
