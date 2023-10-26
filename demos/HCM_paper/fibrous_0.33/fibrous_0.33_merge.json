@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [12000],
+        "no_of_time_steps": [22000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -9,57 +9,10 @@
             [
                 {
                     "t_start_s":[2],
-                    "t_stop_s":[20]
+                    "t_stop_s":[30]
 
                 } 
             ]
-        },
-        "baroreflex": 
-        {
-            "activations": [
-                {
-                    "t_start_s": [500],
-                    "t_stop_s": [2000]
-                }
-            ]
-        },
-        "growth":
-        {
-            "activations": 
-            [
-                {
-                    "t_start_s": [20],
-                    "t_stop_s": [400]
-                }
-            ]
-        },
-        "perturbation":
-        {
-            "perturbations":
-            [
-                {
-                    "level": ["circulation"],
-                    "variable": ["aorta_resistance"],
-                    "t_start_s": [20],
-                    "t_stop_s": [30],
-                    "total_change": [0]
-                },
-                {
-                    "level": ["circulation"],
-                    "variable": ["mitral_insufficiency_conductance"],
-                    "t_start_s": [30],
-		    "t_stop_s":[40],
-                    "total_change": [0.005]
-                },
-		{
-                    "level": ["circulation"],
-                    "variable": ["mitral_insufficiency_conductance"],
-                    "t_start_s": [1000],
-                    "t_stop_s":[1100],
-                    "total_change": [-0.00]
-                }
-            ]
-
         }
 
     },
@@ -293,15 +246,15 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[10],
+            "time_constant":[20],
             "reorient_t_start":[0.5,"ms"]
         }
         
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.33/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.33/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.33_kappa20/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.33_kappa20/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
