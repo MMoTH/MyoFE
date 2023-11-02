@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [22000],
+        "no_of_time_steps": [32000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -9,7 +9,7 @@
             [
                 {
                     "t_start_s":[2],
-                    "t_stop_s":[30]
+                    "t_stop_s":[40]
 
                 } 
             ]
@@ -118,8 +118,8 @@
         {
             "params":
             {
-                "rel_tol": [1e-11],
-                "abs_tol": [1e-11],
+                "rel_tol": [1e-10],
+                "abs_tol": [1e-10],
                 "max_iter": [100],
                 "debugging_mode": [false]
             }
@@ -247,8 +247,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa20/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa20/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa20_30cycle/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa20_30cycle/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",

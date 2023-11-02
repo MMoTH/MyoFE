@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [22000],
+        "no_of_time_steps": [32000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -9,57 +9,10 @@
             [
                 {
                     "t_start_s":[2],
-                    "t_stop_s":[30]
+                    "t_stop_s":[40]
 
                 } 
             ]
-        },
-        "baroreflex": 
-        {
-            "activations": [
-                {
-                    "t_start_s": [500],
-                    "t_stop_s": [2000]
-                }
-            ]
-        },
-        "growth":
-        {
-            "activations": 
-            [
-                {
-                    "t_start_s": [40],
-                    "t_stop_s": [400]
-                }
-            ]
-        },
-        "perturbation":
-        {
-            "perturbations":
-            [
-                {
-                    "level": ["circulation"],
-                    "variable": ["aorta_resistance"],
-                    "t_start_s": [40],
-                    "t_stop_s": [50],
-                    "total_change": [0]
-                },
-                {
-                    "level": ["circulation"],
-                    "variable": ["mitral_insufficiency_conductance"],
-                    "t_start_s": [50],
-		    "t_stop_s":[60],
-                    "total_change": [0.005]
-                },
-		{
-                    "level": ["circulation"],
-                    "variable": ["mitral_insufficiency_conductance"],
-                    "t_start_s": [1000],
-                    "t_stop_s":[1100],
-                    "total_change": [-0.00]
-                }
-            ]
-
         }
 
     },
@@ -171,9 +124,9 @@
         {
             "params":
             {
-                "rel_tol": [1e-11],
-                "abs_tol": [1e-11],
-                "max_iter": [100],
+                "rel_tol": [1e-10],
+                "abs_tol": [1e-10],
+                "max_iter": [200],
                 "debugging_mode": [false]
             }
         } 
@@ -252,7 +205,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [4.92, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.25,"scaling_factor":10.8,"material_properties":"isotropic"}],
+                "k_1": [4.92, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.25,"scaling_factor":4,"material_properties":"isotropic"}],
                 "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [100],
@@ -300,8 +253,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.25_kappa20/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.25_kappa20/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.25_kappa20_30cycle/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.25_kappa20_30cycle/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
