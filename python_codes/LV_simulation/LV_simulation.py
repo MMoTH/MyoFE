@@ -1612,7 +1612,29 @@ class LV_simulation():
                 fdiff = self.fr.stress_law(self.fr.data['signal'],time_step,self.mesh.model['function_spaces']['fiber_FS'])
 
                 temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
-                temp_fiber += fdiff.vector().get_local()[:]
+                local_fdiff = fdiff.vector().get_local()[:]
+
+                gdim2 = self.mesh.model['mesh'].geometry().dim()
+                self.lcoord = self.mesh.model['function_spaces']['quadrature_space'].\
+                tabulate_dof_coordinates().reshape((-1, gdim2))
+
+
+
+                ### since stress is not realisic in base, we exclude basal points from fiber reoriantaion
+                #print('point n', np.shape(self.lcoord[:,2]))  
+                cnt =0 
+                for i in np.arange(self.local_n_of_int_points):
+                    if self.lcoord[i][2]< -0.02:
+                        temp_fiber[i] += local_fdiff[i]
+                        cnt = cnt +1
+                print('point n', np.shape(self.lcoord[:,2]),'cnt', cnt)
+                
+
+                ### all point FR
+                #temp_fiber += fdiff.vector().get_local()[:]
+
+
+
                 self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
 
 
