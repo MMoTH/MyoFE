@@ -205,7 +205,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [4.92, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.33,"scaling_factor":6,"material_properties":"isotropic"}],
+                "k_1": [4.92, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.33,"scaling_factor":4,"material_properties":"isotropic"}],
                 "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [100],
