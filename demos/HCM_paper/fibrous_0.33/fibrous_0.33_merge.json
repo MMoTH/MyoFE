@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [32000],
+        "no_of_time_steps": [52000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -9,7 +9,7 @@
             [
                 {
                     "t_start_s":[2],
-                    "t_stop_s":[40]
+                    "t_stop_s":[60]
 
                 } 
             ]
@@ -92,7 +92,7 @@
         {
             "passive_law_parameters": {
               "passive_law": ["semi_structural"],
-              "c": [200, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.25,"scaling_factor":10,"material_properties":"isotropic"}],
+              "c": [200, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.33,"scaling_factor":15,"material_properties":"isotropic"}],
               "c2": [250],
               "c3": [15.0],
               "bf": [8.0],
@@ -253,8 +253,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.25_kappa20_30cycle/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.25_kappa20_30cycle/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.33_kappa20_50cycle/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.33_kappa20_50cycle/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
