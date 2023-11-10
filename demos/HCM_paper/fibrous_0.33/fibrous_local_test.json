@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [100],
+        "no_of_time_steps": [10],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -253,8 +253,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/HCM_paper/test/base_nofr/data.csv"],
-        "mesh_output_path": ["../demos/HCM_paper/test/base_nofr/mesh_output"],
+        "output_data_path": ["../demos/HCM_paper/test/local/data.csv"],
+        "mesh_output_path": ["../demos/HCM_paper/test/local/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -275,7 +275,7 @@
             "Helical_Angle"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [10]
+        "frequency_n": [1]
         
         
     }

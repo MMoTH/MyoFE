@@ -462,7 +462,8 @@ class LV_simulation():
             self.spatial_memb_data_fields = list(self.hs.memb.data.keys())#['Ca_cytosol','Ca_SR']
 
 
-            for f in ['f01','f02','f03','s01','s02','s03','n01','n02','n03','lx','ly','lz','endo_dist']:
+            for f in ['f01','f02','f03','s01','s02','s03','n01','n02','n03','lx','ly','lz','endo_dist',
+                      'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz']:
                 self.spatial_fiber_data_fields.append(f)
 
         data_field = self.spatial_hs_data_fields +\
@@ -1624,7 +1625,7 @@ class LV_simulation():
                 #print('point n', np.shape(self.lcoord[:,2]))  
                 cnt =0 
                 for i in np.arange(self.local_n_of_int_points):
-                    if self.lcoord[i][2]< -0.02:
+                    if self.lcoord[i][2]< -0.05:
                         temp_fiber[i] += local_fdiff[i]
                         cnt = cnt +1
                 print('point n', np.shape(self.lcoord[:,2]),'cnt', cnt)
@@ -2123,6 +2124,28 @@ class LV_simulation():
             lz = self.lcoord[:,2]
 
             endo_dist = self.mesh.model['functions']['endo_dist'].vector().get_local()[:]
+
+            ecc_temp = self.mesh.model['functions']['ecc'].vector().get_local()[:]
+            ecc_temp_3n = np.reshape(ecc_temp,(self.local_n_of_int_points,3))
+            ecc_x = ecc_temp_3n[:,0]
+            ecc_y = ecc_temp_3n[:,1]
+            ecc_z = ecc_temp_3n[:,2]
+
+
+            err_temp= self.mesh.model['functions']['err'].vector().get_local()[:]
+            err_temp_3n = np.reshape(err_temp,(self.local_n_of_int_points,3))
+            err_x = err_temp_3n[:,0]
+            err_y = err_temp_3n[:,1]
+            err_z = err_temp_3n[:,2]
+
+
+
+            ell_temp= self.mesh.model['functions']['ell'].vector().get_local()[:]
+            ell_temp_3n = np.reshape(ell_temp,(self.local_n_of_int_points,3))
+            ell_x = ell_temp_3n[:,0]
+            ell_y = ell_temp_3n[:,1]
+            ell_z = ell_temp_3n[:,2]
+
             
             for f in self.spatial_fiber_data_fields:
                 data_field = []
@@ -2169,6 +2192,46 @@ class LV_simulation():
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
                 #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
                 #    self.data['time'
+                
+                if f == 'eccx':
+                    data_field= list(ecc_x)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                if f == 'eccy':
+                    data_field= list(ecc_y)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                if f == 'eccz':
+                    data_field= list(ecc_z)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field    
+
+                if f == 'errx':
+                    data_field= list(err_x)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                if f == 'erry':
+                    data_field= list(err_y)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                if f == 'errz':
+                    data_field= list(err_z)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                if f == 'ellx':
+                    data_field= list(ell_x)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                if f == 'elly':
+                    data_field= list(ell_y)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                if f == 'ellz':
+                    data_field= list(ell_z)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
 
 
     def check_output_directory_folder(self, path=""):
