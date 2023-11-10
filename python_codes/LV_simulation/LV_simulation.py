@@ -2169,68 +2169,72 @@ class LV_simulation():
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
-                if f == 'lx':
-                    data_field= list(lx)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+#### here we need to save the geometric data of fibers based on the number of cores similar to other modeling params
 
 
-                if f == 'ly':
-                    data_field= list(ly)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
-                if f == 'lz':
-                    data_field= list(lz)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                if self.write_counter==1:
+                    if f == 'lx':
+                        data_field= list(lx)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
 
-                if f == 'endo_dist':
-                    data_field= list(endo_dist)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
-                #    self.data['time'
-                
-                if f == 'eccx':
-                    data_field= list(ecc_x)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                if f == 'eccy':
-                    data_field= list(ecc_y)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                if f == 'eccz':
-                    data_field= list(ecc_z)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field    
+                    if f == 'ly':
+                        data_field= list(ly)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
-                if f == 'errx':
-                    data_field= list(err_x)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                if f == 'erry':
-                    data_field= list(err_y)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                if f == 'errz':
-                    data_field= list(err_z)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                    if f == 'lz':
+                        data_field= list(lz)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
-                if f == 'ellx':
-                    data_field= list(ell_x)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                if f == 'elly':
-                    data_field= list(ell_y)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                if f == 'ellz':
-                    data_field= list(ell_z)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                    if f == 'endo_dist':
+                        data_field= list(endo_dist)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                    #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
+                    #    self.data['time'
+                    
+                    if f == 'eccx':
+                        data_field= list(ecc_x)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                    if f == 'eccy':
+                        data_field= list(ecc_y)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                    if f == 'eccz':
+                        data_field= list(ecc_z)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field    
+
+                    if f == 'errx':
+                        data_field= list(err_x)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                    if f == 'erry':
+                        data_field= list(err_y)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                    if f == 'errz':
+                        data_field= list(err_z)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                    if f == 'ellx':
+                        data_field= list(ell_x)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                    if f == 'elly':
+                        data_field= list(ell_y)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                    if f == 'ellz':
+                        data_field= list(ell_z)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
 
 
