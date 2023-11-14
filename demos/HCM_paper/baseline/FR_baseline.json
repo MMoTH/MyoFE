@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [32000],
+        "no_of_time_steps": [52000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -240,15 +240,15 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[20]
+            "time_constant":[30]
             
         }
         
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa20_30cycle2/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa20_30cycle2/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa30_52cycle/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa30_52cycle/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
