@@ -124,8 +124,8 @@
         {
             "params":
             {
-                "rel_tol": [1e-10],
-                "abs_tol": [1e-10],
+                "rel_tol": [1e-11],
+                "abs_tol": [1e-11],
                 "max_iter": [200],
                 "debugging_mode": [false]
             }
@@ -246,7 +246,7 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[30],
+            "time_constant":[25],
             "reorient_t_start":[0.5,"ms"]
         }
         
