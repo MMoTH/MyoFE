@@ -95,6 +95,8 @@ class fiber_reorientation():
 
 
         f_adjusted = 1./kappa * (f_proj - f0) * time_step
+
+        
         #f_adjusted = 1./kappa * (f-f0) * step_size
         #f_adjusted = project(f_adjusted,VectorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"})
         #f_adjusted = project(f_adjusted,function_space,form_compiler_parameters={"representation":"uflacs"}) # error with this line: 
@@ -163,7 +165,7 @@ class fiber_reorientation():
 
 
 
-        return s0, n0    
+        return s0, n0,f0    
 
 
 

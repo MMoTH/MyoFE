@@ -1629,14 +1629,23 @@ class LV_simulation():
                         temp_fiber[i] += local_fdiff[i]
                         cnt = cnt +1
                 print('point n', np.shape(self.lcoord[:,2]),'cnt', cnt)
-                
 
+
+                    
                 ### all point FR
                 #temp_fiber += fdiff.vector().get_local()[:]
 
-
-
                 self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
+
+
+                s1 , n1 ,f1= self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0'])
+                
+                self.mesh.model['functions']['s0'].vector()[:]=s1   ### on the left hand side get local is not needed as it can find the right place of the data in global function
+                self.mesh.model['functions']['n0'].vector()[:]=n1
+                self.mesh.model['functions']['f0'].vector()[:]=f1   ### f0 needed is being normalized here after reorientation
+
+
+                
 
 
                 
