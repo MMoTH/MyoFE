@@ -1685,11 +1685,7 @@ class LV_simulation():
                 print "Fiber orientation updated"
                 
                 
-                s1 , n1 = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0'])
-                
-                self.mesh.model['functions']['s0'].vector()[:]=s1   ### on the left hand side get local is not needed as it can find the right place of the data in global function
-                self.mesh.model['functions']['n0'].vector()[:]=n1
-
+       
 
 
                 ##MM to save the fiber even before fiber remodleing this apart needs to be out of if FR = 1
