@@ -406,9 +406,9 @@ class assign_heterogeneous_params(object):
                     ### fibrousis with dead cells
                     if k == "c": 
                         l_c[jj] = base_value*scaling_factor
-                        l_bt[jj] = 6
-                        l_bf[jj] = 6
-                        l_bfs[jj] = 6
+                        l_bt[jj] = 4
+                        l_bf[jj] = 4
+                        l_bfs[jj] = 4
                         l_cb_n_density[jj] = 0
 
 
