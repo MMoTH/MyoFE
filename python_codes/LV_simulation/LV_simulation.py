@@ -463,7 +463,7 @@ class LV_simulation():
 
 
             for f in ['f01','f02','f03','s01','s02','s03','n01','n02','n03','lx','ly','lz','endo_dist',
-                      'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz']:
+                      'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz', 'fr_angle']:
                 self.spatial_fiber_data_fields.append(f)
 
         data_field = self.spatial_hs_data_fields +\
@@ -2129,6 +2129,7 @@ class LV_simulation():
             lz = self.lcoord[:,2]
 
             endo_dist = self.mesh.model['functions']['endo_dist'].vector().get_local()[:]
+            fr_angle = self.mesh.model['functions']["fdiff_ang"].vector().get_local()[:]
 
             ecc_temp = self.mesh.model['functions']['ecc'].vector().get_local()[:]
             ecc_temp_3n = np.reshape(ecc_temp,(self.local_n_of_int_points,3))
@@ -2197,6 +2198,11 @@ class LV_simulation():
 
                     if f == 'endo_dist':
                         data_field= list(endo_dist)
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                    if f == 'fr_angle':
+                        data_field= list(fr_angle)
                         self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
                         self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
                     #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
