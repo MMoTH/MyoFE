@@ -361,7 +361,7 @@ class assign_heterogeneous_params(object):
         #sample_indices = r.choice(all_cells,int(percent*all_cells), replace=False)  # MM each cell includes 4 integer points and to consider all the LV 4 should be multiplied
         
         step = int(1/(percent))   # it stimately would follow the percenage
-        sample_indices = np.arange(3,all_cells,step)    # this can give better unified disarray
+        sample_indices = np.arange(1,all_cells,step)    # this can give better unified disarray
 
         #sample_indices = np.arange(900,1000)
         #print ("step")
