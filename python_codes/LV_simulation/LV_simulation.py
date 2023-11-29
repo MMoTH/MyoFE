@@ -2175,6 +2175,11 @@ class LV_simulation():
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
+
+                if f == 'fr_angle':
+                    data_field= list(fr_angle)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 #### here we need to save the geometric data of fibers based on the number of cores similar to other modeling params
 
 
@@ -2201,10 +2206,7 @@ class LV_simulation():
                         self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
                         self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
-                    if f == 'fr_angle':
-                        data_field= list(fr_angle)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
                     #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
                     #    self.data['time'
                     
