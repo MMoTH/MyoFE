@@ -1,14 +1,14 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [52000],
+        "no_of_time_steps": [1000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[2],
+                    "t_start_s":[0],
                     "t_stop_s":[60]
 
                 } 
