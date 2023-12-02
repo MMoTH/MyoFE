@@ -374,7 +374,7 @@ class assign_heterogeneous_params(object):
         seed=123456789
         r.seed(seed)
         rs1 = r.RandomState(seed)
-        sample_indices = rs1.random_integers(1, all_cells, int(percent*no_of_cells))
+        sample_indices = rs1.random_integers(1, all_cells, int(percent*all_cells))
         print("sample_indices" , sample_indices)
 
 

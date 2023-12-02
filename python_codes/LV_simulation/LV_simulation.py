@@ -1622,14 +1622,14 @@ class LV_simulation():
 
 
 
-                ### since stress is not realisic in base, we exclude basal points from fiber reoriantaion
+                ### since stress is not realisic in base, we can exclude some basal points from fiber reoriantaion
                 #print('point n', np.shape(self.lcoord[:,2]))  
                 cnt =0 
                 for i in np.arange(self.local_n_of_int_points):
                     if self.lcoord[i][2]< 0:
                         temp_fiber[i] += local_fdiff[i]
                         cnt = cnt +1
-                print('point n', np.shape(self.lcoord[:,2]),'cnt', cnt)
+                #print('point n', np.shape(self.lcoord[:,2]),'cnt', cnt)
 
 
                     
