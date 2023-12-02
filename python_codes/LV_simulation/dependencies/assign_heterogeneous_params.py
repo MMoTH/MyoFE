@@ -3,6 +3,8 @@ from dolfin import *
 import numpy as np
 import numpy.random as r
 import pandas as pd
+'''from numpy.random import MT19937
+from numpy.random import RandomState, SeedSequence'''
 
 # MM since het params are defined in passive paremeters which are stored in dolfin functions, parts of the code with dolfin_funtions is working for het
 class assign_heterogeneous_params(object):
@@ -361,13 +363,28 @@ class assign_heterogeneous_params(object):
         #sample_indices = r.choice(all_cells,int(percent*all_cells), replace=False)  # MM each cell includes 4 integer points and to consider all the LV 4 should be multiplied
         
         step = int(1/(percent))   # it stimately would follow the percenage
-        sample_indices = np.arange(1,all_cells,step)    # this can give better unified disarray
+        #sample_indices = np.arange(1,all_cells,step)    # this can give better unified disarray
+
+
+        #### reproducable random cell generator: to compare the same het in hyper vs fibrous model
+        '''print("np_check",np.__version__)
+        rng = np.random.default_rng(seed=42)
+        sample_indices = rng.integers(low=1, high=all_cells, size=int(percent*no_of_cells) )'''
+        
+        seed=123456789
+        r.seed(seed)
+        rs1 = r.RandomState(seed)
+        sample_indices = rs1.random_integers(1, all_cells, int(percent*no_of_cells))
+        print("sample_indices" , sample_indices)
+
 
         #sample_indices = np.arange(900,1000)
         #print ("step")
         #print (step)
         print ("all_cells")
         print (all_cells)
+        print ("all_cells shape")
+        print (np.shape(all_cells))
         print ("sample size")
         print (np.shape(sample_indices))
         
