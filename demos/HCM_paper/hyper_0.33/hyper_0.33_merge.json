@@ -8,7 +8,7 @@
             "activations":
             [
                 {
-                    "t_start_s":[2],
+                    "t_start_s":[55],
                     "t_stop_s":[60]
 
                 } 
@@ -253,8 +253,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa10_k1_4/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa10_k1_4/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa10_k1_4_noFR/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa10_k1_4_noFR/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
