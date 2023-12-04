@@ -92,7 +92,7 @@
         {
             "passive_law_parameters": {
               "passive_law": ["semi_structural"],
-              "c": [200, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.2,"scaling_factor":10,"material_properties":"isotropic"}],
+              "c": [200, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.2,"scaling_factor":7,"material_properties":"isotropic"}],
               "c2": [250],
               "c3": [15.0],
               "bf": [8.0],
@@ -246,15 +246,15 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[10],
+            "time_constant":[15],
             "reorient_t_start":[0.5,"ms"]
         }
         
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.2_kappa10_c10_noFR/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.2_kappa10_c10_noFR/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.2_kappa15_c7/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/fibrous_0.2_kappa15_c7/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
