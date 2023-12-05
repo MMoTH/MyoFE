@@ -24,7 +24,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/HCM_paper/Sim_input/ellipsoidal.hdf5"],
+        "mesh_path":["../demos/HCM_paper/thin_apex_ms0.06/ellipsoidal.hdf5"],
         "function_spaces":
         [
             {
@@ -253,8 +253,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa15_k4_8core/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa15_k4_8core/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa15_k4_8core_fine_mesh/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa15_k4_8core_fine_mesh/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
