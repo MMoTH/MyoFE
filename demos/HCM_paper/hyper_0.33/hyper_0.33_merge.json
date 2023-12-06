@@ -253,8 +253,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa15_k4_32core_fine_mesh/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa15_k4_32core_fine_mesh/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa15_k4_32core/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.2_kappa15_k4_32core/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
