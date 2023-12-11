@@ -1,25 +1,25 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [52000],
+        "no_of_time_steps": [25],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[2],
-                    "t_stop_s":[60]
+                    "t_start_s":[0],
+                    "t_stop_s":[20]
 
                 } 
             ]
         }
-
+        
     },
     "heart_rate": {
         "t_active_period": [0.003],
-        "t_quiescent_period": [0.934],
-        "t_first_activation": [0.1]
+        "t_quiescent_period": [0.92],
+        "t_first_activation": [0.2]
     },
     "mesh":
     {
@@ -124,12 +124,17 @@
         {
             "params":
             {
-                "rel_tol": [1e-11],
-                "abs_tol": [1e-11],
-                "max_iter": [200],
+                "rel_tol": [1e-10],
+                "abs_tol": [1e-10],
+                "max_iter": [100],
                 "debugging_mode": [false]
             }
-        } 
+        },
+        "pericardial":
+        {
+            "type": ["spring"],
+            "k_spring": [200]
+        }  
     },
     "model":
     {
@@ -153,7 +158,7 @@
                 },
                 {
                     "name": ["arterioles"],
-                    "resistance": [787],
+                    "resistance": [800],
                     "compliance": [1e-3],
                     "slack_volume": [0.1]
                 },
@@ -172,8 +177,9 @@
                 {
                     "name": ["veins"],
                     "resistance": [50],
-                    "compliance": [1.078e-1],
-                    "slack_volume": [2.0]
+                    "compliance": [1e-1],
+                    "slack_volume": [2.0],
+                    "inertance": [0]
                 },
                 {
                     "name": ["ventricle"],
@@ -192,8 +198,8 @@
             {
                 "Ca_content": [1e-3],
                 "k_leak": [6e-4],
-                "k_act": [8.06e-2],
-                "k_serca": [7.866],
+                "k_act": [8.2e-2],
+                "k_serca": [8],
                 "t_open": [0.01],
                 "implementation":
                 {
@@ -205,15 +211,15 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [4.92, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":1.8,"material_properties":"isotropic"}],
-                "k_force": [1e-3],  
+                "k_1": [5, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.3,"scaling_factor":8,"material_properties":"isotropic"}],
+                "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [100],
                 "k_4_0": [80],
                 "k_4_1": [1.5],
                 "k_cb": [0.001],
                 "x_ps": [5.2],
-                "k_on": [1.735e8],
+                "k_on": [1.7e8],
                 "k_off": [200],
                 "k_coop": [5],
                 "int_passive_exp_sigma": [100],
@@ -246,15 +252,24 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[15],
+            "time_constant":[10],
             "reorient_t_start":[0.5,"ms"]
         }
         
     },
+    "growth_and_remodeling": 
+    {
+        "eccentric_growth": {
+          "time_constant": [0.0],
+          "k_myo_damp": [0.0],
+          "passive_set_point": [0.0]
+        }
+
+      },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k0.2_20cycle/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k0.2_20cycle/mesh_output"],
+        "output_data_path": ["../demos/HCM_paper/test/het_test/data.csv"],
+        "mesh_output_path": ["../demos/HCM_paper/test/het_test/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -275,7 +290,7 @@
             "Helical_Angle"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [10]
+        "frequency_n": [1]
         
         
     }

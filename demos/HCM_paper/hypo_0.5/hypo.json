@@ -205,7 +205,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [4.92, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":1.8,"material_properties":"isotropic"}],
+                "k_1": [4.92, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":0.2,"material_properties":"isotropic"}],
                 "k_force": [1e-3],  
                 "k_2": [200],
                 "k_3": [100],
@@ -253,8 +253,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k0.2_20cycle/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k0.2_20cycle/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k0.2_50cycle/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k0.2_50cycle/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
