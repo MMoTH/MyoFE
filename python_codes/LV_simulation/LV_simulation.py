@@ -1614,27 +1614,28 @@ class LV_simulation():
                 fdiff = self.fr.stress_law(self.fr.data['signal'],time_step,self.mesh.model['function_spaces']['fiber_FS'])
 
                 temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
+                
+                
+                
+                
                 local_fdiff = fdiff.vector().get_local()[:]
 
                 gdim2 = self.mesh.model['mesh'].geometry().dim()
                 self.lcoord = self.mesh.model['function_spaces']['quadrature_space'].\
                 tabulate_dof_coordinates().reshape((-1, gdim2))
-
-
-
                 ### since stress is not realisic in base, we can exclude some basal points from fiber reoriantaion
                 #print('point n', np.shape(self.lcoord[:,2]))  
-                cnt =0 
+                '''cnt =0 
                 for i in np.arange(self.local_n_of_int_points):
                     if self.lcoord[i][2]< 0:
                         temp_fiber[i] += local_fdiff[i]
-                        cnt = cnt +1
+                        cnt = cnt +1'''
                 #print('point n', np.shape(self.lcoord[:,2]),'cnt', cnt)
 
 
                     
                 ### all point FR
-                #temp_fiber += fdiff.vector().get_local()[:]
+                temp_fiber += fdiff.vector().get_local()[:]
 
                 self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
 
@@ -1643,7 +1644,7 @@ class LV_simulation():
                 
                 self.mesh.model['functions']['s0'].vector()[:]=s1   ### on the left hand side get local is not needed as it can find the right place of the data in global function
                 self.mesh.model['functions']['n0'].vector()[:]=n1
-                self.mesh.model['functions']['f0'].vector()[:]=f1   ### f0 needed is being normalized here after reorientation
+                self.mesh.model['functions']['f0'].vector()[:]=f1   ### f0  is being renormalized here after reorientation
 
 
                 
@@ -1658,7 +1659,6 @@ class LV_simulation():
                 l_fdiff_ang = self.mesh.model['functions']["fdiff_ang"].vector().get_local()[:] 
                 
                 for ii in np.arange(self.local_n_of_int_points):
-
                     
                     l_f0_holder = l_f0[ii*3:ii*3+3]
                     l_f00_holder = self.l_f00[ii*3:ii*3+3]

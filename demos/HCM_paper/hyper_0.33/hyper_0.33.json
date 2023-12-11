@@ -1,14 +1,14 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [12000],
+        "no_of_time_steps": [25],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[2],
+                    "t_start_s":[0],
                     "t_stop_s":[20]
 
                 } 
@@ -24,7 +24,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/fiber/Het_test13/sim_inputs/ellipsoidal.hdf5"],
+        "mesh_path":["../demos/HCM_paper/Sim_input/ellipsoidal.hdf5"],
         "function_spaces":
         [
             {
@@ -211,7 +211,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [5, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.3,"scaling_factor":12.9,"material_properties":"isotropic"}],
+                "k_1": [5, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.3,"scaling_factor":8,"material_properties":"isotropic"}],
                 "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [100],
@@ -252,7 +252,7 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[4],
+            "time_constant":[10],
             "reorient_t_start":[0.5,"ms"]
         }
         
@@ -268,9 +268,8 @@
       },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.33/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.33/mesh_output"],
-        "Het_cell_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.33/cell_data.csv"],
+        "output_data_path": ["../demos/HCM_paper/test/het_test/data.csv"],
+        "mesh_output_path": ["../demos/HCM_paper/test/het_test/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -285,11 +284,13 @@
             "cb_number_density_DG0",
             "cb_number_density",
             "k_1",
-            "k_1_DG0"
-
+            "k_1_DG0",
+            "total_stress_vector",
+            "Transverse_Angle",
+            "Helical_Angle"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [10]
+        "frequency_n": [1]
         
         
     }

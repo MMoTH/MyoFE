@@ -1,19 +1,30 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [52000],
+        "no_of_time_steps": [10],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[2],
-                    "t_stop_s":[60]
+                    "t_start_s":[3],
+                    "t_stop_s":[30]
 
                 } 
             ]
+        },
+        "growth":
+        {
+            "activations": 
+            [
+                {
+                    "t_start_s": [30],
+                    "t_stop_s": [400]
+                }
+            ]
         }
+     
 
     },
     "heart_rate": {
@@ -77,6 +88,12 @@
             },
             {
                 "name":["fiber_vis"],
+                "type":["vector"],
+                "element_type":["Quadrature"],
+                "degree" :[2]
+            }, 
+            {
+                "name":["fiber_vis2"],
                 "type":["vector"],
                 "element_type":["Quadrature"],
                 "degree" :[2]
@@ -199,7 +216,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [4.92],
+                "k_1": [4.92,{"heterogeneous":"True","law":"transmural","transition_type":"linear","epi_value":8}],
                 "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [100],
@@ -240,20 +257,21 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[15]
-            
+            "time_constant":[4],
+            "reorient_t_start":[0.5,"ms"]
         }
         
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa15/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa15/mesh_output"],
+        "output_data_path": ["../demos/Transmural_variation/output/data.csv" ],
+        "mesh_output_path": ["../demos/Transmural_variation/output/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
             "active_stress",
             "active_stress_DG0",
+            "total_stress",
             "hs_length",
             "reorienting_angle",
             "c_param",
@@ -269,7 +287,7 @@
             "Helical_Angle"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [10]
+        "frequency_n": [1]
         
         
     }
