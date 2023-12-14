@@ -93,9 +93,20 @@ class fiber_reorientation():
         print np.shape(PK2_proj)"""
 
 
+        ### new controling multiplier addition
 
-        f_adjusted = 1./kappa * (f_proj - f0) * time_step
+        FR_sofar = self.parent_params.mesh.model['functions']["fdiff_ang"]
+        FR_max = 60
+        FR_coeff = (FR_max-FR_sofar)/FR_max
+        
 
+        #print ("FR_coeff_shape:",np.shape(FR_coeff))
+       
+
+        ##working FR
+        f_adjusted = 1./kappa * (f_proj - f0) * (FR_coeff) * time_step 
+
+    
         
         #f_adjusted = 1./kappa * (f-f0) * step_size
         #f_adjusted = project(f_adjusted,VectorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"})

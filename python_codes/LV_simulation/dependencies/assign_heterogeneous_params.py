@@ -375,18 +375,18 @@ class assign_heterogeneous_params(object):
         r.seed(seed)
         rs1 = r.RandomState(seed)
         sample_indices = rs1.random_integers(1, all_cells, int(percent*all_cells))
-        print("sample_indices" , sample_indices)
+        #print("sample_indices" , sample_indices)
 
 
         #sample_indices = np.arange(900,1000)
         #print ("step")
         #print (step)
-        print ("all_cells")
+        '''print ("all_cells")
         print (all_cells)
         print ("all_cells shape")
         print (np.shape(all_cells))
         print ("sample size")
-        print (np.shape(sample_indices))
+        print (np.shape(sample_indices))'''
         
         ##MM note: here there is code that saves the cell ID for het cells. to activate it, parent parameters should be added as an input
         '''if 'Het_cell_output_path' in parent_parameters.instruction_data["output_handler"]:

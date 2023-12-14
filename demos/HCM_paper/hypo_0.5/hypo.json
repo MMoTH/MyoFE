@@ -253,8 +253,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k0.2_50cycle/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k0.2_50cycle/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k0.2_50cycle_coef/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k0.2_50cycle_coef/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",

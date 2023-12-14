@@ -1628,7 +1628,9 @@ class LV_simulation():
                 '''cnt =0 
                 for i in np.arange(self.local_n_of_int_points):
                     if self.lcoord[i][2]< 0:
-                        temp_fiber[i] += local_fdiff[i]
+                        # wrong way: temp_fiber[i] += local_fdiff[i]
+                        temp_fiber[ii*3:ii*3+3]+= local_fdiff[ii*3:ii*3+3]
+
                         cnt = cnt +1'''
                 #print('point n', np.shape(self.lcoord[:,2]),'cnt', cnt)
 
@@ -1657,6 +1659,8 @@ class LV_simulation():
                 ## important note: if we localize fiber data here as initial fiber it does not contain inital fiber as it is also updated automatically. initial fiber sould be localized out of time loop
                 #l_`f00 `= self.mesh.model['functions']['f00'].vector().get_local()[:] 
                 l_fdiff_ang = self.mesh.model['functions']["fdiff_ang"].vector().get_local()[:] 
+
+                #print ("l_fdiff_ang=",l_fdiff_ang)
                 
                 for ii in np.arange(self.local_n_of_int_points):
                     

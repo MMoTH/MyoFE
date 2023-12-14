@@ -176,6 +176,9 @@ class MeshClass():
         ell = Function(fiberFS)
         err = Function(fiberFS)
         ecc = Function(fiberFS)
+
+        f_adjust = Function(fiberFS)
+
         
         if not predefined_functions:
             facetboundaries = MeshFunction('size_t', self.model['mesh'], 
@@ -276,6 +279,7 @@ class MeshClass():
         f0_mag = Function(self.model['function_spaces']['quadrature_space'])
         fdiff_mag = Function(self.model['function_spaces']['quadrature_space'])
         fdiff_ang = Function(self.model['function_spaces']['quadrature_space'])
+        FR_coeff = Function(self.model['function_spaces']['quadrature_space'])
         f00_mag = Function(self.model['function_spaces']['quadrature_space'])
 
         # initialize myosim params
@@ -342,6 +346,7 @@ class MeshClass():
         functions["ell"] = ell
         functions["ecc"] = ecc
         functions["err"] = err
+        functions["f_adjust"] = f_adjust
 
 
         functions["c11"] = c11
@@ -371,6 +376,7 @@ class MeshClass():
         functions["f0_mag"] = f0_mag 
         functions["fdiff_mag"] = fdiff_mag 
         functions["fdiff_ang"] = fdiff_ang 
+        functions["FR_coeff"] = FR_coeff 
         functions["f00"] = f0  # here we assinge initial angle and keep it constant to evaluate reorientaion
         functions["f00_mag"] = f00_mag
 
