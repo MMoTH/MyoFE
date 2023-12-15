@@ -104,7 +104,7 @@ class fiber_reorientation():
        
 
         ##working FR
-        f_adjusted = 1./kappa * (f_proj - f0) * (FR_coeff) * time_step 
+        f_adjusted = 1./kappa * (f_proj - f0) * (FR_coeff)* (FR_coeff)  * time_step 
 
     
         
