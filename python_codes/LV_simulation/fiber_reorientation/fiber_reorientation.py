@@ -96,7 +96,7 @@ class fiber_reorientation():
         ### new controling multiplier addition
 
         FR_sofar = self.parent_params.mesh.model['functions']["fdiff_ang"]
-        FR_max = 60
+        FR_max = 90
         FR_coeff = (FR_max-FR_sofar)/FR_max
         
 
@@ -104,7 +104,7 @@ class fiber_reorientation():
        
 
         ##working FR
-        f_adjusted = 1./kappa * (f_proj - f0) * (FR_coeff)* (FR_coeff)  * time_step 
+        f_adjusted = 1./kappa * (f_proj - f0) * (FR_coeff) * (FR_coeff)* (FR_coeff)  * time_step 
 
     
         
