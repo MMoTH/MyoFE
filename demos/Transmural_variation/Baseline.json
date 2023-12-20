@@ -264,8 +264,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/baseline_30cycle_fine_mesh/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/baseline_30cycle_fine_mesh/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/baseline_30cycle_fine_mesh_8core/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/baseline_30cycle_fine_mesh_8core/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
