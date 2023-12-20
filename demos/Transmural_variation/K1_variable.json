@@ -35,7 +35,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["..demos/Transmural_variation/thin_fine_apex(0.045)_ms0.055/ellipsoidal.hdf5"],
+        "mesh_path":["../demos/Transmural_variation/thin_fine_apex(0.045)_ms0.055/ellipsoidal.hdf5"],
         "function_spaces":
         [
             {
