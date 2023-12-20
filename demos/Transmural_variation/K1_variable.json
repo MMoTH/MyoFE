@@ -8,7 +8,7 @@
             "activations":
             [
                 {
-                    "t_start_s":[30],
+                    "t_start_s":[60],
                     "t_stop_s":[300]
 
                 } 
@@ -35,7 +35,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/HCM_paper/Sim_input/ellipsoidal.hdf5"],
+        "mesh_path":["..demos/Transmural_variation/thin_fine_apex(0.045)_ms0.055/ellipsoidal.hdf5"],
         "function_spaces":
         [
             {
@@ -264,8 +264,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/K1_4to8_20cycle/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/K1_4to8_20cycle/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/K1_4to8_30cycle_fine_mesh/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/K1_4to8_30cycle_fine_mesh/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
