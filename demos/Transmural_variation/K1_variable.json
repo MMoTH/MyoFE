@@ -264,8 +264,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/main_params_saved_K1_3to6_10cycle/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/main_params_saved_K1_3to6_10cycle/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/main_params_saved_K1_3to6_10cycle_new/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/main_params_saved_K1_3to6_10cycle_new/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
