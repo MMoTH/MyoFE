@@ -599,8 +599,9 @@ class MeshClass():
                 project(self.model['functions']['hsl'],
                     self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
         
-        self.model['functions']["total_passive_PK2"], self.model['functions']["Sff"] = \
+        self.model['functions']["total_passive_PK2"], self.model['functions']["Sff"] ,self.model['functions']["myo_passive_PK2"] = \
             uflforms.stress(self.model['functions']["hsl"])
+        
         temp_DG = project(self.model['functions']["Sff"], FunctionSpace(mesh, "DG", 1), form_compiler_parameters={"representation":"uflacs"})
         p_f = interpolate(temp_DG, self.model['function_spaces']['quadrature_space'])
         self.pass_stress_list = p_f.vector().get_local()[:]

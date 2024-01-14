@@ -35,7 +35,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/Transmural_variation/thin_fine_apex(0.045)_ms0.055/ellipsoidal.hdf5"],
+        "mesh_path":["../demos/HCM_paper/Sim_input/ellipsoidal.hdf5"],
         "function_spaces":
         [
             {
@@ -216,7 +216,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [4,{"heterogeneous":"True","law":"transmural","transition_type":"linear","epi_value":8}],
+                "k_1": [3,{"heterogeneous":"True","law":"transmural","transition_type":"linear","epi_value":6}],
                 "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [100],
@@ -264,8 +264,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/K1_4to8_10cycle_fine_mesh_8core/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/K1_4to8_10cycle_fine_mesh_8core/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/main_params_saved_K1_3to6_10cycle/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/Transmural_variation/main_params_saved_K1_3to6_10cycle/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",

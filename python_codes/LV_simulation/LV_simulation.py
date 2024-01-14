@@ -439,6 +439,9 @@ class LV_simulation():
 
         self.spatial_gr_data_fields = []
 
+        self.spatial_extra = []
+
+
         if spatial_data_fields:
             # create data fileds based on what user has asked
             print('data fields used from json')
@@ -467,10 +470,17 @@ class LV_simulation():
                       'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz', 'fr_angle']:
                 self.spatial_fiber_data_fields.append(f)
 
+            for f in ['active_stress','total_passive','myofiber_passive']:
+                self.spatial_extra.append(f)
+            
+            
+
         data_field = self.spatial_hs_data_fields +\
                         self.spatial_myof_data_fields+\
                             self.spatial_memb_data_fields+\
-                            self.spatial_fiber_data_fields
+                            self.spatial_fiber_data_fields+\
+                            self.spatial_extra
+                            
 
         if (self.gr != [] ):
             
@@ -486,7 +496,8 @@ class LV_simulation():
                         self.spatial_myof_data_fields+\
                         self.spatial_memb_data_fields+ \
                         self.spatial_fiber_data_fields+ \
-                        self.spatial_gr_data_fields
+                        self.spatial_gr_data_fields+\
+                            self.spatial_extra
 
         if in_average:
             spatial_data = pd.DataFrame()
@@ -2254,6 +2265,55 @@ class LV_simulation():
                         self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
                         self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
+            
+            
+            temp= project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['Pactive']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar"],
+                                        form_compiler_parameters={"representation":"uflacs"})
+            
+            #temp= (inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['Pactive']*self.mesh.model['functions']['f0']))
+            
+            active_stress = temp.vector().get_local()[:]
+
+
+            total_passive = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['total_passive_PK2']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar"],
+                                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+        
+            myofiber_passive = project(inner(self.mesh.model['functions']['f0'],
+                                        self.mesh.model['functions']['myo_passive_PK2']*
+                                        self.mesh.model['functions']['f0']),
+                                        self.mesh.model['function_spaces']["scalar"],
+                                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+
+
+            for f in self.spatial_extra:
+                data_field = []
+
+
+                if f == 'active_stress':
+                    
+                    data_field= list(active_stress)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+
+                if f == 'total_passive':
+                    data_field= list(total_passive)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+
+                if f == 'myofiber_passive':
+                    data_field= list(myofiber_passive)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                
 
 
     def check_output_directory_folder(self, path=""):
