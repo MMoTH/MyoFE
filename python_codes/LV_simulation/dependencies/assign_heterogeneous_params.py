@@ -755,7 +755,7 @@ class assign_heterogeneous_params(object):
         for jj in np.arange(all_cells):
             
             if transition_type == "linear":
-                local_temp[jj] = base_value + (l_endo_dist[jj]* epi_value)
+                local_temp[jj] = base_value + (l_endo_dist[jj]* (epi_value-base_value))
              
         dolfin_functions[k][-1].vector()[:] = local_temp
 
