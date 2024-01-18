@@ -470,7 +470,7 @@ class LV_simulation():
                       'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz', 'fr_angle']:
                 self.spatial_fiber_data_fields.append(f)
 
-            for f in ['active_stress','total_passive','myofiber_passive']:
+            for f in ['active_stress','total_passive','myofiber_passive','Sff_mesh']:
                 self.spatial_extra.append(f)
             
             
@@ -2267,28 +2267,48 @@ class LV_simulation():
 
             
             
-            temp= project(inner(self.mesh.model['functions']['f0'],
+
+
+
+            temp0  = inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['Pactive']*
-                                        self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"],
-                                        form_compiler_parameters={"representation":"uflacs"})
-            
-            #temp= (inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['Pactive']*self.mesh.model['functions']['f0']))
-            
+                                        self.mesh.model['functions']['f0'])
+            temp= project(temp0,self.mesh.model['function_spaces']["quadrature_space"])        
             active_stress = temp.vector().get_local()[:]
 
 
-            total_passive = project(inner(self.mesh.model['functions']['f0'],
+
+            
+            temp = inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['total_passive_PK2']*
-                                        self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"],
-                                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                                        self.mesh.model['functions']['f0'])
+            
+            total_passive = project(temp,self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+
+            #total_passive = interpolate(temp_DG, self.mesh.model['function_spaces']["quadrature_space"])
+
+
+
+            #total_passive = project(temp,self.mesh.model['function_spaces']["quadrature_space"],form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
         
-            myofiber_passive = project(inner(self.mesh.model['functions']['f0'],
+
+
+
+
+
+            
+            temp = inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['myo_passive_PK2']*
-                                        self.mesh.model['functions']['f0']),
-                                        self.mesh.model['function_spaces']["scalar"],
-                                        form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+                                        self.mesh.model['functions']['f0'])
+            
+            myofiber_passive = project(temp,
+                                        self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+
+            #myo_FS = Function(self.mesh.model['function_spaces']['quadrature_space'])
+            
+            myo_Sff = project(self.mesh.model['functions']['Sff'],
+                              self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+          
 
 
             for f in self.spatial_extra:
@@ -2314,6 +2334,13 @@ class LV_simulation():
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
                 
+                if f == 'Sff_mesh':
+
+                    data_field = list(myo_Sff)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+            
 
 
     def check_output_directory_folder(self, path=""):
