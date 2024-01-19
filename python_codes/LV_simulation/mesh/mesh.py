@@ -293,6 +293,8 @@ class MeshClass():
         hsl_diff_from_reference = Function(self.model['function_spaces']['quadrature_space'])
         hsl_diff_from_reference.vector()[:] = 0.0
 
+        passive_total_stress = Function(self.model['function_spaces']['quadrature_space'])
+
 
         if not predefined_functions:
             try:
@@ -382,6 +384,8 @@ class MeshClass():
 
         functions["endo_dist"] = endo_dist
         functions["epi_dist"] = epi_dist
+
+        functions["passive_total_stress"] =passive_total_stress
 
 
         return functions
@@ -599,7 +603,7 @@ class MeshClass():
                 project(self.model['functions']['hsl'],
                     self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
         
-        self.model['functions']["total_passive_PK2"], self.model['functions']["Sff"] ,self.model['functions']["myo_passive_PK2"] = \
+        self.model['functions']["passive_total_stress"], self.model['functions']["Sff"] ,self.model['functions']["myo_passive_PK2"],self.model['functions']["bulk_passive"],self.model['functions']["incomp_stress"] = \
             uflforms.stress(self.model['functions']["hsl"])
         
         temp_DG = project(self.model['functions']["Sff"], FunctionSpace(mesh, "DG", 1), form_compiler_parameters={"representation":"uflacs"})
@@ -608,7 +612,7 @@ class MeshClass():
          
         self.model['functions']['PK2_local'],self.model['functions']['incomp'] = \
             uflforms.passivestress(self.model['functions']["hsl"])
-        self.model['functions']['total_stress'] = Pactive + self.model['functions']["total_passive_PK2"]
+        self.model['functions']['total_stress'] = Pactive + self.model['functions']["passive_total_stress"]
 
         #self.model['functions']['myofiber_stretch'] = self.model['functions']["hsl"]/self.model['functions']["hsl0"]
         self.model['functions']['alpha_f'] = alpha_f

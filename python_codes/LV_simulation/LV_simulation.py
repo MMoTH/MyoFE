@@ -470,7 +470,7 @@ class LV_simulation():
                       'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz', 'fr_angle']:
                 self.spatial_fiber_data_fields.append(f)
 
-            for f in ['active_stress','total_passive','myofiber_passive','Sff_mesh']:
+            for f in ['active_stress','total_passive','myofiber_passive','Sff_mesh','bulk_passive','incomp_stress']:
                 self.spatial_extra.append(f)
             
             
@@ -2280,10 +2280,11 @@ class LV_simulation():
 
             
             temp = inner(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['functions']['total_passive_PK2']*
+                                        self.mesh.model['functions']['passive_total_stress']*
                                         self.mesh.model['functions']['f0'])
             
-            total_passive = project(temp,self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+            #total_passive = temp.vector().get_local()[:]
+            total_passive = project(temp,self.mesh.model['function_spaces']["scalar"],form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
 
             #total_passive = interpolate(temp_DG, self.mesh.model['function_spaces']["quadrature_space"])
 
@@ -2298,8 +2299,8 @@ class LV_simulation():
 
             
             temp = inner(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['functions']['myo_passive_PK2']*
-                                        self.mesh.model['functions']['f0'])
+                        self.mesh.model['functions']['myo_passive_PK2']*
+                        self.mesh.model['functions']['f0'])
             
             myofiber_passive = project(temp,
                                         self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
@@ -2309,6 +2310,22 @@ class LV_simulation():
             myo_Sff = project(self.mesh.model['functions']['Sff'],
                               self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
           
+
+            print("1")
+            temp = inner(self.mesh.model['functions']['f0'],
+                        self.mesh.model['functions']['bulk_passive']*
+                        self.mesh.model['functions']['f0'])
+            bulk_passive = project(temp,
+                    self.mesh.model['function_spaces']["scalar"],form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
+            print("2")
+            temp = inner(self.mesh.model['functions']['f0'],
+                        self.mesh.model['functions']['incomp_stress']*
+                        self.mesh.model['functions']['f0'])
+            print("3")
+            incomp_stress = project(temp,
+                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+            print("4")
+
 
 
             for f in self.spatial_extra:
@@ -2341,7 +2358,18 @@ class LV_simulation():
 
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             
+                if f == 'bulk_passive':
 
+                    data_field = list(bulk_passive)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+            
+                if f == 'incomp_stress':
+
+                    data_field = list(incomp_stress)
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+            
 
     def check_output_directory_folder(self, path=""):
         """ Check output folder"""
