@@ -15,7 +15,7 @@ class protocol():
         prot = protocol_struct
         for p in list(prot.keys()):
 
-            if not p in ['baroreflex','perturbation','growth','infarct']:
+            if not p in ['baroreflex','perturbation','growth','infarct','fiber_reorientation']:
 
                 self.data[p] = prot[p][0]
 
@@ -32,6 +32,13 @@ class protocol():
             for i, b in enumerate(baro_struct['activations']):
                 self.baro_activations.append(baro_activation(
                     b, self.data['time_step']))
+
+        self.fiber_re_activations = []
+        if ('fiber_reorientation' in prot):
+            fiber_re_struct = prot['fiber_reorientation']
+            for i, f in enumerate(fiber_re_struct['activations']):
+                self.fiber_re_activations.append(fiber_re_activation(
+                    f, self.data['time_step']))
         
 
         self.growth_activations = []
@@ -69,6 +76,14 @@ class perturbation():
             n_steps = (self.data['t_stop_s'] - self.data['t_start_s']) / time_step
             self.data['t_stop_ind'] = int(self.data['t_stop_s'] / time_step)
             self.data['increment'] = self.data['total_change'] / n_steps
+class fiber_re_activation():
+    """ Class for fiber reorientation """
+    def __init__(self, fiber_re_struct, time_step):
+        self.data = dict()
+        self.data['t_start_s'] = fiber_re_struct['t_start_s'][0]
+        self.data['t_stop_s'] = fiber_re_struct['t_stop_s'][0]
+        self.data['t_start_ind'] = int(self.data['t_start_s'] / time_step)
+        self.data['t_stop_ind'] = int(self.data['t_stop_s'] / time_step)
 
 class baro_activation():
     """ Class for baro-activation """

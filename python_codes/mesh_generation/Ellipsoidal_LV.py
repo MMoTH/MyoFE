@@ -62,14 +62,14 @@ def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
     Quadelem = FiniteElement("Quadrature",mesh.ufl_cell(),degree=quad_deg,quad_scheme="default")
     VQuadelem._quad_scheme = 'default'
     fiberFS = FunctionSpace(mesh, VQuadelem)
-    isepiflip = False #False
-    isendoflip = False #True #True
+    isepiflip = True #False
+    isendoflip = True #True #True
     #endo_angle = 60; epi_angle = -60; 
     casedir="./"
     hslFS = FunctionSpace(mesh,Quadelem)
 
     fiber_str = outdir + meshname + "_fiber.vtu"
-    hsl,ef, es, en, eC, eL, eR = \
+    hsl,ef, es, en, eC, eL, eR, endo_dist, epi_dist = \
         addLVfiber(mesh, fiberFS, hslFS, "lv", 
                     endo_angle, epi_angle, 
                     endo_hsl,epi_hsl,
@@ -94,6 +94,9 @@ def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
     f.write(eC, meshname+"/"+"eC")
     f.write(eL, meshname+"/"+"eL")
     f.write(eR, meshname+"/"+"eR")
+    f.write(endo_dist, meshname+"/"+"endo_dist")
+    f.write(epi_dist, meshname+"/"+"epi_dist")
+
 
     f.close()
 
@@ -113,7 +116,7 @@ def check_output_directory_folder( path=""):
 if __name__ == '__main__':
 
     # Set the path to .geo file
-    input_geo_file = os.getcwd() + '/ellipsoidal.geo'
+    input_geo_file = os.getcwd() + '/ellipsoidal_thin_apex.geo'
     vtk_file_name = "Ellipsoidal"
     output_vtk_str = 'input_files'
 
@@ -121,11 +124,12 @@ if __name__ == '__main__':
     create_ellipsoidal_LV(geofile = input_geo_file,
             output_vtk = output_vtk_str,
             casename=vtk_file_name,
-             meshsize=0.075, gmshcmd="gmsh", 
+             meshsize=0.055, gmshcmd="gmsh", 
              iswritemesh=True, verbose=False)
 
+    #mesh size base = 0.075
     # Set the path to save the mesh
-    output_folder = 'output_files/fiber_angle_40/'
+    output_folder = 'output_files/thin_fine_apex(0.045)_ms0.055/'
 
     check_output_directory_folder(path = output_folder)
     vtk_file_str = 'input_files/' + '/' + \
@@ -133,6 +137,7 @@ if __name__ == '__main__':
 
     EllipsoidalLVMEsh(vtk_file_str = vtk_file_str,
                         output_file_str = output_folder,
-                        quad_deg = 2, endo_angle = 40, epi_angle = -40,
+                        quad_deg = 2, endo_angle = 60, epi_angle =-60,
                         endo_hsl = 900, epi_hsl=1000)
 
+print ('mesh created')

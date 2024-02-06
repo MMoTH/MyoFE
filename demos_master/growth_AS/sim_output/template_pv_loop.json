@@ -1,0 +1,51 @@
+{
+    "layout":
+    {
+        "fig_width": 6,
+        "top_margin": 0,
+        "left_margin": 0,
+        "right_margin": 0,
+        "panel_height": 4,
+        "grid_wspace": 0
+    },
+    "x_display":{
+        "global_x_field": "volume_ventricle",
+        "label": "Time (s)",
+        "global_x_ticks": [0,0.15]
+    },
+    "formatting":
+    {
+        "x_label_fontsize": 14,
+        "y_label_fontsize": 14,
+        "tick_fontsize": 12,
+        "legend_fontsize": 10,
+        "y_label_pad": 50,
+        "legend_bbox_to_anchor": [1.0, 1.05],
+        "palette": "muted",
+        "patch_alpha": 0.5
+    },
+    "processing":
+    {
+        "envelope_n": 200
+    },
+
+    "panels":
+    [
+        
+        
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Pressure\nmmHg",
+                "series":
+                [
+                    {
+                        "field": "pressure_ventricle",
+                        "style": "line"
+                    }
+                ]
+            }
+        }
+    ]
+}

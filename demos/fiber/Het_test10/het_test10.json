@@ -1,0 +1,294 @@
+{
+    "protocol":
+    {
+        "no_of_time_steps": [400],
+        "time_step": [0.001],
+        "fiber_reorientation":
+        {
+            "activations":
+            [
+                {
+                    "t_start_s":[0.001],
+                    "t_stop_s":[10]
+
+                } 
+            ]
+        }
+        
+    },
+    "heart_rate": {
+        "t_active_period": [0.003],
+        "t_quiescent_period": [0.92],
+        "t_first_activation": [0.2]
+    },
+    "mesh":
+    {
+        "relative_path": [true],
+        "mesh_path":["../demos/fiber/Het_test10/sim_inputs/ellipsoidal.hdf5"],
+        "function_spaces":
+        [
+            {
+                "name":["stimulusFS"],
+                "type":["scalar"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["scalar"],
+                "type":["scalar"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["scalar_DG0"],
+                "type":["scalar"],
+                "element_type":["DG"],
+                "degree": [0]
+            },
+            {
+                "name":["scalar_CG"],
+                "type":["scalar"],
+                "element_type":["CG"],
+                "degree": [1]
+            },
+            {
+                "name":["tensor_space"],
+                "type":["tensor"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["material_coord_system_space"],
+                "type":["vector"],
+                "element_type":["Quadrature"],
+                "degree": [2]
+            },
+            {
+                "name":["quadrature_space"],
+                "type":["scalar"],
+                "element_type":["Quadrature"],
+                "degree": [2]
+            },
+            {
+                "name":["fiber_FS"],
+                "type":["vector"],
+                "element_type":["Quadrature"],
+                "degree" :[2]
+            },
+            {
+                "name":["fiber_vis"],
+                "type":["vector"],
+                "element_type":["Quadrature"],
+                "degree" :[2]
+            }, 
+            {
+                "name":["fiber_vis2"],
+                "type":["vector"],
+                "element_type":["Quadrature"],
+                "degree" :[2]
+            }
+        ],
+        "forms_parameters": 
+        {
+            "passive_law_parameters": {
+              "passive_law": ["semi_structural"],
+              "c": [200],
+              "c2": [250],
+              "c3": [15.0],
+              "bf": [8.0],
+              "bt": [3.58],
+              "bfs": [1.627],
+              "phi_m": [1.0],
+              "phi_g": [1.0]
+            }
+          },
+        "apex_contractility":
+        {
+            "components":
+            [
+                {
+                    "radius_ratio": [0.4],
+                    "level": ["myofilaments"],
+                    "variable": ["k_1"],
+                    "factor": [1]
+                },
+                {
+                    "radius_ratio": [0.4],
+                    "level": ["myofilaments"],
+                    "variable": ["k_on"],
+                    "factor": [1]
+                }
+            ]
+        },
+        "solver":
+        {
+            "params":
+            {
+                "rel_tol": [1e-10],
+                "abs_tol": [1e-10],
+                "max_iter": [100],
+                "debugging_mode": [false]
+            }
+        },
+        "pericardial":
+        {
+            "type": ["spring"],
+            "k_spring": [200]
+        }  
+    },
+    "model":
+    {
+        "circulation":
+        {
+            "model_scheme": ["LV_with_6_compartments"],
+            "blood_volume": [4.5],
+            "compartments":
+            [
+                {
+                    "name": ["aorta"],
+                    "resistance": [20],
+                    "compliance": [4e-4],
+                    "slack_volume": [0.3]
+                },
+                {
+                    "name": ["arteries"],
+                    "resistance": [20],
+                    "compliance": [8e-4],
+                    "slack_volume": [0.3]
+                },
+                {
+                    "name": ["arterioles"],
+                    "resistance": [1000],
+                    "compliance": [1e-3],
+                    "slack_volume": [0.1]
+                },
+                {
+                    "name": ["capillaries"],
+                    "resistance": [350],
+                    "compliance": [1e-2],
+                    "slack_volume": [0.25]
+                },
+                {
+                    "name": ["venules"],
+                    "resistance": [50],
+                    "compliance": [0.03],
+                    "slack_volume": [0.5]
+                },
+                {
+                    "name": ["veins"],
+                    "resistance": [50],
+                    "compliance": [1e-1],
+                    "slack_volume": [2.0],
+                    "inertance": [0]
+                },
+                {
+                    "name": ["ventricle"],
+                    "resistance": [10],
+                    "slack_volume": [0.06],
+                    "wall_density": [1055],
+		            "initial_ed_volume":[0.15]
+                }
+            ]
+        },
+        "half_sarcomere":
+        {
+            "initial_hs_length": [900],
+            "reference_hs_length": [1100],
+            "membranes": 
+            {
+                "Ca_content": [1e-3],
+                "k_leak": [6e-4],
+                "k_act": [8.2e-2],
+                "k_serca": [8],
+                "t_open": [0.01],
+                "implementation":
+                {
+                    "kinetic_scheme": ["simple_2_compartment"]
+                }
+            },
+            "myofilaments":
+            {
+                "cb_number_density": [6.9e16],
+                "prop_fibrosis": [0.0],
+                "prop_myofilaments": [0.6],
+                "k_1": [4],
+                "k_force": [1e-3],
+                "k_2": [200],
+                "k_3": [120],
+                "k_4_0": [80],
+                "k_4_1": [1.5],
+                "k_cb": [0.001],
+                "x_ps": [5],
+                "k_on": [2e8],
+                "k_off": [200],
+                "k_coop": [5],
+                "int_passive_exp_sigma": [100],
+                "int_passive_exp_L": [75],
+                "int_passive_l_slack": [850],
+                "ext_passive_exp_sigma": [100],
+                "ext_passive_exp_L": [70],
+                "ext_passive_l_slack": [950],
+                "implementation":
+                {
+                    "kinetic_scheme": ["3_state_with_SRX"],
+                    "int_passive_mode": ["exponential"],
+                    "ext_passive_mode": ["exponential"],
+                    "max_rate": [2000],
+                    "temperature": [310],
+                    "bin_min": [-10],
+                    "bin_max": [10],
+                    "bin_width": [1],
+                    "filament_compliance_factor": [0.5],
+                    "thick_filament_length": [815],
+                    "thin_filament_length": [1120],
+                    "bare_zone_length": [80],
+                    "reference_hsl_0": [1100],
+                    "delta_G_ATP": [70000],
+                    "thick_wall_approximation": [true]
+                }
+            }
+        },
+        "fiber_reorientation":
+        {
+            "stress_type":["total_stress"],
+            "law":["new_stress_kroon"],
+            "time_constant":[1],
+            "reorient_t_start":[0.5,"ms"]
+        }
+        
+    },
+    "growth_and_remodeling": 
+    {
+        "eccentric_growth": {
+          "time_constant": [0.0],
+          "k_myo_damp": [0.0],
+          "passive_set_point": [0.0]
+        }
+
+      },
+    "output_handler":
+    {
+        "output_data_path": ["../demos/fiber/Het_test10/sim_output/data.csv"],
+        "mesh_output_path": ["../demos/fiber/Het_test10/sim_output/mesh_output"],
+        "Het_cell_output_path": ["../demos/fiber/Het_test10/sim_output/cell_data.csv"],
+        "mesh_object_to_save":
+        [
+            "displacement",
+            "active_stress",
+            "active_stress_DG0",
+            "hs_length",
+            "reorienting_angle",
+            "c_param",
+            "c_param_DG0",
+            "fiber_direction",
+            "endo_distance",
+            "cb_number_density_DG0",
+            "cb_number_density"
+        ],
+        "dumping_spatial_in_average":[false],
+        "frequency_n": [10]
+        
+        
+    }
+}
+

@@ -1,21 +1,22 @@
 //Thick-Walled Prolate Spheroid Script
 
-scale = 1.2;
+scale = 1.1;
 //lc = 0.05*scale; //this value changes the resolution of the mesh // medium
 //lc = 0.025*scale; // Medium 2 mesh
 //lc = 0.030*scale; // Medium mesh
 lc = <<Meshsize>>*scale; //Coarse
-refine_apex = 0.1;
+//refine_apex = 0.085;
+refine_apex = 0.045;
 //lz_o = 1*scale; // outer long axis
 //lx_o = 0.5*scale; // outer radius
 wt=0.15*scale;
 
 lz_o=0.7*0.95*scale;
 lx_o=0.35*0.95*scale;
-wt=0.112*scale;
+wt=0.12*scale;
 
 lx_i=lx_o-wt; //inner radius
-lz_i=lz_o-wt; //inner long axis
+lz_i=lz_o-wt/2; //inner long axis
 apex_z = lz_i + wt/2;
 
 Point(1) = {0,0,0,lc};

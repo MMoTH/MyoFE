@@ -14,6 +14,9 @@ def addLVfiber(mesh, V, F, casename, endo_angle, epi_angle, hsl0_endo, hsl0_epi,
 	lV = Function(V)
 	rV = Function(V)
 	hs = Function(F)
+	##MM we want to add a func space for dist_from_epi data
+	endo_dist = Function(F)
+	epi_dist = Function(F)
 
 	ugrid=vtk_py.convertXMLMeshToUGrid(mesh)
 
@@ -86,12 +89,32 @@ def addLVfiber(mesh, V, F, casename, endo_angle, epi_angle, hsl0_endo, hsl0_epi,
 
 	CreateVertexFromPoint(ugrid)
 	addLocalProlateSpheroidalDirections(ugrid, pdata_endo, pdata_epi, type_of_support="cell", epiflip=isepiflip, endoflip=isendoflip, apexflip=isapexflip)
-	addLocalFiberOrientation(ugrid, endo_angle, epi_angle, hsl0_endo, hsl0_epi)
+	## here we add the dist_epi to the outputs of below func
+	endo_dist_array, epi_dist_array =  addLocalFiberOrientation(ugrid, endo_angle, epi_angle, hsl0_endo, hsl0_epi)
+	##MM since above data are already inside ugrid it was not necessary to pass these from the above function and later we just read dist data from ugrid
+	'''print ("norm_dist_end")
+	print (np.shape(endo_dist_array))
+
+	print ("endo_dist.vector()[:]")
+	print (np.shape(endo_dist.vector()[:]))'''
+
+
+	#endo_dist.vector()[:] = endo_dist_array
+	#epi_dist.vector()[:] = epi_dist_array
+
+
 
 	fiber_vector =  ugrid.GetCellData().GetArray("fiber vectors")
 	sheet_vector =  ugrid.GetCellData().GetArray("sheet vectors")
 	sheetnorm_vector =  ugrid.GetCellData().GetArray("sheet normal vectors")
 	hsl_array = ugrid.GetCellData().GetArray("hsl0 values")
+
+
+	
+	endo_dist1 = ugrid.GetCellData().GetArray("norm_dist_end")
+	epi_dist1 = ugrid.GetCellData().GetArray("norm_dist_epi")
+
+
 	#print hsl_array
 
 	eCC_vector =  ugrid.GetCellData().GetArray("eCC")
@@ -133,8 +156,15 @@ def addLVfiber(mesh, V, F, casename, endo_angle, epi_angle, hsl0_endo, hsl0_epi,
 		#print hs.str()
 		#print fiberV.str()
 		hs.vector()[cnt] = hsl_array_assignment[0]
+		
+
+		endo_dist_array_assignment = endo_dist1.GetTuple(cnt)
+		epi_dist_array_assignment = epi_dist1.GetTuple(cnt)
+
+		endo_dist.vector()[cnt] = endo_dist_array_assignment[0]
+		epi_dist.vector()[cnt] = epi_dist_array_assignment[0]
 		cnt += 1
 
 	writeXMLUGrid(ugrid, fiber_str)
 	
-	return hs, fiberV, sheetV, sheetnormV, cV, lV, rV
+	return hs, fiberV, sheetV, sheetnormV, cV, lV, rV,endo_dist,epi_dist

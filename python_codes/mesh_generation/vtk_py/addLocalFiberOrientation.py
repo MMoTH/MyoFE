@@ -60,10 +60,15 @@ def addLocalFiberOrientation(ugrid_wall,
     #center.Update()
     ###############################################
 
-
+    #norm_dist_end_array = []
+    #norm_dist_epi_array = []
     for num_cell in range(nb_cells):
         norm_dist_end = farray_norm_dist_end.GetTuple(num_cell)[0]
         norm_dist_epi = farray_norm_dist_epi.GetTuple(num_cell)[0]
+
+
+        #norm_dist_end_array.append(norm_dist_end)
+        #norm_dist_epi_array.append(norm_dist_epi)
 
         fiber_angle_in_degrees = (1.-norm_dist_end) * fiber_angle_end + (1.-norm_dist_epi) * fiber_angle_epi
 
@@ -109,6 +114,17 @@ def addLocalFiberOrientation(ugrid_wall,
     ugrid_wall.GetCellData().AddArray(farray_eS)
     ugrid_wall.GetCellData().AddArray(farray_eN)
     ugrid_wall.GetCellData().AddArray(farray_hsl0)
+
+
+
+
+
+    '''print ("np.shape(farray_norm_dist_end)")
+    print (numpy.shape(farray_norm_dist_end))
+    print ("type(farray_norm_dist_end)")
+    print (type(farray_norm_dist_end))'''
+
+    return farray_norm_dist_end, farray_norm_dist_epi
 
 if (__name__ == "__main__"):
     assert (len(sys.argv) in [4]), "Number of arguments must be 3. Aborting."

@@ -1,0 +1,7 @@
+/tmp/tmpuzhIVT/ffc_form_0a416039b680585daabc9e5ab24ede4e9abd64dc.cpp: In member function ‘virtual void ffc_form_0a416039b680585daabc9e5ab24ede4e9abd64dc_cell_integral_main_otherwise::tabulate_tensor(double*, const double* const*, const double*, int) const’:
+/tmp/tmpuzhIVT/ffc_form_0a416039b680585daabc9e5ab24ede4e9abd64dc.cpp:116:29: error: ‘FE11_C0_Q4’ was not declared in this scope
+             TF0[iq] = fw0 * FE11_C0_Q4[0][iq][iq];
+                             ^
+/tmp/tmpuzhIVT/ffc_form_0a416039b680585daabc9e5ab24ede4e9abd64dc.cpp:117:34: error: ‘FE11_C0_Q4’ was not declared in this scope
+         BF0[iq][iq] += TF0[iq] * FE11_C0_Q4[0][iq][iq];
+                                  ^

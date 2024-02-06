@@ -408,7 +408,7 @@ class Forms(object):
 
 
         # this is total PK2 for passive stress, including incompressibility
-        return S_global+PK2_global-p*inv(Ctensor),Sff
+        return S_global+PK2_global-p*inv(Ctensor), Sff, S_global
 
     def return_radial_vec_ratio(self):
 
