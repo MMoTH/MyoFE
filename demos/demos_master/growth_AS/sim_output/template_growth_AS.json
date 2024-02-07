@@ -1,0 +1,347 @@
+{
+    "layout":
+    {
+        "fig_width": 8,
+        "top_margin": 0,
+        "left_margin": 0,
+        "right_margin": 0,
+        "panel_height": 1.5,
+        "grid_wspace": 0
+    },
+    "x_display":{
+        "global_x_field": "time",
+        "label": "Time (s)",
+        "global_x_ticks": [0,130]
+    },
+    "formatting":
+    {
+        "x_label_fontsize": 14,
+        "y_label_fontsize": 14,
+        "tick_fontsize": 12,
+        "legend_fontsize": 10,
+        "y_label_pad": 50,
+        "legend_bbox_to_anchor": [0.6, 1.05],
+        "palette": "muted",
+        "patch_alpha": 0.5
+    },
+    "processing":
+    {
+        "envelope_n": 200
+    },
+    "annotations":
+    [
+        
+        {
+            "panel": "all",
+            "type": "v_line",
+            "x_value": 30,
+            "linestyle": "--",
+            "linewidth": "1.5"
+        },
+        {
+            "panel": "all",
+            "type": "v_line",
+            "x_value": 40,
+            "linestyle": "--",
+            "linewidth": "1.5"
+        },
+        {
+            "panel": 0,
+            "type": "box",
+            "x_coord": 0,
+            "y_rel_coord": 1.1,
+            "width": 30,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 0,
+            "type": "box",
+            "x_coord": 30,
+            "y_rel_coord": 1.1,
+            "width": 10,
+            "rel_height": 0.35,
+            "face_color": "gray"
+        },
+        {
+            "panel": 0,
+            "type": "box",
+            "x_coord": 40,
+            "y_rel_coord": 1.1,
+            "width": 60,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 0,
+            "type": "text",
+            "label": "Aortic resistance",
+            "x_coord": 50,
+            "y_rel_coord": 1.6
+        },
+        {
+            "panel": 0,
+            "type": "text",
+            "label": "20",
+            "x_coord": 15,
+            "y_rel_coord": 1.25
+        },
+        {
+            "panel": 0,
+            "type": "text",
+            "label": "170",
+            "x_coord": 70,
+            "y_rel_coord": 1.25
+        },
+
+        {
+            "panel": 5,
+            "type": "box",
+            "x_coord": 0,
+            "y_rel_coord": 1.1,
+            "width": 30,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 5,
+            "type": "box",
+            "x_coord": 30,
+            "y_rel_coord": 1.1,
+            "width": 10,
+            "rel_height": 0.35,
+            "face_color": "gray"
+        },
+        {
+            "panel": 5,
+            "type": "box",
+            "x_coord": 40,
+            "y_rel_coord": 1.1,
+            "width": 60,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 5,
+            "type": "text",
+            "label": "Aortic resistance",
+            "x_coord": 50,
+            "y_rel_coord": 1.6
+        },
+        {
+            "panel": 5,
+            "type": "text",
+            "label": "20",
+            "x_coord": 15,
+            "y_rel_coord": 1.25
+        },
+        {
+            "panel": 5,
+            "type": "text",
+            "label": "170",
+            "x_coord": 70,
+            "y_rel_coord": 1.25
+        },
+
+        {
+            "panel": 10,
+            "type": "box",
+            "x_coord": 20,
+            "y_rel_coord": 1.1,
+            "width": 10,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 10,
+            "type": "box",
+            "x_coord": 30,
+            "y_rel_coord": 1.1,
+            "width": 10,
+            "rel_height": 0.35,
+            "face_color": "gray"
+        },
+        {
+            "panel": 10,
+            "type": "box",
+            "x_coord": 40,
+            "y_rel_coord": 1.1,
+            "width": 60,
+            "rel_height": 0.35
+        },
+        {
+            "panel": 10,
+            "type": "text",
+            "label": "Aortic resistance",
+            "x_coord": 50,
+            "y_rel_coord": 1.6
+        },
+        {
+            "panel": 10,
+            "type": "text",
+            "label": "20",
+            "x_coord": 25,
+            "y_rel_coord": 1.25
+        },
+        {
+            "panel": 10,
+            "type": "text",
+            "label": "170",
+            "x_coord": 70,
+            "y_rel_coord": 1.25
+        }
+
+    ],
+    "panels":
+    [
+        
+        
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Arterial\npressure\n(mm Hg)",
+                
+                "series":
+                [
+                    {
+                        "field": "pressure_arteries",
+                        "style": "envelope"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label": "Heart\nrate\n(bpm)",
+                "series":
+                [
+                    {
+                        "field": "heart_rate",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        
+        
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label":"Ventricular\npressure\n(mmHg)",
+                "series":
+                [
+                    {
+                        "field": "pressure_ventricle",
+                        "style": "envelope"
+                    }
+
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label":"Ventricular\nvolume\n(liters)",
+                "series":
+                [
+                    {
+                        "field": "volume_ventricle",
+                        "style": "envelope"
+                    }
+
+                ]
+            }
+        },
+        {
+            "column": 1,
+            "y_info":
+            {
+                "label":"Ejection\nfraction\n(%)",
+                "series":
+                [
+                    {
+                        "field": "ejection_fraction",
+                        "style": "line",
+                        "scaling_factor":100
+                    }
+
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "Aortic\nresistance\n(mm Hg $\\mathregular{L^{-1}}$)",
+                "series":
+                [
+                    {
+                        "field": "aorta_resistance",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "Growth\nactivation",
+                "ticks": [0, 1],
+                "series":
+                [
+                    {
+                        "field": "gr_active",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "$\\mathregular{\u03B8_{local,s_{0},n_{0}}}}$",
+                "ticks": [0.95,1.05],
+                "series":
+                [
+                    {
+                        "field": "gr_local_theta_sheet",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "$\\mathregular{\u03B8_{global,s_{0},n_{0}}}}$",
+                "ticks": [0.9,1.5],
+                "series":
+                [
+                    {
+                        "field": "gr_global_theta_sheet",
+                        "style": "line"
+                    }
+                ]
+            }
+        },
+        {
+            "column": 2,
+            "y_info":
+            {
+                "label": "Myocardium\nvolume (ml)",
+                "ticks": [50,200],
+                "series":
+                [
+                    {
+                        "field": "myocardium_vol",
+                        "style": "line",
+                        "scaling_factor": 1e3
+                    }
+                ]
+            }
+        }
+    ]
+}

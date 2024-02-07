@@ -1588,7 +1588,7 @@ class LV_simulation():
 
 
 
-############# testing Fr class
+#############  FR class
 
 
 
@@ -1623,18 +1623,13 @@ class LV_simulation():
                 
 
                 fdiff = self.fr.stress_law(self.fr.data['signal'],time_step,self.mesh.model['function_spaces']['fiber_FS'])
-
                 temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
-                
-                
-                
-                
                 local_fdiff = fdiff.vector().get_local()[:]
 
                 gdim2 = self.mesh.model['mesh'].geometry().dim()
                 self.lcoord = self.mesh.model['function_spaces']['quadrature_space'].\
                 tabulate_dof_coordinates().reshape((-1, gdim2))
-                ### since stress is not realisic in base, we can exclude some basal points from fiber reoriantaion
+                ### Below not active now. since stress might not be realisic in base, we can exclude some basal points from fiber reoriantaion
                 #print('point n', np.shape(self.lcoord[:,2]))  
                 '''cnt =0 
                 for i in np.arange(self.local_n_of_int_points):
@@ -1649,9 +1644,7 @@ class LV_simulation():
                     
                 ### all point FR
                 temp_fiber += fdiff.vector().get_local()[:]
-
                 self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
-
 
                 s1 , n1 ,f1= self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0'])
                 
@@ -1659,19 +1652,13 @@ class LV_simulation():
                 self.mesh.model['functions']['n0'].vector()[:]=n1
                 self.mesh.model['functions']['f0'].vector()[:]=f1   ### f0  is being renormalized here after reorientation
 
-
-                
-
-
-                
                 ##MM below parameters are calculated for post processing purposes
                 #self.mesh.model['functions']["fdiff_mag"] = (sqrt((inner(fdiff,fdiff))))
                 l_f0 = self.mesh.model['functions']['f0'].vector().get_local()[:] 
                 ## important note: if we localize fiber data here as initial fiber it does not contain inital fiber as it is also updated automatically. initial fiber sould be localized out of time loop
-                #l_`f00 `= self.mesh.model['functions']['f00'].vector().get_local()[:] 
+                
                 l_fdiff_ang = self.mesh.model['functions']["fdiff_ang"].vector().get_local()[:] 
 
-                #print ("l_fdiff_ang=",l_fdiff_ang)
                 
                 for ii in np.arange(self.local_n_of_int_points):
                     
@@ -1683,17 +1670,10 @@ class LV_simulation():
                     rad = np.arccos(cos) 
                     theta = math.degrees(rad)
                     l_fdiff_ang[ii] = theta
-                    #l_fdiff_ang[ii] = (180/3.14159)*np.arccos((np.inner(l_f0_holder,l_f00_holder))/(sqrt(np.inner(l_f0_holder,l_f0_holder))*sqrt(np.inner(l_f00_holder,l_f00_holder))))
                     
                 
                 self.mesh.model['functions']["fdiff_ang"].vector()[:] = l_fdiff_ang
                 
-
-
-                #self.mesh.model['functions']["f0_mag"] = (sqrt((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f0']))))
-                #self.mesh.model['functions']["f00_mag"] = (sqrt((inner(self.mesh.model['functions']['f00'],self.mesh.model['functions']['f00']))))
-                #self.mesh.model['functions']["fdiff_ang"] = (180/3.14159)*acos((inner(self.mesh.model['functions']['f0'],self.mesh.model['functions']['f00']))/(self.mesh.model['functions']["f0_mag"] *self.mesh.model['functions']["f00_mag"]  ))
-
 
 
                 print "CHECKING NUMBER OF FIBER VECTORS"
@@ -1707,7 +1687,7 @@ class LV_simulation():
                 ##MM to save the fiber even before fiber remodleing this apart needs to be out of if FR = 1
                 #f0_vs_time_array = np.zeros((self.global_n_of_int_points,3,self.prot.data['no_of_time_steps']))
             
-        #MM in kurtis code here f0 is being projected on fiber_FS. question: why is this needed as f0 is already on the fiber FS space
+        #MM in old code here f0 is being projected on fiber_FS. question: why is this needed as f0 is already on the fiber FS space
         #f0_vs_time_temp = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
         
         
@@ -1729,15 +1709,6 @@ class LV_simulation():
             print "SAVING F0 VS TIME ARRAY"
             np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)'''
 
-
-        ##MM to save the data in case of failure, fiber data of all time steps is being saved here, later we can implement saveing freq
-
-        #print "(self.f0_vs_time_array)"
-        #for i in np.arange(100, 4000):
-            #print (self.f0_vs_time_array[i,:,self.t_counter])
-            
-            #self.mesh.model['functions']['s0'],self.mesh.model['functions']['n0'] = self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0']) 
-            # lcs is not defined in the new platform and needs to be discussed
 
 
 ###################################
@@ -2076,9 +2047,7 @@ class LV_simulation():
             #self.mesh.data['f0'] = array
 
             
-            
 
-            
             if self.gr:
                 for f in list(self.spatial_gr_data_fields):
                     data_field = self.gr.data[f]
@@ -2091,7 +2060,6 @@ class LV_simulation():
 
         else:
 
-            
 
             for f in self.spatial_hs_data_fields:
                 data_field = []
@@ -2127,7 +2095,6 @@ class LV_simulation():
             for f in ['Sff','sff_mean','alpha_f']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
 
 
             f0_temp = self.mesh.model['functions']['f0'].vector().get_local()[:]
@@ -2172,11 +2139,10 @@ class LV_simulation():
             for f in self.spatial_fiber_data_fields:
                 data_field = []
 
-                
+
 
                 if f == 'f01':
 
-                    
                     data_field= list(f0_x)
 
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
@@ -2276,19 +2242,13 @@ class LV_simulation():
             temp= project(temp0,self.mesh.model['function_spaces']["quadrature_space"])        
             active_stress = temp.vector().get_local()[:]
 
-
-
-            
             temp = inner(self.mesh.model['functions']['f0'],
                                         self.mesh.model['functions']['passive_total_stress']*
                                         self.mesh.model['functions']['f0'])
-            
-            #total_passive = temp.vector().get_local()[:]
+
             total_passive = project(temp,self.mesh.model['function_spaces']["scalar"],form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
 
             #total_passive = interpolate(temp_DG, self.mesh.model['function_spaces']["quadrature_space"])
-
-
 
             #total_passive = project(temp,self.mesh.model['function_spaces']["quadrature_space"],form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
         
@@ -2311,20 +2271,20 @@ class LV_simulation():
                               self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
           
 
-            print("1")
+
             temp = inner(self.mesh.model['functions']['f0'],
                         self.mesh.model['functions']['bulk_passive']*
                         self.mesh.model['functions']['f0'])
             bulk_passive = project(temp,
                     self.mesh.model['function_spaces']["scalar"],form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
-            print("2")
+
             temp = inner(self.mesh.model['functions']['f0'],
                         self.mesh.model['functions']['incomp_stress']*
                         self.mesh.model['functions']['f0'])
-            print("3")
+
             incomp_stress = project(temp,
                     self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
-            print("4")
+
 
 
 

@@ -1,0 +1,323 @@
+{
+    "protocol":
+    {
+        "no_of_time_steps": [150000],
+        "time_step": [0.001],
+        "baroreflex": 
+        {
+            "activations": [
+                {
+                    "t_start_s": [500],
+                    "t_stop_s": [2000]
+                }
+            ]
+        },
+        "growth":
+        {
+            "activations": 
+            [
+                {
+                    "t_start_s": [15],
+                    "t_stop_s": [400]
+                }
+            ]
+        },
+        "perturbation":
+        {
+            "perturbations":
+            [
+                {
+                    "level": ["circulation"],
+                    "variable": ["aorta_resistance"],
+                    "t_start_s": [0.005],
+                    "t_stop_s": [0.006],
+                    "total_change": [0]
+                },
+                {
+                    "level": ["circulation"],
+                    "variable": ["mitral_insufficiency_conductance"],
+                    "t_start_s": [30],
+		    "t_stop_s":[40],
+                    "total_change": [0.005]
+                },
+		{
+                    "level": ["circulation"],
+                    "variable": ["mitral_insufficiency_conductance"],
+                    "t_start_s": [1000],
+                    "t_stop_s":[1100],
+                    "total_change": [-0.00]
+                }
+            ]
+
+        }
+
+    },
+    "heart_rate": {
+        "t_active_period": [0.003],
+        "t_quiescent_period": [0.934],
+        "t_first_activation": [0.1]
+    },
+    "mesh":
+    {
+        "relative_path": [true],
+        "mesh_path":["../demos/base/sim_inputs/new_mesh/3_unified_mesh_thin_apex/ellipsoidal.hdf5"],
+        "function_spaces":
+        [
+            {
+                "name":["stimulusFS"],
+                "type":["scalar"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["scalar"],
+                "type":["scalar"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["tensor_space"],
+                "type":["tensor"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["growth_scalar_FS"],
+                "type":["scalar"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+	    {
+                "name":["scalar_for_growth"],
+                "type":["scalar"],
+                "element_type":["DG"],
+                "degree": [0]
+            },
+	    {
+                "name":["scalar_for_active"],
+                "type":["scalar"],
+                "element_type":["DG"],
+                "degree": [0]
+            },
+            {
+                "name":["growth_tensor_FS"],
+                "type":["tensor"],
+                "element_type":["DG"],
+                "degree": [1]
+            },
+            {
+                "name":["material_coord_system_space"],
+                "type":["vector"],
+                "element_type":["Quadrature"],
+                "degree": [2]
+            },
+            {
+                "name":["quadrature_space"],
+                "type":["scalar"],
+                "element_type":["Quadrature"],
+                "degree": [2]
+            }
+        ],
+        "forms_parameters": 
+        {
+            "passive_law_parameters": {
+              "passive_law": ["semi_structural"],
+              "c": [200],
+              "c2": [250],
+              "c3": [15.0],
+              "bf": [8.0],
+              "bt": [3.58],
+              "bfs": [1.627],
+              "phi_m": [1.0],
+              "phi_g": [1.0]
+            }
+          },
+        "apex_contractility":
+        {
+            "components":
+            [
+                {
+                    "radius_ratio": [0.4],
+                    "level": ["myofilaments"],
+                    "variable": ["k_1"],
+                    "factor": [1]
+                },
+                {
+                    "radius_ratio": [0.4],
+                    "level": ["myofilaments"],
+                    "variable": ["k_on"],
+                    "factor": [1]
+                }
+            ]
+        },
+        "solver":
+        {
+            "params":
+            {
+                "rel_tol": [1e-11],
+                "abs_tol": [1e-11],
+                "max_iter": [100],
+                "debugging_mode": [false]
+            }
+        } 
+    },
+    "model":
+    {
+        "circulation":
+        {
+            "model_scheme": ["LV_with_6_compartments"],
+            "blood_volume": [4.5],
+            "compartments":
+            [
+                {
+                    "name": ["aorta"],
+                    "resistance": [20],
+                    "compliance": [4e-4],
+                    "slack_volume": [0.3]
+                },
+                {
+                    "name": ["arteries"],
+                    "resistance": [20],
+                    "compliance": [8e-4],
+                    "slack_volume": [0.3]
+                },
+                {
+                    "name": ["arterioles"],
+                    "resistance": [787],
+                    "compliance": [1e-3],
+                    "slack_volume": [0.1]
+                },
+                {
+                    "name": ["capillaries"],
+                    "resistance": [350],
+                    "compliance": [1e-2],
+                    "slack_volume": [0.25]
+                },
+                {
+                    "name": ["venules"],
+                    "resistance": [50],
+                    "compliance": [0.03],
+                    "slack_volume": [0.5]
+                },
+                {
+                    "name": ["veins"],
+                    "resistance": [50],
+                    "compliance": [1.078e-1],
+                    "slack_volume": [2.0]
+                },
+                {
+                    "name": ["ventricle"],
+                    "resistance": [10],
+                    "slack_volume": [0.06],
+                    "wall_density": [1055],
+		            "initial_ed_volume":[0.15]
+                }
+            ]
+        },
+        "half_sarcomere":
+        {
+            "initial_hs_length": [900],
+            "reference_hs_length": [1100],
+            "membranes": 
+            {
+                "Ca_content": [1e-3],
+                "k_leak": [6e-4],
+                "k_act": [8.06e-2],
+                "k_serca": [7.866],
+                "t_open": [0.01],
+                "implementation":
+                {
+                    "kinetic_scheme": ["simple_2_compartment"]
+                }
+            },
+            "myofilaments":
+            {
+                "cb_number_density": [6.9e16],
+                "prop_fibrosis": [0.0],
+                "prop_myofilaments": [0.6],
+                "k_1": [4.92],
+                "k_force": [1e-3],
+                "k_2": [200],
+                "k_3": [100],
+                "k_4_0": [80],
+                "k_4_1": [1.5],
+                "k_cb": [0.001],
+                "x_ps": [5.2],
+                "k_on": [1.735e8],
+                "k_off": [200],
+                "k_coop": [5],
+                "int_passive_exp_sigma": [100],
+                "int_passive_exp_L": [75],
+                "int_passive_l_slack": [850],
+                "ext_passive_exp_sigma": [100],
+                "ext_passive_exp_L": [70],
+                "ext_passive_l_slack": [950],
+                "implementation":
+                {
+                    "kinetic_scheme": ["3_state_with_SRX"],
+                    "int_passive_mode": ["exponential"],
+                    "ext_passive_mode": ["exponential"],
+                    "max_rate": [2000],
+                    "temperature": [310],
+                    "bin_min": [-10],
+                    "bin_max": [10],
+                    "bin_width": [1],
+                    "filament_compliance_factor": [0.5],
+                    "thick_filament_length": [815],
+                    "thin_filament_length": [1120],
+                    "bare_zone_length": [80],
+                    "reference_hsl_0": [1100],
+                    "delta_G_ATP": [70000],
+                    "thick_wall_approximation": [true]
+                }
+            }
+        },
+        "growth":
+        {
+	    "growth_frequency_n":[4],
+            "components":
+            [
+		{
+                    "type": ["fiber"],
+                    "signal": ["myofiber_passive_stress"],
+                    "theta_max": [1.5],
+		    "tau":[8],
+        	    "theta_min": [0.5],
+                    "local_theta_max":[1.1],
+                    "local_theta_min":[0.9]
+	        }	
+            ]
+        }
+    },
+    "output_handler":
+    {
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/hsh245/new_growth/growth_MR_0.005_long_forward_g_unified_mesh_thin_apex/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/hsh245/new_growth/growth_MR_0.005_long_forward_g_unified_mesh_thin_apex/mesh_output"],
+        "mesh_object_to_save":
+        [
+            "displacement",
+            "active_stress",
+	    "total_stress",
+	    "total_passive",
+            "myofiber_passive",
+            "hs_length",
+            "facetboundaries",
+            "k_1",
+            "k_3",
+            "k_on",
+            "k_act",
+            "k_serca",
+	    "local_theta_vis_fiber",
+	    "global_theta_vis_fiber",
+	    "deviation_fiber",
+	    "stimulus_fiber",
+	    "setpoint_fiber"
+        ],
+        "growth_mesh_path": ["/mnt/gpfs2_4m/scratch/hsh245/new_growth/growth_MR_0.005_long_forward_g_unified_mesh_thin_apex/mesh_output"],     
+        "dumping_spatial_in_average":[true],
+        "frequency_n": [10]
+        
+        
+    }
+}
+
