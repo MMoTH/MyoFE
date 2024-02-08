@@ -138,16 +138,12 @@ class LV_simulation():
                 self.hs_length_list[i]
 
             
-        '''print("self.mesh.model['functions']['dolfin_functions']")
-        print(self.mesh.model['functions']['dolfin_functions'])'''
         
         #### MM here we assign het params to the LV
 
         for kk, vv in self.mesh.model['functions']['dolfin_functions'].items():
             if kk == "cb_number_density":
-                if self.comm.Get_rank() == 0:  
-                    print("cb altered in hs_objs")
-                    print("k=",kk)
+                
 
                 cb_inf = 0 
                 for i in np.arange(self.local_n_of_int_points):
@@ -156,20 +152,16 @@ class LV_simulation():
                        
                     if self.mesh.model['functions']['dolfin_functions']['cb_number_density'][-1].vector().get_local()[i] == 0:
                         cb_inf = cb_inf +1
-                print("cb_inf")    
-                print(cb_inf)
+                #print("cb_inf")    
+                #print(cb_inf)
 
             if kk == "k_1":
-                if self.comm.Get_rank() == 0:  
-                    print("k_1 altered in hs_objs")
-                    print("k=",kk)
+                
                 for i in np.arange(self.local_n_of_int_points):
                     self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['k_1'][-1].vector().get_local()[i]
                     
             if kk == "k_on":
-                if self.comm.Get_rank() == 0:  
-                    print("k_on altered in hs_objs")
-                    print("k=",kk)
+                
                 for i in np.arange(self.local_n_of_int_points):
                     self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['k_on'][-1].vector().get_local()[i]
                     
