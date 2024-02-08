@@ -35,7 +35,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["/Sim_input/ellipsoidal.hdf5"],
+        "mesh_path":["Sim_input/ellipsoidal.hdf5"],
         "function_spaces":
         [
             {
