@@ -546,10 +546,10 @@
     },
     "output_handler": {
         "output_data_path": [
-            "/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_kappa30_k1_1.8/sim_output/data.csv"
+            "/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.3/hyper_kappa30_k1_1.8/sim_output/data.csv"
         ],
         "mesh_output_path": [
-            "/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_kappa30_k1_1.8/sim_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.3/hyper_kappa30_k1_1.8/sim_output/"
         ],
         "mesh_object_to_save": [
             "displacement",

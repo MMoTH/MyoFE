@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=70:00:00             # Time limit for the job (REQUIRED).
-#SBATCH --job-name= hyper_kappa30_k1_1.5
+#SBATCH --job-name=kapa30_K1.5
 #SBATCH --ntasks=32
 #SBATCH --cpus-per-task=1           # number of CPUs (or cores) per task (same as -c).
 #SBATCH --mem=120G                  # memory required per node - amount of memory (in bytes)
