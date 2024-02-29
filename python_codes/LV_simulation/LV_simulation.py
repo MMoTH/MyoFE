@@ -458,8 +458,12 @@ class LV_simulation():
             self.spatial_memb_data_fields = list(self.hs.memb.data.keys())#['Ca_cytosol','Ca_SR']
 
 
-            for f in ['f01','f02','f03','s01','s02','s03','n01','n02','n03','lx','ly','lz','endo_dist',
-                      'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz', 'fr_angle']:
+            '''for f in ['f01','f02','f03','s01','s02','s03','n01','n02','n03','lx','ly','lz','endo_dist',
+                      'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz', 'fr_angle']:'''
+            ##S0 and n0 is not saved for storage efficievy    
+            for f in ['f01','f02','f03','lx','ly','lz','endo_dist',
+                      'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz', 'fr_angle']:  
+
                 self.spatial_fiber_data_fields.append(f)
 
             for f in ['active_stress','total_passive','myofiber_passive','Sff_mesh','bulk_passive','incomp_stress']:
@@ -467,14 +471,18 @@ class LV_simulation():
             
             
 
-        data_field = self.spatial_hs_data_fields +\
+        '''data_field = self.spatial_hs_data_fields +\
                         self.spatial_myof_data_fields+\
                             self.spatial_memb_data_fields+\
                             self.spatial_fiber_data_fields+\
+                            self.spatial_extra'''
+        
+        ### to save resutls space, here we save less results
+        data_field = self.spatial_fiber_data_fields+\
                             self.spatial_extra
                             
 
-        if (self.gr != [] ):
+        '''if (self.gr != [] ):
             
             for k in self.gr.data.keys():
                 if k in ['gr_local_theta_fiber','gr_global_theta_fiber','gr_stimulus_fiber','gr_setpoint_fiber','gr_deviation_fiber',
@@ -484,12 +492,12 @@ class LV_simulation():
     
                     self.spatial_gr_data_fields.append(k)
 
-        data_field = self.spatial_hs_data_fields +\
+            data_field = self.spatial_hs_data_fields +\
                         self.spatial_myof_data_fields+\
                         self.spatial_memb_data_fields+ \
                         self.spatial_fiber_data_fields+ \
                         self.spatial_gr_data_fields+\
-                            self.spatial_extra
+                            self.spatial_extra'''
 
         if in_average:
             spatial_data = pd.DataFrame()
@@ -2053,7 +2061,7 @@ class LV_simulation():
         else:
 
 
-            for f in self.spatial_hs_data_fields:
+            '''for f in self.spatial_hs_data_fields:
                 data_field = []
                 for h in self.hs_objs_list:
                     data_field.append(h.data[f])
@@ -2086,7 +2094,7 @@ class LV_simulation():
             
             for f in ['Sff','sff_mean','alpha_f']:
                 data_field = self.data[f]
-                self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field'''
 
 
             f0_temp = self.mesh.model['functions']['f0'].vector().get_local()[:]
@@ -2245,10 +2253,6 @@ class LV_simulation():
             #total_passive = project(temp,self.mesh.model['function_spaces']["quadrature_space"],form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
         
 
-
-
-
-
             
             temp = inner(self.mesh.model['functions']['f0'],
                         self.mesh.model['functions']['myo_passive_PK2']*
@@ -2382,6 +2386,7 @@ class LV_simulation():
                     self.spatial_sim_data.to_csv(out_path)
                 else:
                     for f in list(self.spatial_sim_data.keys()):
+                        print(f)
                         out_path = output_dir + '/' + f + '_data.csv'
                         self.spatial_sim_data[f].to_csv(out_path)
 
