@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [200],
+        "no_of_time_steps": [4],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -35,7 +35,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/HCM_paper/Sim_input/ellipsoidal.hdf5"],
+        "mesh_path":["../demos/HCM_paper/Sim_input/ellipsoidal3.hdf5"],
         "function_spaces":
         [
             {

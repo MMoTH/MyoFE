@@ -1,15 +1,15 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [52000],
+        "no_of_time_steps": [150000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[2],
-                    "t_stop_s":[60]
+                    "t_start_s":[5000],
+                    "t_stop_s":[150000]
 
                 } 
             ]
@@ -240,15 +240,15 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[15]
+            "time_constant":[20]
             
         }
         
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa15_coef/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/baseline_kappa15_coef/mesh_output"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20/sim_output/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -269,7 +269,7 @@
             "Helical_Angle"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [10]
+        "frequency_n": [100]
         
         
     }

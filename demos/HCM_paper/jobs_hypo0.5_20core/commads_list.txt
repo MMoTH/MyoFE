@@ -1,0 +1,21 @@
+sbatch job_hyper_kappa8_k1_0.2.sh
+sbatch job_hyper_kappa8_k1_0.4.sh
+sbatch job_hyper_kappa8_k1_0.6.sh
+sbatch job_hyper_kappa8_k1_0.8.sh
+sbatch job_hyper_kappa15_k1_0.2.sh
+sbatch job_hyper_kappa15_k1_0.4.sh
+sbatch job_hyper_kappa15_k1_0.6.sh
+sbatch job_hyper_kappa15_k1_0.8.sh
+sbatch job_hyper_kappa20_k1_0.2.sh
+sbatch job_hyper_kappa20_k1_0.4.sh
+sbatch job_hyper_kappa20_k1_0.6.sh
+sbatch job_hyper_kappa20_k1_0.8.sh
+sbatch job_hyper_kappa25_k1_0.2.sh
+sbatch job_hyper_kappa25_k1_0.4.sh
+sbatch job_hyper_kappa25_k1_0.6.sh
+sbatch job_hyper_kappa25_k1_0.8.sh
+sbatch job_hyper_kappa30_k1_0.2.sh
+sbatch job_hyper_kappa30_k1_0.4.sh
+sbatch job_hyper_kappa30_k1_0.6.sh
+sbatch job_hyper_kappa30_k1_0.8.sh
+END
