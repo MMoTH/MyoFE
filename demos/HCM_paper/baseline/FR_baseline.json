@@ -8,7 +8,7 @@
             "activations":
             [
                 {
-                    "t_start_s":[5000],
+                    "t_start_s":[5],
                     "t_stop_s":[150000]
 
                 } 
@@ -118,9 +118,9 @@
         {
             "params":
             {
-                "rel_tol": [1e-11],
-                "abs_tol": [1e-11],
-                "max_iter": [100],
+                "rel_tol": [1e-10],
+                "abs_tol": [1e-10],
+                "max_iter": [200],
                 "debugging_mode": [false]
             }
         } 
@@ -247,8 +247,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20/sim_output/data.csv"],
-        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20/sim_output/"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_FR/sim_output/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_FR/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -269,7 +269,7 @@
             "Helical_Angle"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [100]
+        "frequency_n": [10]
         
         
     }
