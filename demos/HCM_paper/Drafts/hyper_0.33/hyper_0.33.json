@@ -1,15 +1,15 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [100],
-        "time_step": [0.001],
+        "no_of_time_steps": [300000],
+        "time_step": [0.0005],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[0],
-                    "t_stop_s":[20]
+                    "t_start_s":[5],
+                    "t_stop_s":[300000]
 
                 } 
             ]
@@ -126,7 +126,7 @@
             {
                 "rel_tol": [1e-10],
                 "abs_tol": [1e-10],
-                "max_iter": [100],
+                "max_iter": [200],
                 "debugging_mode": [false]
             }
         },
@@ -211,7 +211,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [5, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.3,"scaling_factor":2,"material_properties":"isotropic"}],
+                "k_1": [5, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":1.8,"material_properties":"isotropic"}],
                 "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [100],
@@ -252,7 +252,7 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[5],
+            "time_constant":[30],
             "reorient_t_start":[0.5,"ms"]
         }
         
@@ -268,8 +268,8 @@
       },
     "output_handler":
     {
-        "output_data_path": ["../demos/HCM_paper/test/het_test3/data.csv"],
-        "mesh_output_path": ["../demos/HCM_paper/test/het_test3/mesh_output"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.5_TS0.5_32core/hyper_TS_kappa15_k1_1.2/sim_output/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.5_TS0.5_32core/hyper_TS_kappa15_k1_1.2/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",
