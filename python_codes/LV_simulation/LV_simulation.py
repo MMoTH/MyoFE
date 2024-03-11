@@ -629,6 +629,10 @@ class LV_simulation():
                         if m in ['k_1_DG0']:
                             temp_obj = project(self.mesh.model['functions']["k_1"], 
                                                 FS_DG0)
+                        
+                        if m in ['x_ps_DG0']:
+                            temp_obj = project(self.mesh.model['functions']["x_ps"], 
+                                                FS_DG0)
                             
                         if m == 'cb_number_density_DG0':
                             temp_obj = project(self.mesh.model['functions']["cb_number_density"], 
@@ -1752,6 +1756,10 @@ class LV_simulation():
 
                     if m in ['k_1_DG0']:
                             temp_obj = project(self.mesh.model['functions']["k_1"], 
+                                                FS_DG0)
+                    
+                    if m in ['x_ps_DG0']:
+                            temp_obj = project(self.mesh.model['functions']["x_ps"], 
                                                 FS_DG0)
                             
                             

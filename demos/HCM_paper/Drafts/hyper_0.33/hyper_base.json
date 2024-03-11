@@ -1,15 +1,15 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [52000],
+        "no_of_time_steps": [150000],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[2],
-                    "t_stop_s":[60]
+                    "t_start_s":[5],
+                    "t_stop_s":[150000]
 
                 } 
             ]
@@ -124,9 +124,9 @@
         {
             "params":
             {
-                "rel_tol": [1e-11],
-                "abs_tol": [1e-11],
-                "max_iter": [200],
+                "rel_tol": [1e-6],
+                "abs_tol": [1e-6],
+                "max_iter": [500],
                 "debugging_mode": [false]
             }
         } 
@@ -205,7 +205,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [4.92, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":1.8,"material_properties":"isotropic"}],
+                "k_1": [4.92, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":12.9,"material_properties":"isotropic"}],
                 "k_force": [1e-3],  
                 "k_2": [200],
                 "k_3": [100],
@@ -246,15 +246,15 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[15],
+            "time_constant":[20],
             "reorient_t_start":[0.5,"ms"]
         }
         
     },
     "output_handler":
     {
-        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k1.8_8core_coef90power2/data.csv"],
-        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hypo_0.5_kappa15_k1.8_8core_coef90power2/mesh_output"],
+        "output_data_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.5_xp1.9_k12.9/data.csv"],
+        "mesh_output_path": ["/project/jfwe223_uksr/Mohammad_data/HCM_paper/hyper_0.5_xp1.9_k12.9/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -272,7 +272,8 @@
             "k_1_DG0",
             "total_stress_vector",
             "Transverse_Angle",
-            "Helical_Angle"
+            "Helical_Angle",
+            "x_ps_DG0"
         ],
         "dumping_spatial_in_average":[false],
         "frequency_n": [10]

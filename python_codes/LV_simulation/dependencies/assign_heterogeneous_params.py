@@ -404,6 +404,8 @@ class assign_heterogeneous_params(object):
         l_bfs = dolfin_functions["passive_params"]["bfs"][-1].vector().get_local()[:] 
 
         l_k1 = dolfin_functions["k_1"][-1].vector().get_local()[:] 
+        l_x_ps = dolfin_functions["x_ps"][-1].vector().get_local()[:] 
+
 
 
         for jj in np.arange(all_cells):
@@ -433,6 +435,7 @@ class assign_heterogeneous_params(object):
                     if k == "k_1":
 
                         l_k1[jj] = base_value*scaling_factor
+                        l_x_ps[jj] = 1.9
 
             else:
 
@@ -457,6 +460,7 @@ class assign_heterogeneous_params(object):
         dolfin_functions["passive_params"]["bfs"][-1].vector()[:] = l_bfs
 
         dolfin_functions["k_1"][-1].vector()[:] = l_k1
+        dolfin_functions["x_ps"][-1].vector()[:] = l_x_ps
 
 
         return dolfin_functions
