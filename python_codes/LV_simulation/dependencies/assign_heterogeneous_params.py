@@ -402,6 +402,8 @@ class assign_heterogeneous_params(object):
         l_bt =dolfin_functions["passive_params"]["bt"][-1].vector().get_local()[:] 
         l_bf =dolfin_functions["passive_params"]["bf"][-1].vector().get_local()[:] 
         l_bfs = dolfin_functions["passive_params"]["bfs"][-1].vector().get_local()[:] 
+        l_c2 =dolfin_functions["passive_params"]["c2"][-1].vector().get_local()[:] 
+        l_c3 = dolfin_functions["passive_params"]["c3"][-1].vector().get_local()[:] 
 
         l_k1 = dolfin_functions["k_1"][-1].vector().get_local()[:] 
         l_x_ps = dolfin_functions["x_ps"][-1].vector().get_local()[:] 
@@ -429,6 +431,8 @@ class assign_heterogeneous_params(object):
                         l_bf[jj] = 4
                         l_bfs[jj] = 4
                         l_cb_n_density[jj] = 0
+                        l_c2[jj] = 0
+                        l_c3[jj] = 0
 
 
                     ### hyercontractile with K! - higher SRX detachment
@@ -458,6 +462,10 @@ class assign_heterogeneous_params(object):
         dolfin_functions["passive_params"]["bt"][-1].vector()[:] = l_bt
         dolfin_functions["passive_params"]["bf"][-1].vector()[:] = l_bf
         dolfin_functions["passive_params"]["bfs"][-1].vector()[:] = l_bfs
+        dolfin_functions["passive_params"]["c2"][-1].vector()[:] = l_c2
+        dolfin_functions["passive_params"]["c3"][-1].vector()[:] = l_c3
+
+
 
         dolfin_functions["k_1"][-1].vector()[:] = l_k1
         dolfin_functions["x_ps"][-1].vector()[:] = l_x_ps
