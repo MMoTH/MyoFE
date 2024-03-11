@@ -124,16 +124,11 @@
         {
             "params":
             {
-                "rel_tol": [1e-10],
-                "abs_tol": [1e-10],
-                "max_iter": [200],
+                "rel_tol": [1e-7],
+                "abs_tol": [1e-7],
+                "max_iter": [500],
                 "debugging_mode": [false]
             }
-        },
-        "pericardial":
-        {
-            "type": ["spring"],
-            "k_spring": [200]
         }  
     },
     "model":
@@ -268,8 +263,8 @@
       },
     "output_handler":
     {
-        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.5_TS0.5_32core/hyper_TS_kappa15_k1_1.2/sim_output/data.csv"],
-        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.5_TS0.5_32core/hyper_TS_kappa15_k1_1.2/sim_output/"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.5_TS0.5_32core/hyper_TS_kappa30_k1_1.2/sim_output/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.5_TS0.5_32core/hyper_TS_kappa30_k1_1.2/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",
