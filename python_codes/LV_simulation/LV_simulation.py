@@ -140,21 +140,35 @@ class LV_simulation():
             
         
         #### MM here we assign het params to the LV
+            
 
-        for kk, vv in self.mesh.model['functions']['dolfin_functions'].items():
+        for key in ['k_1','k_3','k_on','cb_number_density','k_cb','x_ps']:
+            dolfin_function = self.mesh.model['functions']['dolfin_functions'].get(key, None)
+
+            #print("dolfin_functions",dolfin_function)
+
+            if dolfin_function is None:
+                continue
+            
+            dolfin_values = dolfin_function[-1].vector().get_local()
+            
+            for i in range(self.local_n_of_int_points):
+                self.hs_objs_list[i].myof.data[key] = dolfin_values[i]
+            
+        #print("dolfin_functions",self.mesh.model['functions']['dolfin_functions'])
+
+
+
+        '''for kk, vv in self.mesh.model['functions']['dolfin_functions'].items():
             if kk == "cb_number_density":
                 
-
                 cb_inf = 0 
                 for i in np.arange(self.local_n_of_int_points):
                     self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['cb_number_density'][-1].vector().get_local()[i]
-
-                       
                     if self.mesh.model['functions']['dolfin_functions']['cb_number_density'][-1].vector().get_local()[i] == 0:
                         cb_inf = cb_inf +1
                 #print("cb_inf")    
                 #print(cb_inf)
-
             if kk == "k_1":
                 
                 for i in np.arange(self.local_n_of_int_points):
@@ -164,7 +178,12 @@ class LV_simulation():
                 
                 for i in np.arange(self.local_n_of_int_points):
                     self.hs_objs_list[i].myof.data[kk] = self.mesh.model['functions']['dolfin_functions']['k_on'][-1].vector().get_local()[i]
-                    
+                  '''  
+
+
+
+
+
 
 
 
@@ -239,7 +258,7 @@ class LV_simulation():
         # (for visualizaton purpose)
 
         
-        for p in ['k_1','k_3','k_on','cb_number_density','k_cb'] :
+        for p in ['k_1','k_3','k_on','cb_number_density','k_cb','x_ps'] :
         #for p in ['k_1','k_3','k_on','k_cb'] :   
             for i, h in enumerate(self.hs_objs_list):
                 self.mesh.data[p][i] = h.myof.data[p]
@@ -672,6 +691,15 @@ class LV_simulation():
 
                             temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FS_DG0)
                             #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
+
+                        if m == 'bt_param_DG0':
+
+                            temp_obj = project(self.mesh.model['solver_params']['bt'][-1],FS_DG0)
+
+                        if m == 'c2_param_DG0':
+
+                            temp_obj = project(self.mesh.model['solver_params']['c2'][-1],FS_DG0)
+
 
                         if m == 'c_param':
                             temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],self.mesh.model['function_spaces']["scalar_CG"])
@@ -1808,6 +1836,16 @@ class LV_simulation():
 
                         temp_obj = project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],self.mesh.model['function_spaces']["scalar_CG"])
                         #File(self.instruction_data["output_handler"]['mesh_output_path'][0] + "c_param.pvd") << project(self.mesh.model['functions']['dolfin_functions']["passive_params"]["c"][-1],FunctionSpace(self.mesh.model['mesh'],"DG",0))
+
+                    if m == 'bt_param_DG0':
+
+                            temp_obj = project(self.mesh.model['solver_params']['bt'][-1],FS_DG0)
+
+                    
+                    if m == 'c2_param_DG0':
+
+                            temp_obj = project(self.mesh.model['solver_params']['c2'][-1],FS_DG0)
+
 
                     if m == 'fiber_direction':
                         

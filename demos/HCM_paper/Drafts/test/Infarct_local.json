@@ -103,7 +103,7 @@
         {
             "passive_law_parameters": {
               "passive_law": ["semi_structural"],
-              "c": [200, {"heterogeneous":"True","law":"chronic_infarct","scaling_factor":15}],
+              "c": [200, {"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":7,"material_properties":"isotropic"}],
               "c2": [250],
               "c3": [15.0],
               "bf": [8.0],
@@ -216,7 +216,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [4.92],
+                "k_1": [4.92,{"heterogeneous":"True","law":"percent_fibrosis","percent":0.5,"scaling_factor":12.9,"material_properties":"isotropic"}],
                 "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [100],
@@ -264,8 +264,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/HCM_paper/test/infarct_test/data.csv"],
-        "mesh_output_path": ["../demos/HCM_paper/test/infarct_test/mesh_output"],
+        "output_data_path": ["../demos/HCM_paper/Drafts/test/infarct_test/data.csv"],
+        "mesh_output_path": ["../demos/HCM_paper/Drafts/test/infarct_test/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -284,7 +284,10 @@
             "k_1_DG0",
             "total_stress_vector",
             "Transverse_Angle",
-            "Helical_Angle"
+            "Helical_Angle",
+            "x_ps_DG0",
+            "bt_param_DG0",
+            "c2_param_DG0"
         ],
         "dumping_spatial_in_average":[false],
         "frequency_n": [1]

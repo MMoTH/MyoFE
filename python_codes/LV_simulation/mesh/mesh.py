@@ -454,6 +454,9 @@ class MeshClass():
                 "hsl0": hsl0,}
 
         params.update(self.model['functions']['dolfin_functions']["passive_params"])
+
+        #print("param_C",params['c'])
+        
         #params.update(self.model['functions']['dolfin_functions']["cb_number_density"])
 
         # Need to tack on some other stuff, including an expression to keep track of
