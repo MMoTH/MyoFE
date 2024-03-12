@@ -8,7 +8,7 @@
             "activations":
             [
                 {
-                    "t_start_s":[5],
+                    "t_start_s":[150000],
                     "t_stop_s":[150000]
 
                 } 
@@ -247,8 +247,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_FR/sim_output/data.csv"],
-        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_FR/sim_output/"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_noFR/sim_output/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_noFR/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",
