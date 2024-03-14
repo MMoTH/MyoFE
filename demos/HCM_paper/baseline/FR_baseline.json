@@ -8,7 +8,7 @@
             "activations":
             [
                 {
-                    "t_start_s":[150000],
+                    "t_start_s":[5],
                     "t_stop_s":[150000]
 
                 } 
@@ -199,7 +199,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [4.92],
+                "k_1": [3.5],
                 "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [100],
@@ -247,8 +247,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_noFR/sim_output/data.csv"],
-        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_noFR/sim_output/"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_noFR_K3.5/sim_output/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_noFR_K3.5/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",
