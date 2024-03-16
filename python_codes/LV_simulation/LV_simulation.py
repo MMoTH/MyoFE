@@ -1663,19 +1663,19 @@ class LV_simulation():
                 tabulate_dof_coordinates().reshape((-1, gdim2))
                 ### Below not active now. since stress might not be realisic in base, we can exclude some basal points from fiber reoriantaion
                 #print('point n', np.shape(self.lcoord[:,2]))  
-                '''cnt =0 
+                cnt =0 
                 for i in np.arange(self.local_n_of_int_points):
-                    if self.lcoord[i][2]< 0:
+                    if self.lcoord[i][2]< -0.02:
                         # wrong way: temp_fiber[i] += local_fdiff[i]
                         temp_fiber[ii*3:ii*3+3]+= local_fdiff[ii*3:ii*3+3]
 
-                        cnt = cnt +1'''
+                        cnt = cnt +1
                 #print('point n', np.shape(self.lcoord[:,2]),'cnt', cnt)
 
 
                     
                 ### all point FR
-                temp_fiber += fdiff.vector().get_local()[:]
+                #temp_fiber += fdiff.vector().get_local()[:]
                 self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
 
                 s1 , n1 ,f1= self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0'])

@@ -439,7 +439,7 @@ class assign_heterogeneous_params(object):
                     if k == "k_1":
 
                         l_k1[jj] = base_value*scaling_factor
-                        l_x_ps[jj] = 1.9
+                        #l_x_ps[jj] = 1.9
 
             else:
 
