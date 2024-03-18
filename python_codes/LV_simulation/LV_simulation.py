@@ -1667,7 +1667,7 @@ class LV_simulation():
                 for i in np.arange(self.local_n_of_int_points):
                     if self.lcoord[i][2]< -0.02:
                         # wrong way: temp_fiber[i] += local_fdiff[i]
-                        temp_fiber[ii*3:ii*3+3]+= local_fdiff[ii*3:ii*3+3]
+                        temp_fiber[i*3:i*3+3]+= local_fdiff[i*3:i*3+3]
 
                         cnt = cnt +1
                 #print('point n', np.shape(self.lcoord[:,2]),'cnt', cnt)
