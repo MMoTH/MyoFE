@@ -16,6 +16,9 @@ from LV_simulation.output_handler import output_handler as oh
 
 from dolfin import *
 from mpi4py import MPI
+import cProfile
+import pstats
+
 
 def MyoFE():
 
@@ -76,6 +79,29 @@ def execute_MyoFE(instruction_file,comm):
     LV_sim_object = lvs(comm,instruction_data = instruction_data)
     LV_sim_object.run_simulation(protocol_struct = prot_struct,
                                     output_struct = output_struct)
+
+
+
+
+
+'''
+def profile_MyoFE():
+    cProfile.runctx('MyoFE()', globals(), locals(), filename='profiling_results_MyoFE.txt')
+profile_MyoFE()
+# Get the full path of the profiling results file
+file_path = os.path.join(os.getcwd(), 'profiling_results_MyoFE.txt')
+# Load the profiling results
+stats = pstats.Stats(file_path)
+
+# Strip directory names from filenames
+stats.strip_dirs()
+# Sort the statistics by cumulative time
+stats.sort_stats('cumulative')
+# Get the top 10 functions based on cumulative time
+stats.print_stats(20)'''
+
+
+
 
 if __name__ == '__main__':
     MyoFE()

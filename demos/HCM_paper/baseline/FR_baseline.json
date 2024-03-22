@@ -248,7 +248,7 @@
     "output_handler":
     {
         "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_multiplt_K2.8/sim_output/data.csv"],
-        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_noFR_K2.8/sim_output/"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_multiplt_K2.8/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",

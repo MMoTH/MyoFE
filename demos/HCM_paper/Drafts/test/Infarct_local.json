@@ -1,7 +1,7 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [4],
+        "no_of_time_steps": [29],
         "time_step": [0.001],
         "fiber_reorientation":
         {
@@ -257,15 +257,15 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[4],
+            "time_constant":[1],
             "reorient_t_start":[0.5,"ms"]
         }
         
     },
     "output_handler":
     {
-        "output_data_path": ["../demos/HCM_paper/Drafts/test/infarct_test/data.csv"],
-        "mesh_output_path": ["../demos/HCM_paper/Drafts/test/infarct_test/mesh_output"],
+        "output_data_path": ["../demos/HCM_paper/Drafts/test/local_results/data.csv"],
+        "mesh_output_path": ["../demos/HCM_paper/Drafts/test/local_results/mesh_output"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -290,7 +290,7 @@
             "c2_param_DG0"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [1]
+        "frequency_n": [2]
         
         
     }

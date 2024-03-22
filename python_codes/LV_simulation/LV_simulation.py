@@ -1664,16 +1664,26 @@ class LV_simulation():
                 ### Below not active now. since stress might not be realisic in base, we can exclude some basal points from fiber reoriantaion
                 #print('point n', np.shape(self.lcoord[:,2]))  
                 cnt =0 
+                cnt2 =0 
+                l1 = -0.02
+                l2 = -0.06
+
                 for i in np.arange(self.local_n_of_int_points):
-                    if self.lcoord[i][2]< -0.02:
+                    if self.lcoord[i][2]< l2:  # normal FR
                         # wrong way: temp_fiber[i] += local_fdiff[i]
                         temp_fiber[i*3:i*3+3]+= local_fdiff[i*3:i*3+3]
-
                         cnt = cnt +1
-                #print('point n', np.shape(self.lcoord[:,2]),'cnt', cnt)
-
-
                     
+                    if self.lcoord[i][2]< l1 and self.lcoord[i][2]> l2:  # transition region
+                        # wrong way: temp_fiber[i] += local_fdiff[i]
+
+                        coef = (l1-self.lcoord[i][2])/(l1-l2)
+                        temp_fiber[i*3:i*3+3]+= local_fdiff[i*3:i*3+3] * coef * coef
+                        cnt2 = cnt2 +1
+                #print ("cnt",cnt)  
+                #print ("cnt2",cnt2)  
+
+
                 ### all point FR
                 #temp_fiber += fdiff.vector().get_local()[:]
                 self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
