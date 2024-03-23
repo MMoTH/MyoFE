@@ -35,7 +35,7 @@
             true
         ],
         "mesh_path": [
-            "../demos/HCM_paper/simulations_hyper0.3/hyper_kappa20_k1_1.5/sim_inputs/ellipsoidal.hdf5"
+            "../demos/HCM_paper/simulations_hyper0.3/hyper_kappa8_k1_2/sim_inputs/ellipsoidal.hdf5"
         ],
         "function_spaces": [
             {
@@ -416,7 +416,7 @@
                         "heterogeneous": "True",
                         "law": "percent_fibrosis",
                         "percent": 0.3,
-                        "scaling_factor": 1.5,
+                        "scaling_factor": 2,
                         "material_properties": "isotropic"
                     }
                 ],
@@ -525,7 +525,7 @@
                 "new_stress_kroon"
             ],
             "time_constant": [
-                20
+                8
             ],
             "reorient_t_start": [
                 0.5,
@@ -535,10 +535,10 @@
     },
     "output_handler": {
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.3/hyper_kappa20_k1_1.5/sim_output/data.csv"
+            "/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.3/hyper_kappa8_k1_2/sim_output/data.csv"
         ],
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.3/hyper_kappa20_k1_1.5/sim_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/HCM_paper/hyper0.3/hyper_kappa8_k1_2/sim_output/"
         ],
         "mesh_object_to_save": [
             "displacement",
