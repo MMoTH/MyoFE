@@ -166,7 +166,7 @@
                 {
                     "name": ["veins"],
                     "resistance": [50],
-                    "compliance": [0.8e-1],
+                    "compliance": [0.9e-1],
                     "slack_volume": [2.0]
                 },
                 {
