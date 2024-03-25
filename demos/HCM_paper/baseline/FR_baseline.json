@@ -136,7 +136,7 @@
                 {
                     "name": ["aorta"],
                     "resistance": [30],
-                    "compliance": [4e-4],
+                    "compliance": [3.5e-4],
                     "slack_volume": [0.3]
                 },
                 {
@@ -247,8 +247,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_R30_K3.2/sim_output/data.csv"],
-        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_R30_K3.2/sim_output/"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_R30c3.5_K3.2/sim_output/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_R30c3.5_K3.2/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",
