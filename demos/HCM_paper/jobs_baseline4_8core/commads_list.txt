@@ -1,0 +1,9 @@
+sbatch job_baseline4_8core_Kappa_4_k1_3.5.sh
+sbatch job_baseline4_8core_Kappa_4_k1_3.6.sh
+sbatch job_baseline4_8core_Kappa_4_k1_3.7.sh
+sbatch job_baseline4_8core_Kappa_4_k1_3.8.sh
+sbatch job_baseline4_8core_Kappa_20_k1_3.5.sh
+sbatch job_baseline4_8core_Kappa_20_k1_3.6.sh
+sbatch job_baseline4_8core_Kappa_20_k1_3.7.sh
+sbatch job_baseline4_8core_Kappa_20_k1_3.8.sh
+END
