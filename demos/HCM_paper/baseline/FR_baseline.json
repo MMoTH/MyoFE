@@ -135,13 +135,13 @@
             [
                 {
                     "name": ["aorta"],
-                    "resistance": [30],
+                    "resistance": [25],
                     "compliance": [3.5e-4],
                     "slack_volume": [0.3]
                 },
                 {
                     "name": ["arteries"],
-                    "resistance": [30],
+                    "resistance": [25],
                     "compliance": [8e-4],
                     "slack_volume": [0.3]
                 },
@@ -166,7 +166,7 @@
                 {
                     "name": ["veins"],
                     "resistance": [50],
-                    "compliance": [0.9e-1],
+                    "compliance": [0.7e-1],
                     "slack_volume": [2.0]
                 },
                 {
@@ -199,7 +199,7 @@
                 "cb_number_density": [6.9e16],
                 "prop_fibrosis": [0.0],
                 "prop_myofilaments": [0.6],
-                "k_1": [3.5],
+                "k_1": [3.7],
                 "k_force": [1e-3],
                 "k_2": [200],
                 "k_3": [100],
@@ -247,8 +247,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_R30c3.5_Cvein0.9_K3.5/sim_output/data.csv"],
-        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_R30c3.5_Cvein0.9_K3.5/sim_output/"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_R25c3.5_Cvein0.7_K3.7/sim_output/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_kappa20_R25c3.5_Cvein0.7_K3.7/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",
