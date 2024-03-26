@@ -490,15 +490,15 @@ class LV_simulation():
             
             
 
-        '''data_field = self.spatial_hs_data_fields +\
+        data_field = self.spatial_hs_data_fields +\
                         self.spatial_myof_data_fields+\
                             self.spatial_memb_data_fields+\
                             self.spatial_fiber_data_fields+\
-                            self.spatial_extra'''
+                            self.spatial_extra
         
         ### to save resutls space, here we save less results
-        data_field = self.spatial_fiber_data_fields+\
-                            self.spatial_extra
+        '''data_field = self.spatial_fiber_data_fields+\
+                            self.spatial_extra'''
                             
 
         '''if (self.gr != [] ):
@@ -1666,7 +1666,7 @@ class LV_simulation():
                 cnt =0 
                 cnt2 =0 
                 l1 = -0.02
-                l2 = -0.06
+                l2 = -0.08
 
                 for i in np.arange(self.local_n_of_int_points):
                     if self.lcoord[i][2]< l2:  # normal FR
@@ -2117,7 +2117,7 @@ class LV_simulation():
         else:
 
 
-            '''for f in self.spatial_hs_data_fields:
+            for f in self.spatial_hs_data_fields:
                 data_field = []
                 for h in self.hs_objs_list:
                     data_field.append(h.data[f])
@@ -2150,7 +2150,7 @@ class LV_simulation():
             
             for f in ['Sff','sff_mean','alpha_f']:
                 data_field = self.data[f]
-                self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field'''
+                self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
 
             f0_temp = self.mesh.model['functions']['f0'].vector().get_local()[:]
