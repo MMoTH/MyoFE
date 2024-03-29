@@ -8,7 +8,7 @@
             "activations":
             [
                 {
-                    "t_start_s":[0.001],
+                    "t_start_s":[5],
                     "t_stop_s":[30]
 
                 } 
@@ -257,7 +257,7 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[1],
+            "time_constant":[20],
             "reorient_t_start":[0.5,"ms"]
         }
         

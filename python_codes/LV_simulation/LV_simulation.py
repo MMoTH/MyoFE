@@ -474,6 +474,7 @@ class LV_simulation():
             self.spatial_hs_data_fields = list(self.hs.data.keys())
             self.spatial_myof_data_fields = list(self.hs.myof.data.keys())#['M_SRX','M_DRX','M_FG','n_off','n_on','n_overlap',
                                                 #'n_bound']
+            
             self.spatial_memb_data_fields = list(self.hs.memb.data.keys())#['Ca_cytosol','Ca_SR']
 
 
@@ -485,20 +486,22 @@ class LV_simulation():
 
                 self.spatial_fiber_data_fields.append(f)
 
-            for f in ['active_stress','total_passive','myofiber_passive','Sff_mesh','bulk_passive','incomp_stress']:
+            for f in ['active_stress','total_passive','myofiber_passive',
+                      'Sff_mesh','bulk_passive','incomp_stress',
+                      'cb_number_density','k_1']:
                 self.spatial_extra.append(f)
             
             
 
-        data_field = self.spatial_hs_data_fields +\
+        '''data_field = self.spatial_hs_data_fields +\
                         self.spatial_myof_data_fields+\
                             self.spatial_memb_data_fields+\
                             self.spatial_fiber_data_fields+\
-                            self.spatial_extra
+                            self.spatial_extra'''
         
         ### to save resutls space, here we save less results
-        '''data_field = self.spatial_fiber_data_fields+\
-                            self.spatial_extra'''
+        data_field = self.spatial_fiber_data_fields+\
+                            self.spatial_extra
                             
 
         '''if (self.gr != [] ):
@@ -2117,7 +2120,7 @@ class LV_simulation():
         else:
 
 
-            for f in self.spatial_hs_data_fields:
+            '''for f in self.spatial_hs_data_fields:
                 data_field = []
                 for h in self.hs_objs_list:
                     data_field.append(h.data[f])
@@ -2146,8 +2149,17 @@ class LV_simulation():
             if self.gr:
                 for f in self.spatial_gr_data_fields:
                     data_field = self.gr.data[f]
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field'''
             
+
+
+            for f in ['cb_number_density','k_1']:
+                data_field = []
+                for h in (self.hs_objs_list):
+                    data_field.append(h.myof.data[f])
+                self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+
             for f in ['Sff','sff_mean','alpha_f']:
                 data_field = self.data[f]
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
