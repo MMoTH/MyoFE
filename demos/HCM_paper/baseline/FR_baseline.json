@@ -24,7 +24,7 @@
     "mesh":
     {
         "relative_path": [true],
-        "mesh_path":["../demos/HCM_paper/Sim_input/ellipsoidal.hdf5"],
+        "mesh_path":["../demos/HCM_paper/Sim_input/thin_fine_apex(0.045)_ms0.055/ellipsoidal.hdf5"],
         "function_spaces":
         [
             {
@@ -247,8 +247,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/Final_baseline_kappa4_K3.7/sim_output/data.csv"],
-        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/Final_baseline_kappa4_K3.7/sim_output/"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/Finer_baseline_kappa4_K3.7/sim_output/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/Finer_baseline_kappa4_K3.7/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",
