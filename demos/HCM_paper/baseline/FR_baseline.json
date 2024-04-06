@@ -1,8 +1,8 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [150000],
-        "time_step": [0.0005],
+        "no_of_time_steps": [100000],
+        "time_step": [0.0002],
         "fiber_reorientation":
         {
             "activations":
@@ -247,8 +247,8 @@
     },
     "output_handler":
     {
-        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/Finer_baseline_kappa4_K3.7/sim_output/data.csv"],
-        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/Finer_baseline_kappa4_K3.7/sim_output/"],
+        "output_data_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/Finer_baseline_ts0002/sim_output/data.csv"],
+        "mesh_output_path": ["/mnt/gpfs2_4m/scratch/mme250/HCM_paper/Finer_baseline_ts0002/sim_output/"],
         "mesh_object_to_save":
         [
             "displacement",
@@ -269,7 +269,7 @@
             "Helical_Angle"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [20]
+        "frequency_n": [50]
         
         
     }
