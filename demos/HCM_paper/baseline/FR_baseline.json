@@ -2,7 +2,7 @@
     "protocol":
     {
         "no_of_time_steps": [100000],
-        "time_step": [0.0001],
+        "time_step": [0.0002],
         "fiber_reorientation":
         {
             "activations":
