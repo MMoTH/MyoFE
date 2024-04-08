@@ -269,7 +269,7 @@
             "Helical_Angle"
         ],
         "dumping_spatial_in_average":[false],
-        "frequency_n": [1]
+        "frequency_n": [10]
         
         
     }
