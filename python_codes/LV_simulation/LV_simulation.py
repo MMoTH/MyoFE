@@ -488,7 +488,7 @@ class LV_simulation():
 
             for f in ['active_stress','total_passive','myofiber_passive',
                       'Sff_mesh','bulk_passive','incomp_stress',
-                      'cb_number_density','k_1']:
+                      'cb_number_density','k_1','hs_length']:
                 self.spatial_extra.append(f)
             
             
@@ -2161,7 +2161,7 @@ class LV_simulation():
 
 
             for f in ['Sff','sff_mean','alpha_f']:
-                data_field = self.data[f]
+                data_field = list(map(lambda x: round(float(x), 2), self.data[f]))
                 self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
 
@@ -2231,76 +2231,27 @@ class LV_simulation():
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 #### here we need to save the geometric data of fibers based on the number of cores similar to other modeling params
-
-
-                if self.write_counter==1:
-                    if f == 'lx':
-                        data_field= list(lx)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
-
-                    if f == 'ly':
-                        data_field= list(ly)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
-                    if f == 'lz':
-                        data_field= list(lz)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
-
-                    if f == 'endo_dist':
-                        data_field= list(endo_dist)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
-
-                    #self.local_spatial_sim_data[f].at[self.write_counter,'time'] = \
-                    #    self.data['time'
+                if self.write_counter == 1:
+                    data_mapping = {
+                        'lx': lx,
+                        'ly': ly,
+                        'lz': lz,
+                        'endo_dist': endo_dist,
+                        'eccx': ecc_x,
+                        'eccy': ecc_y,
+                        'eccz': ecc_z,
+                        'errx': err_x,
+                        'erry': err_y,
+                        'errz': err_z,
+                        'ellx': ell_x,
+                        'elly': ell_y,
+                        'ellz': ell_z
+                    }
                     
-                    if f == 'eccx':
-                        data_field= list(ecc_x)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                    if f == 'eccy':
-                        data_field= list(ecc_y)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                    if f == 'eccz':
-                        data_field= list(ecc_z)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field    
-
-                    if f == 'errx':
-                        data_field= list(err_x)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                    if f == 'erry':
-                        data_field= list(err_y)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                    if f == 'errz':
-                        data_field= list(err_z)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
-                    if f == 'ellx':
-                        data_field= list(ell_x)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                    if f == 'elly':
-                        data_field= list(ell_y)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                    if f == 'ellz':
-                        data_field= list(ell_z)
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                        self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
-            
-            
+                    for data_name, data_list in data_mapping.items():
+                        if f == data_name:
+                            rounded_data = list(map(float, data_list))
+                            self.local_spatial_sim_data[f].iloc[self.write_counter] = rounded_data
 
 
 
@@ -2349,50 +2300,29 @@ class LV_simulation():
             incomp_stress = project(temp,
                     self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
+            hs_length =project(self.mesh.model['functions']['hsl'], 
+                                    self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
 
+# Create a dictionary mapping the keys to the lists
+            data_mapping = {
+            'active_stress': active_stress,
+            'total_passive': total_passive,
+            'myofiber_passive': myofiber_passive,
+            'Sff_mesh': myo_Sff,
+            'bulk_passive': bulk_passive,
+            'incomp_stress': incomp_stress,
+            'hs_length' : hs_length
+            }
 
             for f in self.spatial_extra:
                 data_field = []
-
-
-                if f == 'active_stress':
-                    
-                    data_field= list(active_stress)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
-
-                if f == 'total_passive':
-                    data_field= list(total_passive)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
-
-                if f == 'myofiber_passive':
-                    data_field= list(myofiber_passive)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-
                 
-                if f == 'Sff_mesh':
-
-                    data_field = list(myo_Sff)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-
+                # Check if the key exists in the mapping
+                if f in data_mapping:
+                    data_field = list(map(lambda x: round(float(x), 2), data_mapping[f]))
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-            
-                if f == 'bulk_passive':
 
-                    data_field = list(bulk_passive)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-            
-                if f == 'incomp_stress':
-
-                    data_field = list(incomp_stress)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
             
 
     def check_output_directory_folder(self, path=""):
