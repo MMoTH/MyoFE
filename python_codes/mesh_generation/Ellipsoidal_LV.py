@@ -21,7 +21,7 @@ from dolfin import *
 from mpi4py import MPI as pyMPI
 
 def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
-                        quad_deg = 2, endo_angle = 10, epi_angle = -10,
+                        quad_deg = 2, endo_angle = 60, epi_angle = -60,
                         endo_hsl = 900, epi_hsl=1000):
 
     casename = 'ellipsoidal'
@@ -63,7 +63,7 @@ def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
     VQuadelem._quad_scheme = 'default'
     fiberFS = FunctionSpace(mesh, VQuadelem)
     isepiflip = True #False
-    isendoflip = True #True #True
+    isendoflip = False #True #True
     #endo_angle = 60; epi_angle = -60; 
     casedir="./"
     hslFS = FunctionSpace(mesh,Quadelem)
@@ -94,7 +94,12 @@ def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
     f.write(eC, meshname+"/"+"eC")
     f.write(eL, meshname+"/"+"eL")
     f.write(eR, meshname+"/"+"eR")
+
     f.write(endo_dist, meshname+"/"+"endo_dist")
+    ### below naming for old code is different
+    f.write(endo_dist, meshname+"/"+"norm_dist_endo")
+
+
     f.write(epi_dist, meshname+"/"+"epi_dist")
 
 
@@ -116,7 +121,7 @@ def check_output_directory_folder( path=""):
 if __name__ == '__main__':
 
     # Set the path to .geo file
-    input_geo_file = os.getcwd() + '/ellipsoidal_thin_apex.geo'
+    input_geo_file = os.getcwd() + '/ellipsoidal_infarct_paper2.geo'
     vtk_file_name = "Ellipsoidal"
     output_vtk_str = 'input_files'
 
@@ -124,12 +129,24 @@ if __name__ == '__main__':
     create_ellipsoidal_LV(geofile = input_geo_file,
             output_vtk = output_vtk_str,
             casename=vtk_file_name,
-             meshsize=0.085, gmshcmd="gmsh", 
+             meshsize=0.0621, gmshcmd="gmsh", 
              iswritemesh=True, verbose=False)
+   
+    #1000 cell meshsize= 0.108  apex 1
+    #1320 cell meshsize= 0.87  apex 1
+    #2000 cell meshsize= 0.0685  apex 1
+    #4000 cell meshsize= 0.0558  apex 1
+    #3000 cell meshsize= 0.0622  apex 1
 
-    #mesh size base = 0.075
+
+    #2000 cell meshsize= 0.0567  apex 2.4
+    #1700 cell meshsize= 0.05785  apex 2
+    #1500 cell meshsize= 0.0634  apex 2
+    #1240 cell meshsize= 0.082  apex 1.4
+    #4000 cell meshsize= 0.055  apex 1
+    #mesh size base = 0.075 
     # Set the path to save the mesh
-    output_folder = 'output_files/thin_apex_ms0.085_10degree/'
+    output_folder = 'output_files/Infarct_paper2/3000cell/'
 
     check_output_directory_folder(path = output_folder)
     vtk_file_str = 'input_files/' + '/' + \
@@ -137,7 +154,7 @@ if __name__ == '__main__':
 
     EllipsoidalLVMEsh(vtk_file_str = vtk_file_str,
                         output_file_str = output_folder,
-                        quad_deg = 2, endo_angle = 10, epi_angle =-10,
+                        quad_deg = 2, endo_angle = 60, epi_angle =-60,
                         endo_hsl = 900, epi_hsl=1000)
 
 print ('mesh created')

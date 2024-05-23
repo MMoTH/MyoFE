@@ -84,8 +84,8 @@ def execute_MyoFE(instruction_file,comm):
 
 
 
-'''
-def profile_MyoFE():
+
+'''def profile_MyoFE():
     cProfile.runctx('MyoFE()', globals(), locals(), filename='profiling_results_MyoFE.txt')
 profile_MyoFE()
 # Get the full path of the profiling results file
@@ -98,8 +98,8 @@ stats.strip_dirs()
 # Sort the statistics by cumulative time
 stats.sort_stats('cumulative')
 # Get the top 10 functions based on cumulative time
-stats.print_stats(20)'''
-
+stats.print_stats(100)
+'''
 
 
 

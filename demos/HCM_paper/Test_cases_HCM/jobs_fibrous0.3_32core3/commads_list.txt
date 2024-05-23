@@ -1,0 +1,13 @@
+sbatch job_fibrous_kappa4_C_param_8.15.sh
+sbatch job_fibrous_kappa4_C_param_9.53.sh
+sbatch job_fibrous_kappa4_C_param_10.2.sh
+sbatch job_fibrous_kappa4_C_param_10.9.sh
+sbatch job_fibrous_kappa4_C_param_12.25.sh
+sbatch job_fibrous_kappa4_C_param_13.6.sh
+sbatch job_fibrous_kappa1_C_param_8.15.sh
+sbatch job_fibrous_kappa1_C_param_9.53.sh
+sbatch job_fibrous_kappa1_C_param_10.2.sh
+sbatch job_fibrous_kappa1_C_param_10.9.sh
+sbatch job_fibrous_kappa1_C_param_12.25.sh
+sbatch job_fibrous_kappa1_C_param_13.6.sh
+END

@@ -1,0 +1,17 @@
+sbatch job_fibrous_TS_kappa15_k1_5.sh
+sbatch job_fibrous_TS_kappa15_k1_7.sh
+sbatch job_fibrous_TS_kappa15_k1_10.sh
+sbatch job_fibrous_TS_kappa15_k1_15.sh
+sbatch job_fibrous_TS_kappa20_k1_5.sh
+sbatch job_fibrous_TS_kappa20_k1_7.sh
+sbatch job_fibrous_TS_kappa20_k1_10.sh
+sbatch job_fibrous_TS_kappa20_k1_15.sh
+sbatch job_fibrous_TS_kappa25_k1_5.sh
+sbatch job_fibrous_TS_kappa25_k1_7.sh
+sbatch job_fibrous_TS_kappa25_k1_10.sh
+sbatch job_fibrous_TS_kappa25_k1_15.sh
+sbatch job_fibrous_TS_kappa30_k1_5.sh
+sbatch job_fibrous_TS_kappa30_k1_7.sh
+sbatch job_fibrous_TS_kappa30_k1_10.sh
+sbatch job_fibrous_TS_kappa30_k1_15.sh
+END

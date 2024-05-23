@@ -1,0 +1,9 @@
+sbatch job_hyper_kappa4_k1_1.2.sh
+sbatch job_hyper_kappa4_k1_1.5.sh
+sbatch job_hyper_kappa4_k1_1.8.sh
+sbatch job_hyper_kappa4_k1_2.sh
+sbatch job_hyper_kappa20_k1_1.2.sh
+sbatch job_hyper_kappa20_k1_1.5.sh
+sbatch job_hyper_kappa20_k1_1.8.sh
+sbatch job_hyper_kappa20_k1_2.sh
+END
