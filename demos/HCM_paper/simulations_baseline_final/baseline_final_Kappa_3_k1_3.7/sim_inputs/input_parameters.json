@@ -35,7 +35,7 @@
             true
         ],
         "mesh_path": [
-            "../demos/HCM_paper/simulations_fibrous0.3_final/fibrous_kappa4_C_param_8.15/sim_inputs/ellipsoidal.hdf5"
+            "../demos/HCM_paper/simulations_baseline_final/baseline_final_Kappa_3_k1_3.7/sim_inputs/ellipsoidal.hdf5"
         ],
         "function_spaces": [
             {
@@ -185,14 +185,7 @@
                     "semi_structural"
                 ],
                 "c": [
-                    200,
-                    {
-                        "heterogeneous": "True",
-                        "law": "percent_fibrosis",
-                        "percent": 0.3,
-                        "scaling_factor": 8.15,
-                        "material_properties": "isotropic"
-                    }
+                    200
                 ],
                 "c2": [
                     250
@@ -525,7 +518,7 @@
                 "new_stress_kroon"
             ],
             "time_constant": [
-                4
+                3
             ],
             "reorient_t_start": [
                 0.5,
@@ -535,10 +528,10 @@
     },
     "output_handler": {
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/HCM_paper/fibrous0.3_final/fibrous_kappa4_C_param_8.15/sim_output/data.csv"
+            "/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_final/baseline_final_Kappa_3_k1_3.7/sim_output/data.csv"
         ],
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/HCM_paper/fibrous0.3_final/fibrous_kappa4_C_param_8.15/sim_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_final/baseline_final_Kappa_3_k1_3.7/sim_output/"
         ],
         "mesh_object_to_save": [
             "displacement",

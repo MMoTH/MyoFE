@@ -103,8 +103,12 @@ class fiber_reorientation():
         #print ("FR_coeff_shape:",np.shape(FR_coeff))
        
 
-        ##working FR
-        f_adjusted = 1./kappa * (f_proj - f0) * FR_coeff* FR_coeff * time_step 
+        ##working FR with COeff
+        #f_adjusted = 1./kappa * (f_proj - f0) * FR_coeff* FR_coeff * time_step 
+
+        
+        ##working FR without COeff
+        f_adjusted = 1./kappa * (f_proj - f0) * time_step 
 
     
         
