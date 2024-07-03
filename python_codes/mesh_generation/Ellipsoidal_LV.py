@@ -3,6 +3,7 @@
 Created on Mon March 24 10:45:02 2022
 
 @author: Hossein
+@modifications: Mohammad
 """
 
 
@@ -32,8 +33,6 @@ def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
 
 
     ugrid = readUGrid(vtk_file_str)
-
-
     mesh = convertUGridToXMLMesh(ugrid)
 
     print (mesh)
@@ -121,7 +120,7 @@ def check_output_directory_folder( path=""):
 if __name__ == '__main__':
 
     # Set the path to .geo file
-    input_geo_file = os.getcwd() + '/ellipsoidal_infarct_paper2.geo'
+    input_geo_file = os.getcwd() + '/ellipsoidal_thin_apex.geo'
     vtk_file_name = "Ellipsoidal"
     output_vtk_str = 'input_files'
 
@@ -129,7 +128,7 @@ if __name__ == '__main__':
     create_ellipsoidal_LV(geofile = input_geo_file,
             output_vtk = output_vtk_str,
             casename=vtk_file_name,
-             meshsize=0.0621, gmshcmd="gmsh", 
+             meshsize=0.066, gmshcmd="gmsh", 
              iswritemesh=True, verbose=False)
    
     #1000 cell meshsize= 0.108  apex 1
@@ -146,7 +145,7 @@ if __name__ == '__main__':
     #4000 cell meshsize= 0.055  apex 1
     #mesh size base = 0.075 
     # Set the path to save the mesh
-    output_folder = 'output_files/Infarct_paper2/3000cell/'
+    output_folder = 'output_files/HCM_paper/finer_50%/'
 
     check_output_directory_folder(path = output_folder)
     vtk_file_str = 'input_files/' + '/' + \

@@ -102,7 +102,7 @@ class fiber_reorientation():
        
 
         ##Original FR with Law
-        #f_adjusted = 1./kappa * (f_proj - f0) * time_step
+        f_adjusted = 1./kappa * (f_proj - f0) * time_step
 
         ##working FR with COeff - this stabilize the FR and avond sudden local orientations
         #f_adjusted = 1./kappa * (f_proj - f0) * FR_coeff* FR_coeff * time_step 
@@ -110,7 +110,7 @@ class fiber_reorientation():
         ##NEW FR wiht inclusiton of traction vector magnutide. this add stress magnitude on top of stress direction
         # to the FR criteria. Enables diffrent beavoiur in different stiffneesss of fibous cases 
 
-        f_adjusted = 1./kappa * (f_proj - f0) * time_step *  wf
+        #f_adjusted = 1./kappa * (f_proj - f0) * time_step *  wf
 
     
         
