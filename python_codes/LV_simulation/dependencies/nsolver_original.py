@@ -331,22 +331,17 @@ class NSolver(object):
     #activeforms = self.parameters["ActiveForm"]
     ##################################################
 
-        #####MM: NEWWWWWWW: prevoiusly linear solver inside the newton_solver was not assigned. which by default might use LU.
-        ## Now I added "linear_solver": "mumps" and see if other solver are more stable
 
         if(not debugging_mode):
 
             #self.costum_solver.solve(self.problem, w.vector())
             
             solve(Ftotal == 0, w, bcs, J = Jac,
-                solver_parameters={"newton_solver": {
-        "relative_tolerance": rel_tol,
-        "absolute_tolerance": abs_tol,
-        "maximum_iterations": maxiter,
-        "linear_solver": "mumps"
-    },},
+                solver_parameters={"newton_solver":
+                                {"relative_tolerance":rel_tol, 
+                                 "absolute_tolerance":abs_tol, 
+                                 "maximum_iterations":maxiter}}, 
                                  form_compiler_parameters={"representation":"uflacs"})
-            print("solver_test1_mumps")
 
             self.mesh_obj.model['functions']['w'] = w
                 
@@ -374,7 +369,6 @@ class NSolver(object):
                     print(json.dumps(F_dict, indent=4))
                     print 'before first solve'"""
                 solve(A, w.vector(), b)
-                print("solver_test2")
                 #solve(A, w.vector(), b,'gmres')
                 #self.solver.solve(A, w.vector(), b)
 
@@ -404,7 +398,7 @@ class NSolver(object):
 
                 if(self.comm.Get_rank() == 0 and mode > 0):
                     print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
-                    print("solver_test3")
+
                 dww = w.copy(deepcopy=True)
                 dww.vector()[:] = 0.0
 
@@ -418,7 +412,6 @@ class NSolver(object):
                                     )
 
                     solve(A, dww.vector(), b)
-                    print("solver_test4")
                     #solve(A, dww.vector(), b,'gmres')
                     #self.solver.solve(A, w.vector(), b)
                     #solve(A, dww.vector(), b,solver_parameters={"linear_solver": "gmres",
@@ -448,7 +441,6 @@ class NSolver(object):
 
                     if(self.comm.Get_rank() == 0 and mode > 0):
                         print ("Iteration: %d, Residual: %.3e, Relative residual: %.3e" %(it, res, rel_res))
-                        print("solver_test5")
 
                     
                     #print self.mesh_obj.model['functions']['incomp'].vector()
