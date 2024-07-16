@@ -2207,29 +2207,26 @@ class LV_simulation():
             for f in self.spatial_fiber_data_fields:
                 data_field = []
 
-
-
                 if f == 'f01':
-
-                    data_field= list(f0_x)
-
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    data_field = list(map(lambda x: round(x, 12), f0_x))
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
                 if f == 'f02':
-                    data_field= list(f0_y)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
-                if f == 'f03':
-                    data_field= list(f0_z)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    data_field = list(map(lambda x: round(x, 12), f0_y))
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
+                if f == 'f03':
+                    data_field = list(map(lambda x: round(x, 12), f0_z))
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
                 if f == 'fr_angle':
-                    data_field= list(fr_angle)
-                    self.local_spatial_sim_data[f].iloc[self.write_counter] = map(float, self.local_spatial_sim_data[f].iloc[self.write_counter])
+                    data_field = list(map(lambda x: round(x, 12), fr_angle))
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+
+
+
+
 #### here we need to save the geometric data of fibers based on the number of cores similar to other modeling params
                 if self.write_counter == 1:
                     data_mapping = {
@@ -2320,7 +2317,7 @@ class LV_simulation():
                 
                 # Check if the key exists in the mapping
                 if f in data_mapping:
-                    data_field = list(map(lambda x: round(float(x), 2), data_mapping[f]))
+                    data_field = list(map(lambda x: round(float(x), 1), data_mapping[f]))
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
             
