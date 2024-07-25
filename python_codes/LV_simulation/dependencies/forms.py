@@ -488,7 +488,7 @@ class Forms(object):
 
 
         # this is total PK2 for passive stress, including incompressibility
-        return S_global+PK2_global-p*inv(Ctensor),Sff , S_global, PK2_global, -p*inv(Ctensor)
+        return S_global+PK2_global-p*inv(Ctensor),Sff , S_global, PK2_global, -p*inv(Ctensor),Eff
 
     def passivestress(self,hsl):
 

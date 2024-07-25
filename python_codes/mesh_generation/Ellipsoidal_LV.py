@@ -61,8 +61,8 @@ def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
     Quadelem = FiniteElement("Quadrature",mesh.ufl_cell(),degree=quad_deg,quad_scheme="default")
     VQuadelem._quad_scheme = 'default'
     fiberFS = FunctionSpace(mesh, VQuadelem)
-    isepiflip = False #False
-    isendoflip = False #True #True
+    isepiflip = True #False
+    isendoflip = True #True #True
     #endo_angle = 60; epi_angle = -60; 
     casedir="./"
     hslFS = FunctionSpace(mesh,Quadelem)
@@ -128,24 +128,30 @@ if __name__ == '__main__':
     create_ellipsoidal_LV(geofile = input_geo_file,
             output_vtk = output_vtk_str,
             casename=vtk_file_name,
-             meshsize=0.066, gmshcmd="gmsh", 
+             meshsize=0.06, gmshcmd="gmsh", 
              iswritemesh=True, verbose=False)
    
+   ############infarct paper meshes
     #1000 cell meshsize= 0.108  apex 1
     #1320 cell meshsize= 0.87  apex 1
     #2000 cell meshsize= 0.0685  apex 1
     #4000 cell meshsize= 0.0558  apex 1
     #3000 cell meshsize= 0.0622  apex 1
-
-
     #2000 cell meshsize= 0.0567  apex 2.4
     #1700 cell meshsize= 0.05785  apex 2
     #1500 cell meshsize= 0.0634  apex 2
     #1240 cell meshsize= 0.082  apex 1.4
     #4000 cell meshsize= 0.055  apex 1
     #mesh size base = 0.075 
+
+    ##########HCM paper meshes
+    #Original_mesh  meshsize= 0.085  
+    #50% finere  meshsize= 0.066
+    #100% finere  meshsize= 0.06
+
+
     # Set the path to save the mesh
-    output_folder = 'output_files/HCM_paper/finer_50%/'
+    output_folder = 'output_files/HCM_paper/finer_100%/'
 
     check_output_directory_folder(path = output_folder)
     vtk_file_str = 'input_files/' + '/' + \

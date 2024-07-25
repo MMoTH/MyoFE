@@ -603,7 +603,8 @@ class MeshClass():
                 project(self.model['functions']['hsl'],
                     self.model['function_spaces']['quadrature_space']).vector().get_local()[:]
         
-        self.model['functions']["passive_total_stress"], self.model['functions']["Sff"] ,self.model['functions']["myo_passive_PK2"],self.model['functions']["bulk_passive"],self.model['functions']["incomp_stress"] = \
+        self.model['functions']["passive_total_stress"], self.model['functions']["Sff"] ,self.model['functions']["myo_passive_PK2"],\
+        self.model['functions']["bulk_passive"],self.model['functions']["incomp_stress"],self.model['functions']["fiber_strain"] = \
             uflforms.stress(self.model['functions']["hsl"])
         
         temp_DG = project(self.model['functions']["Sff"], FunctionSpace(mesh, "DG", 1), form_compiler_parameters={"representation":"uflacs"})
@@ -689,6 +690,25 @@ class MeshClass():
         solver_params['boundary_conditions'] = self.model['boundary_conditions']
         solver_params['hsl'] = self.model['functions']['hsl']
         #nsolver = NSolver(params)
+
+        
+        ####MM: below strain parameters are just defiend for postprocessing purpeses
+
+        Ea = uflforms.Emat()
+        Ea = dolfin.variable(Ea)
+        ell = self.model['functions']["ell"]
+        err = self.model['functions']["err"]
+        ecc = self.model['functions']["ecc"]
+
+        e1 = Constant((1.0, 0.0, 0.0))
+        e2 = Constant((0.0, 1.0, 0.0))
+        e3 = Constant((0.0, 0.0, 1.0))
+
+        TransMatrix = as_tensor(f0[i]*e1[j], (i,j)) + as_tensor(s0[i]*e2[j], (i,j)) + as_tensor(n0[i]*e3[j], (i,j))
+
+        self.model['functions']["Ell"] = ell[i]*Ea[i,j]*ell[j]
+        self.model['functions']["Err"] = err[i]*Ea[i,j]*err[j]
+        self.model['functions']["Ecc"] = ecc[i]*Ea[i,j]*ecc[j]
 
         return Ftotal, Jac, uflforms, solver_params
        
@@ -799,4 +819,26 @@ class MeshClass():
 
         return cb_stress
     
-    
+    def Strain_calculator(self):
+        
+        
+        uflforms = Forms(params)
+        uflforms.Emat()
+        Ea = dolfin.variable(Ea)
+
+
+        f0 = self.model['functions']["f0"]
+        s0 = self.model['functions']["s0"]
+        n0 = self.model['functions']["n0"]
+
+
+        ell = self.model['functions']["ell"]
+        err = self.model['functions']["err"]
+        ecc = self.model['functions']["ecc"]
+
+        Ell = ell[i]*Ea[i,j]*ell[j]
+        Err = err[i]*Ea[i,j]*err[j]
+        Ecc = ecc[i]*Ea[i,j]*ecc[j]
+
+        return Ell,Err,Ecc
+        

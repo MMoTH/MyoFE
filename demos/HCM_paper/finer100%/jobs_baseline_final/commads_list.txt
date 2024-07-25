@@ -1,0 +1,6 @@
+sbatch job_baseline_final_Kappa_1_k1_3.7.sh
+sbatch job_baseline_final_Kappa_3_k1_3.7.sh
+sbatch job_baseline_final_Kappa_4_k1_3.7.sh
+sbatch job_baseline_final_Kappa_10_k1_3.7.sh
+sbatch job_baseline_final_Kappa_20_k1_3.7.sh
+END

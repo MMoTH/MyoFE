@@ -482,13 +482,15 @@ class LV_simulation():
                       'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz', 'fr_angle']:'''
             ##S0 and n0 is not saved for storage efficievy    
             for f in ['f01','f02','f03','lx','ly','lz','endo_dist',
-                      'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz', 'fr_angle']:  
+                      'eccx','eccy','eccz','errx','erry','errz','ellx','elly','ellz'
+                      ,'fr_angle','dx','dy','dz']:  
 
                 self.spatial_fiber_data_fields.append(f)
 
             for f in ['active_stress','total_passive','myofiber_passive',
                       'Sff_mesh','bulk_passive','incomp_stress',
-                      'cb_number_density','k_1','hs_length']:
+                      'cb_number_density','k_1','hs_length',
+                      'fiber_strain','Ell','Err','Ecc']:
                 self.spatial_extra.append(f)
             
             
@@ -642,7 +644,7 @@ class LV_simulation():
                         
                        
 
-                        if m in ['k_1','k_3','k_on','k_act','k_serca']:
+                        if m in ['k_1','k_3','k_on','k_act','k_serca','fiber_strain','Ell','Err','Ecc']:
                             temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scalar"])
 
@@ -1790,7 +1792,7 @@ class LV_simulation():
                                                 self.mesh.model['function_spaces']["scalar"])
                         
 
-                    if m in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density']:
+                    if m in ['k_1','k_3','k_on','k_act','k_serca','cb_number_density','fiber_strain','Ell','Err','Ecc']:
                             temp_obj = project(self.mesh.model['functions'][m], 
                                                 self.mesh.model['function_spaces']["scalar"])
                             
@@ -2171,6 +2173,19 @@ class LV_simulation():
             f0_y = f0_temp_3n[:,1]
             f0_z = f0_temp_3n[:,2]
 
+
+            ###since displacement is difiened in CG function space. here to get data in gauss poinst we project it to a qud vector space 
+
+            d_temp0 = project(self.mesh.model['functions']['w'].sub(0),self.mesh.model['function_spaces']['fiber_FS'])
+            d_temp = d_temp0.vector().get_local()[:]
+
+
+            
+            d_temp_3n = np.reshape(d_temp,(self.local_n_of_int_points,3))
+            d_x = d_temp_3n[:,0]
+            d_y = d_temp_3n[:,1]
+            d_z = d_temp_3n[:,2]
+
             gdim2 = self.mesh.model['mesh'].geometry().dim()
 
             self.lcoord = self.mesh.model['function_spaces']['quadrature_space'].\
@@ -2222,6 +2237,26 @@ class LV_simulation():
                 if f == 'fr_angle':
                     data_field = list(map(lambda x: round(x, 12), fr_angle))
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+
+                
+                if f == 'dx':
+                    data_field = list(map(lambda x: round(x, 6), d_x))
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                if f == 'dy':
+                    data_field = list(map(lambda x: round(x, 6), d_y))
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                if f == 'dz':
+                    data_field = list(map(lambda x: round(x, 6), d_z))
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+
+
+
+
+        
 
 
 
@@ -2301,6 +2336,17 @@ class LV_simulation():
                                     self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
 
 
+
+            fiber_strain = project(self.mesh.model['functions']['fiber_strain'],
+                              self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+            
+            Ell = project(self.mesh.model['functions']['Ell'],
+                              self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+            Err = project(self.mesh.model['functions']['Err'],
+                              self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+            Ecc = project(self.mesh.model['functions']['Ecc'],
+                              self.mesh.model['function_spaces']["quadrature_space"]).vector().get_local()[:]
+
 # Create a dictionary mapping the keys to the lists
             data_mapping = {
             'active_stress': active_stress,
@@ -2312,12 +2358,26 @@ class LV_simulation():
             'hs_length' : hs_length
             }
 
+
+            ### high res data for more accuracy
+            data_mapping2 = {
+            
+            'fiber_strain' : fiber_strain,
+            'Ell': Ell,
+            'Err': Err,
+            'Ecc': Ecc
+            }
+
             for f in self.spatial_extra:
                 data_field = []
                 
                 # Check if the key exists in the mapping
                 if f in data_mapping:
                     data_field = list(map(lambda x: round(float(x), 1), data_mapping[f]))
+                    self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
+
+                if f in data_mapping2:
+                    data_field = list(map(lambda x: round(float(x), 5), data_mapping2[f]))
                     self.local_spatial_sim_data[f].iloc[self.write_counter] = data_field
 
             

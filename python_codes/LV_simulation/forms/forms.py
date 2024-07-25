@@ -331,7 +331,7 @@ class Forms(object):
         #F=Fe
         J = self.J()
         #Ea = 0.5*(as_tensor(F[k,i]*F[k,j] - I[i,j], (i,j)))
-        Ea = self.Emat()
+        Ea = self.f()
         Ea = dolfin.variable(Ea)
         Ctensor = self.Cmat()
 
@@ -408,7 +408,7 @@ class Forms(object):
 
 
         # this is total PK2 for passive stress, including incompressibility
-        return S_global+PK2_global-p*inv(Ctensor), Sff, S_global
+        return S_global+PK2_global-p*inv(Ctensor), Sff, S_global,Eff
 
     def return_radial_vec_ratio(self):
 
