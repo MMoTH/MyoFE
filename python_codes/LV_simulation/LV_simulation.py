@@ -824,7 +824,8 @@ class LV_simulation():
                 self.handle_output(output_struct)
                 return
         
-        
+            if i % 10000 == 0:
+                self.handle_output(output_struct)
         
 
         # Now build up global data holders for 
@@ -2390,11 +2391,59 @@ class LV_simulation():
             print('Making output dir')
             os.makedirs(output_dir)
 
+    
+
+    def check_and_handle_large_integers(self, data_dict):
+        """
+        Check and handle abnormally large integers in a DataFrame.
+
+        :param df: The DataFrame to check.
+        :return: The cleaned DataFrame.
+        """
+        print ("check_and_handle_large_integers")
+        
+        MAX_VALUE = 2147483647
+        MAX_VALUE = 998
+        large_value_locations = []
+        
+        for key, df in data_dict.items():
+        
+    # Find large values
+            large_values = df > MAX_VALUE
+            
+            if large_values.any().any():
+                # Find indices of large values
+                indices = large_values.stack()[large_values.stack()].index
+                for row_idx, col_idx in indices:
+                    # Ensure indices are valid for iloc
+                    if isinstance(row_idx, int) and isinstance(col_idx, int):
+                        large_value = df.iloc[row_idx, col_idx]
+                        large_value_locations.append((key, row_idx, col_idx, large_value))
+                        df.iloc[row_idx, col_idx] = None  # Replace large value with None
+
+            data_dict[key] = df
+
+        if large_value_locations:
+                print("Abnormally large values found and handled at the following locations:")
+                for key, row_idx, col_idx, value in large_value_locations:
+                    print("Key:", key, "Row Index:", row_idx, "Column Index:", col_idx, "Value:", value)
+
+
+        return data_dict
+    
+    
     def handle_output(self, output_struct):
+
+        ### to avoid overflow erroe fist we check the spatial data intergers 
+        #self.local_spatial_sim_data = self.check_and_handle_large_integers(self.local_spatial_sim_data)
+
         """ Handle output data"""
         if self.comm.Get_size() > 1:
             # first send all local spatial data to root core (i.e. 0)
             if self.comm.Get_rank() != 0 :
+
+                
+
                 self.comm.send(self.local_spatial_sim_data,dest = 0,tag = 2)
 
            # let root core recieve them
@@ -2453,6 +2502,8 @@ class LV_simulation():
             print("Out_path:",out_path)
 
         return 
+    
+
     def rebuild_from_perturbations(self):
         """ builds system arrays that could change during simulation """
 
