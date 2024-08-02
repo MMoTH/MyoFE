@@ -45,8 +45,8 @@ ell = dolfin.Function(fiberFS)
 err = dolfin.Function(fiberFS)
 ecc = dolfin.Function(fiberFS)
 
-endo_dist = dolfin.Function(fiberFS)
-epi_dist = dolfin.Function(fiberFS)
+endo_dist = dolfin.Function(Quad)
+epi_dist = dolfin.Function(Quad)
 
 
 
@@ -60,7 +60,7 @@ f.read(ecc,"ellipsoidal/eC")
 f.read(endo_dist,"ellipsoidal/endo_dist")
 f.read(epi_dist,"ellipsoidal/epi_dist")
 
-
+cd .
 
 #gdim = mesh.geometry().dim()
 #fiberFS.sub(0).dofmap().dofs()

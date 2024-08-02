@@ -45,8 +45,8 @@ ell = dolfin.Function(fiberFS)
 err = dolfin.Function(fiberFS)
 ecc = dolfin.Function(fiberFS)
 
-endo_dist = dolfin.Function(fiberFS)
-epi_dist = dolfin.Function(fiberFS)
+endo_dist = dolfin.Function(Quad)
+epi_dist = dolfin.Function(Quad)
 
 
 
