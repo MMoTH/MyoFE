@@ -1,7 +1,7 @@
 {
     "protocol": {
         "no_of_time_steps": [
-            200000
+            10
         ],
         "time_step": [
             0.001

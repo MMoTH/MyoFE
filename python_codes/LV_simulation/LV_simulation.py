@@ -2444,24 +2444,45 @@ class LV_simulation():
 
                 #self.comm.send(self.local_spatial_sim_data,dest = 0,tag = 2)
 
+
+                # below approach is used for huge models that cause memory shortage    
                 for key in self.local_spatial_sim_data:
                     # Send each key-value pair as a chunk
                     chunk = {key: self.local_spatial_sim_data[key]}
                     print ("key ",key)
                     self.comm.send(chunk, dest=0, tag=2)
+                    print ("send done for ",key)
 
                 # Optionally, send a signal to indicate that all chunks have been sent
                 self.comm.send(None, dest=0, tag=2)
+
                 
-                self.comm.Barrier()
 
            # let root core recieve them
             if self.comm.Get_rank() == 0:
                 temp_data_holders = []
                 temp_data_holders.append(self.local_spatial_sim_data)
+
+    
                 # recieve local data from others 
                 for i in range(1,self.comm.Get_size()):
-                    temp_data_holders.append(self.comm.recv(source = i, tag = 2))
+                    
+                    #temp_data_holders.append(self.comm.recv(source = i, tag = 2))  ## normal version
+
+                    # below approach is used for huge models that cause memory shortage
+
+                    rank_data = {}
+                    while True:
+                        chunk = self.comm.recv(source=i, tag=2)
+                        if chunk is None:  # Check for termination signal
+                            break
+                        rank_data.update(chunk)  # Update the rank's data with the received chunk
+                    
+                    temp_data_holders.append(rank_data)
+
+
+
+
                 # now dump them to global data holders
                 print 'Spatial variables are being gathered from multiple computing cores'
                 if self.spatial_data_to_mean:
