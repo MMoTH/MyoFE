@@ -2442,9 +2442,16 @@ class LV_simulation():
             # first send all local spatial data to root core (i.e. 0)
             if self.comm.Get_rank() != 0 :
 
-                
+                #self.comm.send(self.local_spatial_sim_data,dest = 0,tag = 2)
 
-                self.comm.send(self.local_spatial_sim_data,dest = 0,tag = 2)
+                for key in self.local_spatial_sim_data:
+                    # Send each key-value pair as a chunk
+                    chunk = {key: self.local_spatial_sim_data[key]}
+                    print ("key ",key)
+                    self.comm.send(chunk, dest=0, tag=2)
+
+                # Optionally, send a signal to indicate that all chunks have been sent
+                self.comm.send(None, dest=0, tag=2)
 
            # let root core recieve them
             if self.comm.Get_rank() == 0:
