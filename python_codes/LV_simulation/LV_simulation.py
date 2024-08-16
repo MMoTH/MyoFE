@@ -2452,6 +2452,8 @@ class LV_simulation():
 
                 # Optionally, send a signal to indicate that all chunks have been sent
                 self.comm.send(None, dest=0, tag=2)
+                
+                self.comm.Barrier()
 
            # let root core recieve them
             if self.comm.Get_rank() == 0:
