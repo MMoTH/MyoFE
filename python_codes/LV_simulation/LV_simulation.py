@@ -2445,13 +2445,14 @@ class LV_simulation():
                 #self.comm.send(self.local_spatial_sim_data,dest = 0,tag = 2)
 
 
-                # below approach is used for huge models that cause memory shortage    
+                # below approach is used for huge models that cause memory shortage 
+                  
                 for key in self.local_spatial_sim_data:
                     # Send each key-value pair as a chunk
                     chunk = {key: self.local_spatial_sim_data[key]}
-                    print ("key ",key)
+                    #print ("key ",key)
                     self.comm.send(chunk, dest=0, tag=2)
-                    print ("send done for ",key)
+                    #print ("send done for ",key)
 
                 # Optionally, send a signal to indicate that all chunks have been sent
                 self.comm.send(None, dest=0, tag=2)
@@ -2460,6 +2461,9 @@ class LV_simulation():
 
            # let root core recieve them
             if self.comm.Get_rank() == 0:
+                print("comm spatial data in chunks") 
+
+                
                 temp_data_holders = []
                 temp_data_holders.append(self.local_spatial_sim_data)
 

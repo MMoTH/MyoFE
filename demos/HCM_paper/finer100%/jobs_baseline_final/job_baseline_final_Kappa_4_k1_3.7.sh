@@ -6,7 +6,7 @@
 #SBATCH --mem=185G                  # memory required per node - amount of memory (in bytes)
 #SBATCH --account=col_jfwe223_uksr
 #SBATCH --partition=SKY32M192_L# Partition/queue to run the job in. (REQUIRED)
-#SBATCH --output=/mnt/gpfs2_4m/scratch/mme250/HCM_paper/baseline_final/logs/output.%J.out # STDOUT
+#SBATCH --output=/mnt/gpfs2_4m/scratch/mme250/HCM_paper/finer100%/logs/output.%J.out # STDOUT
 cd ../../../../python_codes
-singularity exec --cleanenv /home/mme250/fenics.img  mpiexec -np $SLURM_NTASKS  python MyoFE.py LV_sim /home/mme250/MyoFE_mumps/MyoFE/demos/HCM_paper/finer100%/simulations_baseline_final/baseline_final_Kappa_4_k1_3.7/sim_inputs/input_parameters.json
+singularity exec --cleanenv /home/mme250/fenics.img  mpiexec -np $SLURM_NTASKS  python MyoFE.py LV_sim /home/mme250/MyoFE/demos/HCM_paper/finer100%/simulations_baseline_final/baseline_final_Kappa_4_k1_3.7/sim_inputs/input_parameters.json
 scontrol show job $SLURM_JOB_ID
