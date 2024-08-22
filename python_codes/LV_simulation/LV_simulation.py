@@ -824,7 +824,7 @@ class LV_simulation():
                 self.handle_output(output_struct)
                 return
         
-            if i % 10000 == 0:
+            if i % 20000 == 0:
                 self.handle_output(output_struct)
         
 
@@ -2463,7 +2463,7 @@ class LV_simulation():
             if self.comm.Get_rank() == 0:
                 print("comm spatial data in chunks") 
 
-                
+
                 temp_data_holders = []
                 temp_data_holders.append(self.local_spatial_sim_data)
 
