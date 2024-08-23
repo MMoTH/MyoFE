@@ -338,16 +338,18 @@ class NSolver(object):
 
             #self.costum_solver.solve(self.problem, w.vector())
             
-            '''solve(Ftotal == 0, w, bcs, J = Jac,
+            solve(Ftotal == 0, w, bcs, J = Jac,
                 solver_parameters={"newton_solver":
                                 {"relative_tolerance":rel_tol, 
                                  "absolute_tolerance":abs_tol, 
                                  "maximum_iterations":maxiter}}, 
-                                 form_compiler_parameters={"representation":"uflacs"})'''
+                                 form_compiler_parameters={"representation":"uflacs"})
+            if self.comm.Get_rank() == 0:
+                print ('LU solver')
 
 
             #### MM: Here is an example for assigning the linear solver within each iteration of Newton solver. without assignment it seem LU decomposition is used.
-            solve(Ftotal == 0, w, bcs, J = Jac,
+            '''solve(Ftotal == 0, w, bcs, J = Jac,
                 solver_parameters={"newton_solver": {
         "relative_tolerance": rel_tol,
         "absolute_tolerance": abs_tol,
@@ -355,7 +357,7 @@ class NSolver(object):
         "linear_solver": "mumps"},},
                                  form_compiler_parameters={"representation":"uflacs"})
             if self.comm.Get_rank() == 0:
-                print ('mumps')
+                print ('mumps')'''
 
             self.mesh_obj.model['functions']['w'] = w
                 
