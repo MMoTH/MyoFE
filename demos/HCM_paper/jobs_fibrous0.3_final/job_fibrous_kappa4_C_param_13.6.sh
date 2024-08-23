@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --time=13-00:00:00             # Time limit for the job (REQUIRED).
-#SBATCH --job-name=F4_K13.6
-#SBATCH --ntasks=16
+#SBATCH --job-name=bF4_K13.6
+#SBATCH --ntasks=8
 #SBATCH --cpus-per-task=1           # number of CPUs (or cores) per task (same as -c).
 #SBATCH --mem=180G                  # memory required per node - amount of memory (in bytes)
 #SBATCH --account=col_jfwe223_uksr
