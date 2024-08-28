@@ -547,6 +547,9 @@ class LV_simulation():
 
     def run_simulation(self,protocol_struct,output_struct=[]):
 
+        
+
+
         self.prot = prot.protocol(protocol_struct)
 
         self.l_f00 = self.mesh.model['functions']['f00'].vector().get_local()[:] # this should be localized here sice at the end to time loop this function space also reorients automatially. to save initial fiber it should be saved here
@@ -814,9 +817,12 @@ class LV_simulation():
                 self.output_data_str = output_struct['output_data_path'][0]
                 if self.comm.Get_rank() == 0: 
                     self.check_output_directory_folder(path = self.output_data_str)
-            
+        
+        self.cnt = 0  #### out of time loop
+
         for i in np.arange(self.prot.data['no_of_time_steps']+1):
             #self.implement_time_step(self.prot.data['time_step'])
+            
             try:
                 self.implement_time_step(self.prot.data['time_step'])
             except RuntimeError: 
@@ -835,7 +841,13 @@ class LV_simulation():
 
     def implement_time_step(self, time_step):
         """ Implements time step """
-        
+
+
+
+
+
+
+
         if self.comm.Get_rank() == 0:
             print '******** NEW TIME STEP ********'
             print (self.data['time'])
@@ -862,6 +874,8 @@ class LV_simulation():
         self.circ.data['mitral_reg_volume'] = reg_volumes[0]
         self.circ.data['aortic_reg_volume'] = reg_volumes[-1]
 
+
+
         # Check for baroreflex and implement
         if (self.br):
             self.data['baroreflex_active'] = 0
@@ -882,9 +896,6 @@ class LV_simulation():
             for p in ['k_1','k_3','k_on','k_act','k_serca']:
                 self.mesh.model['functions'][p].vector()[:] = \
                   self.mesh.data[p]
-
-
-        
 
 
         self.data['myocardium_vol'] = \
@@ -920,7 +931,6 @@ class LV_simulation():
                     if p.data['level'] == 'growth':
                         self.gr.data[p.data['variable']] += \
                             self.gr.data[p.data['variable']] * p.data['precentage_change']
-
 
 
         if self.infarct: 
@@ -1105,7 +1115,6 @@ class LV_simulation():
             self.sff_tracker = []
 
         # check myofiber stretch
-
         #alpha_f = project(self.mesh.model['functions']['alpha_f'], 
         #            FunctionSpace(self.mesh.model['mesh'], "DG", 1), 
         #            form_compiler_parameters={"representation":"uflacs"}).vector().get_local()[:]
@@ -1624,12 +1633,7 @@ class LV_simulation():
                         self.gr.initial_gr_cycle_counter += 1
 
 
-
-
 #############  FR class
-
-
-
   # Check for fiber reorientation and implement  (data addressing should be checked)
         if (self.fr):
             self.data['fr_active'] = 0
@@ -1737,31 +1741,114 @@ class LV_simulation():
             
         #MM in old code here f0 is being projected on fiber_FS. question: why is this needed as f0 is already on the fiber FS space
         #f0_vs_time_temp = project(self.mesh.model['functions']['f0'],self.mesh.model['function_spaces']['fiber_FS']).vector().get_local()[:]
-        
-        
+             
 #### below is one way of saving fiber data, which for now is not needed as we are saving fiber data in excell files as other params
 
-
         '''f0_vs_time_temp = self.mesh.model['functions']['f0'].vector().get_local()[:]
-        f0_vs_time_temp2_global = self.comm.gather(f0_vs_time_temp)
-                            
+        f0_vs_time_temp2_global = self.comm.gather(f0_vs_time_temp)                    
         if self.comm.Get_rank() == 0:
-
-            
             f0_vs_time_temp2_global = np.concatenate(f0_vs_time_temp2_global).ravel()
             f0_vs_time_temp2_global = np.reshape(f0_vs_time_temp2_global,(self.global_n_of_int_points,3))
-
             self.f0_vs_time_array[:,:,self.t_counter] = f0_vs_time_temp2_global
-
-
             print "SAVING F0 VS TIME ARRAY"
             np.save(self.instruction_data["output_handler"]['mesh_output_path'][0]+"/f0_vs_time.npy",self.f0_vs_time_array)'''
-
-
 
 ###################################
 
         
+
+        ###MM below if is just for checking progression of F tensor
+        if (self.comm.Get_rank() == 0):
+            print ("time",self.data['time'])  
+        #if self.data['time'] == 0.970 + (cnt*0.937) :
+
+        EPSILON = 1e-6
+        # Calculate the expected time
+        #diastole_time = 0.002 + (self.cnt * 0.01)
+        #systole_time = 0.004 + (self.cnt * 0.01)
+
+        diastole_time = 0.970 + (self.cnt * 0.937)
+        systole_time = 1.190 + (self.cnt * 0.937)
+
+        Ell = Function(self.mesh.model['function_spaces']['quadrature_space'])
+        Ecc = Function(self.mesh.model['function_spaces']['quadrature_space'])
+        Err = Function(self.mesh.model['function_spaces']['quadrature_space'])
+        self.mesh.model['functions']["Ell"] = Ell
+        self.mesh.model['functions']["Err"] = Ecc
+        self.mesh.model['functions']["Ecc"] = Err
+        # Check if the time is within the tolerance range
+        if abs(self.data['time'] - diastole_time) < EPSILON:
+
+            if (self.comm.Get_rank() == 0):
+                print ('tdia', diastole_time, "picked as peak diastole" )
+            V = TensorFunctionSpace(self.mesh.model['mesh'], "CG", 1)
+            self.Fdia = Function(V)
+            self.Fdia = (project(self.mesh.model['uflforms'].Fe(), V))
+          
+        #if self.data['time'] == 1.190 + (cnt*0.937) :
+            
+        if abs(self.data['time'] - systole_time) < EPSILON:
+            if (self.comm.Get_rank() == 0):
+                print ("cycle strain is being calculated")
+                print ('tsys',  systole_time, "picked as peak systole")
+        
+            self.Fsys = self.mesh.model['uflforms'].Fe()
+            # self.Fcycle = self.Fsys*(self.Fdia^-1)
+            i, j, k = indices(3)
+            self.Fcycle = as_tensor(self.Fsys[i,j]*inv(self.Fdia)[j,k], (i,k))
+            #self.Fcycle = as_tensor(self.Fsys* inv(self.Fdia))
+            #Fe = as_tensor(F[i,j]*inv(Fg)[j,k], (i,k))
+            self.Fdia_inv = inv(self.Fdia)
+            self.Fdia_sample = self.mesh.model['uflforms'].F_print(self.Fdia)
+            self.Fsys_sample = self.mesh.model['uflforms'].F_print(self.Fsys)
+            self.Fcyc_sample = self.mesh.model['uflforms'].F_print(self.Fcycle)
+            self.Fdia_inv = self.mesh.model['uflforms'].F_print(self.Fdia_inv)
+
+
+            u = self.mesh.model['functions']["u"]
+            d = u.ufl_domain().geometric_dimension()
+            I = Identity(d)
+            i, j, k = indices(3)
+            self.Ecycle = 0.5*(as_tensor(self.Fcycle[k,i]*self.Fcycle[k,j] - I[i,j], (i,j)))
+
+            self.Ecycle = dolfin.variable(self.Ecycle)
+
+            ell = self.mesh.model['functions']["ell"]
+            err = self.mesh.model['functions']["err"]
+            ecc = self.mesh.model['functions']["ecc"]
+
+            self.mesh.model['functions']["Ell"] = ell[i]*self.Ecycle[i,j]*ell[j]
+            self.mesh.model['functions']["Err"] = err[i]*self.Ecycle[i,j]*err[j]
+            self.mesh.model['functions']["Ecc"] = ecc[i]*self.Ecycle[i,j]*ecc[j]
+
+
+
+
+            self.cnt = self.cnt +1
+
+        
+        #if (self.comm.Get_rank() == 0) and (self.data['time'] == (0.003 + (cnt*0.004))):
+            if (self.comm.Get_rank() == 0):
+
+                print ('cnt', self.cnt )
+                print "Fdia Element {}:".format(10)
+                print(self.Fdia_sample)
+                print "Fsys Element {}:".format(10)
+                print(self.Fsys_sample)
+                print "Fcyc Element {}:".format(10)
+                print(self.Fcyc_sample)
+                print "Finv Element {}:".format(10)
+                print(self.Fdia_inv)
+
+        if (self.comm.Get_rank() == 0):
+                print ('cnt', self.cnt )
+
+
+
+
+
+
+
 
         self.update_data(time_step)
         if self.t_counter%self.dumping_data_frequency == 0:

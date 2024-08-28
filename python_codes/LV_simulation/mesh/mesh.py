@@ -295,6 +295,11 @@ class MeshClass():
 
         passive_total_stress = Function(self.model['function_spaces']['quadrature_space'])
 
+        Ell = Function(self.model['function_spaces']['quadrature_space'])
+        Ecc = Function(self.model['function_spaces']['quadrature_space'])
+        Err = Function(self.model['function_spaces']['quadrature_space'])
+
+
 
         if not predefined_functions:
             try:
@@ -386,6 +391,10 @@ class MeshClass():
         functions["epi_dist"] = epi_dist
 
         functions["passive_total_stress"] =passive_total_stress
+
+        functions["Ell"] =Ell
+        functions["Ecc"] =Ecc
+        functions["Err"] =Err
 
 
         return functions
@@ -706,9 +715,9 @@ class MeshClass():
 
         TransMatrix = as_tensor(f0[i]*e1[j], (i,j)) + as_tensor(s0[i]*e2[j], (i,j)) + as_tensor(n0[i]*e3[j], (i,j))
 
-        self.model['functions']["Ell"] = ell[i]*Ea[i,j]*ell[j]
+        '''self.model['functions']["Ell"] = ell[i]*Ea[i,j]*ell[j]
         self.model['functions']["Err"] = err[i]*Ea[i,j]*err[j]
-        self.model['functions']["Ecc"] = ecc[i]*Ea[i,j]*ecc[j]
+        self.model['functions']["Ecc"] = ecc[i]*Ea[i,j]*ecc[j]'''
 
         return Ftotal, Jac, uflforms, solver_params
        

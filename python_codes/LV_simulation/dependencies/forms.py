@@ -403,7 +403,8 @@ class Forms(object):
         d = u.ufl_domain().geometric_dimension()
         I = Identity(d)
         #F = self.Fmat()
-        F = self.Fe()
+
+
         #F = I + grad(u)
 
         #F=Fe
@@ -862,6 +863,7 @@ class Forms(object):
 
     def rand_walk(self,width):
 
+
         f0 = self.parameters["fiber"]
         for i in np.arange(np.shape(f0.vector().array())[0]/3):
             i = int(i)
@@ -870,3 +872,38 @@ class Forms(object):
             f0.vector()[i*3+2] = np.random.normal(f0.vector().array()[i*3+2],width)
 
         return f0
+    
+    def F_print(self,F):
+
+        mesh = self.parameters["mesh"]
+        
+        #F = self.Fe()
+        fs = TensorFunctionSpace(mesh, "DG", 0)
+        fs._quad_scheme = 'default'
+        fs_proj = project(F,fs,
+                form_compiler_parameters={"representation":"uflacs"})
+
+        F_projected = Function(fs)
+        F_values = fs_proj.vector().get_local()
+
+        # Get the mesh from F
+        mesh = fs_proj.function_space().mesh()
+        cell_dofs = fs_proj.function_space().dofmap().cell_dofs
+        num_cells = mesh.num_cells()
+
+        # Define the dimension of the deformation gradient tensor
+        dim = 3  # Assuming 3D problem with 3x3 tensor
+
+
+        cell_id = 10    
+        dofs = cell_dofs(cell_id)
+        # Extract the tensor values for this cell
+        tensor_values = np.array(F_values[dofs]).reshape((dim, dim))
+
+        return tensor_values
+
+    def cycle_strain(self):
+
+        mesh = self.parameters["mesh"]
+        
+        F = self.Fe()
