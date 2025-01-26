@@ -562,7 +562,7 @@ class MeshClass():
         #print 'after checking myofiber '
         #print self.model['functions']['myofiber_stretch'].vector()[:].get_local()
         self.y_split = np.array(split(self.model['functions']['y_vec']))
-
+                
 
         delta_hsl = self.model['functions']["delta_hsl"]
         """bin_pops = self.y_split[2 + np.arange(0, self.hs.myof.no_of_x_bins)]
@@ -647,6 +647,9 @@ class MeshClass():
 
         F4 = derivative(L4, w, wtest)
         self.F_list.append(F4)
+
+
+
         Ftotal = F1 + F2 + F3 + F4 
 
         Ftotal_growth = F1 + F2 + F3_p +  F4

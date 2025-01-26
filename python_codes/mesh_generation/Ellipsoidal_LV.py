@@ -22,7 +22,7 @@ from dolfin import *
 from mpi4py import MPI as pyMPI
 
 def EllipsoidalLVMEsh(vtk_file_str = 'ellipsoidal.vtk',output_file_str = '',
-                        quad_deg = 2, endo_angle = 40, epi_angle = -40,
+                        quad_deg = 2, endo_angle = 60, epi_angle = -60,
                         endo_hsl = 900, epi_hsl=1000):
 
     casename = 'ellipsoidal'
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
 
     # Set the path to save the mesh
-    output_folder = 'output_files/thin_apex_ms0.085_40degree/'
+    output_folder = 'output_files/thin_apex_ms0.085/'
 
     check_output_directory_folder(path = output_folder)
     vtk_file_str = 'input_files/' + '/' + \
@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
     EllipsoidalLVMEsh(vtk_file_str = vtk_file_str,
                         output_file_str = output_folder,
-                        quad_deg = 2, endo_angle = 40, epi_angle =-40,
+                        quad_deg = 2, endo_angle = 60, epi_angle =-60,
                         endo_hsl = 900, epi_hsl=1000)
 
 print ('mesh created')
