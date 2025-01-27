@@ -109,6 +109,12 @@
                 "type":["scalar"],
                 "element_type":["Quadrature"],
                 "degree": [2]
+            },
+            {
+                "name": ["fiber_FS"],
+                "type": ["vector" ],
+                "element_type": ["Quadrature" ],
+                "degree": [2]
             }
         ],
         "forms_parameters": 
