@@ -506,7 +506,7 @@ class LV_simulation():
                             self.spatial_extra
                             
 
-        '''if (self.gr != [] ):
+        if (self.gr != [] ):
             
             for k in self.gr.data.keys():
                 if k in ['gr_local_theta_fiber','gr_global_theta_fiber','gr_stimulus_fiber','gr_setpoint_fiber','gr_deviation_fiber',
@@ -521,7 +521,7 @@ class LV_simulation():
                         self.spatial_memb_data_fields+ \
                         self.spatial_fiber_data_fields+ \
                         self.spatial_gr_data_fields+\
-                            self.spatial_extra'''
+                            self.spatial_extra
 
         if in_average:
             spatial_data = pd.DataFrame()
