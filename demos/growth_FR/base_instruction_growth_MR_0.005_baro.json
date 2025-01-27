@@ -127,6 +127,26 @@
                 "type": ["vector" ],
                 "element_type": ["Quadrature" ],
                 "degree": [2]
+            },
+            {
+                "name": ["scalar_CG"],
+                "type": ["scalar"],
+                "element_type": ["CG"],
+                "degree": [1]
+            },
+            {
+                "name": [
+                    "scalar_DG0"
+                ],
+                "type": [
+                    "scalar"
+                ],
+                "element_type": [
+                    "DG"
+                ],
+                "degree": [
+                    0
+                ]
             }
         ],
         "forms_parameters": 
