@@ -502,8 +502,8 @@ class LV_simulation():
                             self.spatial_extra'''
         
         ### to save resutls space, here we save less results
-        data_field = self.spatial_fiber_data_fields+\
-                            self.spatial_extra
+        '''data_field = self.spatial_fiber_data_fields+\
+                            self.spatial_extra'''
                             
 
         if (self.gr != [] ):
@@ -516,11 +516,17 @@ class LV_simulation():
     
                     self.spatial_gr_data_fields.append(k)
 
-            data_field = self.spatial_hs_data_fields +\
+            '''data_field = self.spatial_hs_data_fields +\
                         self.spatial_myof_data_fields+\
                         self.spatial_memb_data_fields+ \
                         self.spatial_fiber_data_fields+ \
                         self.spatial_gr_data_fields+\
+                            self.spatial_extra'''
+            
+            #MM here is version for just Growth and remodling
+            
+            data_field = self.spatial_fiber_data_fields+\
+                         self.spatial_gr_data_fields+\
                             self.spatial_extra
 
         if in_average:
