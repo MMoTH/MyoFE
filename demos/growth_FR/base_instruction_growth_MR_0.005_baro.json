@@ -450,7 +450,7 @@
             "Helical_Angle"
         ],
         "growth_mesh_path": ["/mnt/gpfs2_4m/scratch/mme250/G&R_paper/MR_test/mesh_output"],     
-        "dumping_spatial_in_average":[true],
+        "dumping_spatial_in_average":[false],
         "frequency_n": [10]
         
         
