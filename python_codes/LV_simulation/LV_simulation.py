@@ -766,7 +766,7 @@ class LV_simulation():
                             
                         if m == 'total_passive':
                             temp_obj = project(inner(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['functions']['total_passive_PK2']*
+                                        self.mesh.model['functions']['passive_total_stress']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
@@ -2005,7 +2005,7 @@ class LV_simulation():
                             
                     if m == 'total_passive':
                         temp_obj = project(inner(self.mesh.model['functions']['f0'],
-                                        self.mesh.model['functions']['total_passive_PK2']*
+                                        self.mesh.model['functions']['passive_total_stress']*
                                         self.mesh.model['functions']['f0']),
                                         self.mesh.model['function_spaces']["scalar_for_active"],
                                         form_compiler_parameters={"representation":"uflacs"})
