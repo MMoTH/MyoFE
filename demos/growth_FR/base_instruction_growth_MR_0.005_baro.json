@@ -451,7 +451,7 @@
         ],
         "growth_mesh_path": ["/mnt/gpfs2_4m/scratch/mme250/G&R_paper/MR_test/mesh_output"],     
         "dumping_spatial_in_average":[false],
-        "frequency_n": [10]
+        "frequency_n": [20]
         
         
     }
