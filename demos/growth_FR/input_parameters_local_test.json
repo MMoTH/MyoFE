@@ -10,13 +10,13 @@
                         "mitral_insufficiency_conductance"
                     ], 
                     "t_stop_s": [
-                        40
+                        0.05
                     ], 
                     "total_change": [
                         0.005
                     ], 
                     "t_start_s": [
-                        30
+                        0.001
                     ], 
                     "level": [
                         "circulation"
@@ -31,13 +31,13 @@
                         400
                     ], 
                     "t_start_s": [
-                        20
+                        0.005
                     ]
                 }
             ]
         }, 
         "no_of_time_steps": [
-            150000
+            10
         ], 
         "baroreflex": {
             "activations": [
@@ -46,7 +46,7 @@
                         250
                     ], 
                     "t_start_s": [
-                        5
+                        0.002
                     ]
                 }
             ]
@@ -55,7 +55,7 @@
             "activations": [
                 {
                     "t_start_s": [
-                        5
+                        0.001
                     ],
                     "t_stop_s": [
                         200000
@@ -570,19 +570,18 @@
             "Helical_Angle"
         ], 
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_test2/sim_output/"
-        ], 
+            "../demos/growth_FR/test_output/sim_output"], 
         "dumping_spatial_in_average": [
             false
         ], 
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_test2/sim_output/data.csv"
+            "../demos/growth_FR/test_output/sim_output/data.csv"
         ], 
         "frequency_n": [
-            20
+            1
         ], 
         "growth_mesh_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_test2/mesh_output/"
+            "../demos/growth_FR/test_output/mesh_output/"
         ]
     }, 
     "mesh": {
