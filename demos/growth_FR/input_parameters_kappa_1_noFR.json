@@ -55,7 +55,7 @@
             "activations": [
                 {
                     "t_start_s": [
-                        10
+                        200000
                     ],
                     "t_stop_s": [
                         200000
@@ -511,7 +511,7 @@
                 "new_stress_kroon"
             ],
             "time_constant": [
-                2
+                1
             ]
         }
     }, 
@@ -570,19 +570,19 @@
             "Helical_Angle"
         ], 
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_test/sim_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_test2_nofr/sim_output/"
         ], 
         "dumping_spatial_in_average": [
             false
         ], 
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_test/sim_output/data.csv"
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_test2_nofr/sim_output/data.csv"
         ], 
         "frequency_n": [
             20
         ], 
         "growth_mesh_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_test/mesh_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_test2_nofr/mesh_output/"
         ]
     }, 
     "mesh": {

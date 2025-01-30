@@ -2219,6 +2219,12 @@ class LV_simulation():
 
         else:
 
+            ### MM here we save gr date in mean, differenc from other spatial data
+            if self.gr:
+                for f in list(self.spatial_gr_data_fields):
+                    data_field = self.gr.data[f]
+                    self.local_spatial_sim_data.at[self.write_counter,f] = np.mean(data_field)
+
 
             '''for f in self.spatial_hs_data_fields:
                 data_field = []
