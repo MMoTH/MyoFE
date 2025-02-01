@@ -1737,10 +1737,11 @@ class LV_simulation():
                 self.mesh.model['functions']["fdiff_ang"].vector()[:] = l_fdiff_ang
                 
 
+                if self.comm.Get_rank() == 0:
 
-                print "CHECKING NUMBER OF FIBER VECTORS"
-                print np.shape(self.mesh.model['functions']['f0'].vector().get_local())
-                print "Fiber orientation updated"
+                    print "CHECKING NUMBER OF FIBER VECTORS"
+                    print np.shape(self.mesh.model['functions']['f0'].vector().get_local())
+                    print "Fiber orientation updated"
                 
                 
        
@@ -1862,8 +1863,10 @@ class LV_simulation():
 
         self.update_data(time_step)
         if self.t_counter%self.dumping_data_frequency == 0:
-            print 'Dumping data ...'
+            
             if self.comm.Get_rank() == 0:
+                
+                print 'Dumping data ...'
                 self.write_complete_data_to_sim_data()
 
             # Now update local spatial data for each core
@@ -1877,7 +1880,10 @@ class LV_simulation():
             
             # save data on mesh
             if self.mesh_obj_to_save:
-                print 'Saving to 3d mesh'
+
+                if self.comm.Get_rank() == 0:
+                    print 'Saving to 3d mesh'
+                    
                 for m in self.mesh_obj_to_save:
                     if m == 'displacement':
                         temp_obj = self.mesh.model['functions']['w'].sub(0)

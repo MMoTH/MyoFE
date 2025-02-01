@@ -325,6 +325,8 @@ class growth_component():
         
         if self.parent.comm.Get_rank() == 0:
             print 'r\Returning stimulus signal!'
+                        
+
 
         """hsl = self.parent.mesh.model['functions']['hsl']
         f0 = self.parent.mesh.model['functions']['f0']

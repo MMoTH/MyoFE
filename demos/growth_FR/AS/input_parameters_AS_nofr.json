@@ -7,16 +7,16 @@
             "perturbations": [
                 {
                     "variable": [
-                        "mitral_insufficiency_conductance"
+                        "aorta_resistance"
                     ], 
                     "t_stop_s": [
-                        0.05
+                        40
                     ], 
                     "total_change": [
-                        0.005
+                        170
                     ], 
                     "t_start_s": [
-                        0.001
+                        30
                     ], 
                     "level": [
                         "circulation"
@@ -31,13 +31,13 @@
                         400
                     ], 
                     "t_start_s": [
-                        0.001
+                        20
                     ]
                 }
             ]
         }, 
         "no_of_time_steps": [
-            20
+            150000
         ], 
         "baroreflex": {
             "activations": [
@@ -46,7 +46,7 @@
                         250
                     ], 
                     "t_start_s": [
-                        0.002
+                        5
                     ]
                 }
             ]
@@ -55,7 +55,7 @@
             "activations": [
                 {
                     "t_start_s": [
-                        0.001
+                        200000
                     ],
                     "t_stop_s": [
                         200000
@@ -217,10 +217,33 @@
                         1.1
                     ], 
                     "signal": [
-                        "myofiber_passive_stress"
+                        "total_stress"
                     ], 
                     "type": [
-                        "fiber"
+                        "sheet"
+                    ], 
+                    "local_theta_min": [
+                        0.9
+                    ], 
+                    "theta_max": [
+                        1.5
+                    ]
+                }, 
+                {
+                    "theta_min": [
+                        0.5
+                    ], 
+                    "tau": [
+                        8
+                    ], 
+                    "local_theta_max": [
+                        1.1
+                    ], 
+                    "signal": [
+                        "total_stress"
+                    ], 
+                    "type": [
+                        "sheet_normal"
                     ], 
                     "local_theta_min": [
                         0.9
@@ -570,18 +593,18 @@
             "Helical_Angle"
         ], 
         "mesh_output_path": [
-            "../demos/growth_FR/test_output/sim_output"], 
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/AS_nofr/sim_output/"        ], 
         "dumping_spatial_in_average": [
-            true
+            false
         ], 
         "output_data_path": [
-            "../demos/growth_FR/test_output/sim_output/data.csv"
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/AS_nofr/sim_output/data.csv"
         ], 
         "frequency_n": [
-            1
+            20
         ], 
         "growth_mesh_path": [
-            "../demos/growth_FR/test_output/mesh_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/AS_nofr/mesh_output/"
         ]
     }, 
     "mesh": {
@@ -754,7 +777,7 @@
                     0
                 ]
             }
-        ], 
+        ],
         "apex_contractility": {
             "components": [
                 {
