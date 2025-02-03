@@ -1686,7 +1686,7 @@ class LV_simulation():
                 cnt =0 
                 cnt2 =0 
                 l1 = -0.02
-                l2 = -0.08
+                l2 = -0.1
 
                 for i in np.arange(self.local_n_of_int_points):
                     if self.lcoord[i][2]< l2:  # normal FR
