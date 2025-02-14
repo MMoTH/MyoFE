@@ -55,7 +55,7 @@
             "activations": [
                 {
                     "t_start_s": [
-                        5
+                        0.01
                     ],
                     "t_stop_s": [
                         200000

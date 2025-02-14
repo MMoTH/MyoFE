@@ -48,6 +48,9 @@ class fiber_reorientation():
         function_space = self.parent_params.mesh.model['function_spaces']['fiber_FS']
         self.f_adjusted = self.stress_law(self.data['signal'],time_step,function_space)
 
+
+
+
     def stress_law(self,s,time_step,function_space):
 
 
@@ -60,10 +63,38 @@ class fiber_reorientation():
         #f = PK2*f0/sqrt(abs(inner((Pf),(Pf))))
 
 
+
         kappa = self.data['time_constant']    
 
         f_proj = project(f,VectorFunctionSpace(mesh,"DG",1),
             form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
+        
+
+        
+        if self.parent_params.comm.Get_rank() == 0:
+
+            print ("chek f_proj", f_proj.vector().get_local()[1:10])
+
+        if self.parent_params.t_counter%4 == 0:
+
+            if self.parent_params.comm.Get_rank() == 0:
+                # Collect data in each iteration
+                self.parent_params.f_proj_value.append(f_proj.vector().get_local()[1:60])
+
+
+            # Convert lists to DataFrames
+
+                df_f_proj = pd.DataFrame(self.parent_params.f_proj_value)
+                
+                mesh_output_path ="/mnt/gpfs2_4m/scratch/mme250/gr_paper/no_perturb_MR/t_growth_40/sim_output/"
+
+                # Save each parameter to a separate CSV file
+
+                df_f_proj.to_csv(mesh_output_path + "f_proj_output.csv", index=False, header=False)
+
+
+
+
         #f_proj = project(f,self.parent_params.mesh.model['function_spaces']['fiber_FS'],
         #            form_compiler_parameters={"representation":"uflacs"})
         #f_proj = project(f,function_space)

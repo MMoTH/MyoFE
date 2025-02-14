@@ -31,13 +31,13 @@
                         400
                     ], 
                     "t_start_s": [
-                        0.001
+                        1
                     ]
                 }
             ]
         }, 
         "no_of_time_steps": [
-            20
+            3000
         ], 
         "baroreflex": {
             "activations": [
@@ -55,7 +55,7 @@
             "activations": [
                 {
                     "t_start_s": [
-                        0.001
+                        0.005
                     ],
                     "t_stop_s": [
                         200000
@@ -511,7 +511,7 @@
                 "new_stress_kroon"
             ],
             "time_constant": [
-                1
+                10
             ]
         }
     }, 
@@ -578,7 +578,7 @@
             "../demos/growth_FR/test_output/sim_output/data.csv"
         ], 
         "frequency_n": [
-            1
+            10
         ], 
         "growth_mesh_path": [
             "../demos/growth_FR/test_output/mesh_output/"

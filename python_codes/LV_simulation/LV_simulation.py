@@ -42,6 +42,12 @@ class LV_simulation():
     def __init__(self,comm, instruction_data):
 
 
+
+        self.f0_values = []
+        self.fdiff_values = []
+        self.lcoord_values = []
+        self.f_proj_value = []
+
         # Check for model input first
         if not "model" in  instruction_data:
            return 
@@ -563,6 +569,8 @@ class LV_simulation():
         self.prot = prot.protocol(protocol_struct)
 
         self.l_f00 = self.mesh.model['functions']['f00'].vector().get_local()[:] # this should be localized here sice at the end to time loop this function space also reorients automatially. to save initial fiber it should be saved here
+        
+
 
 
         # First setup the protocol for creating output data holders
@@ -1676,13 +1684,61 @@ class LV_simulation():
 
                 fdiff = self.fr.stress_law(self.fr.data['signal'],time_step,self.mesh.model['function_spaces']['fiber_FS'])
                 temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
+
+                
+
                 local_fdiff = fdiff.vector().get_local()[:]
+
+                
 
                 gdim2 = self.mesh.model['mesh'].geometry().dim()
                 self.lcoord = self.mesh.model['function_spaces']['quadrature_space'].\
                 tabulate_dof_coordinates().reshape((-1, gdim2))
                 ### Below not active now. since stress might not be realisic in base, we can exclude some basal points from fiber reoriantaion
                 #print('point n', np.shape(self.lcoord[:,2]))  
+                
+                if self.comm.Get_rank() == 0:
+
+                    print ("chek f0", self.mesh.model['functions']['f0'].vector().get_local()[1:10])
+                    print ("chek fdiff", fdiff.vector().get_local()[1:10])
+                    print ("chek self.lcoord", self.lcoord[:10, 2])
+
+
+                # Containers to store data
+                '''f0_values = []
+                fdiff_values = []
+                lcoord_values = []'''
+
+                if self.t_counter%4 == 0:
+
+                    if self.comm.Get_rank() == 0:
+                        # Collect data in each iteration
+                        self.f0_values.append(self.mesh.model['functions']['f0'].vector().get_local()[1:30])
+                        self.fdiff_values.append(fdiff.vector().get_local()[1:40])
+                        self.lcoord_values.append(self.lcoord[:50, 2] )
+
+                        #self.f_proj_value.append(self.fr.f_proj.vector().get_local()[1:20])
+
+
+                    # Convert lists to DataFrames
+                        df_f0 = pd.DataFrame(self.f0_values)
+                        df_fdiff = pd.DataFrame(self.fdiff_values)
+                        df_lcoord = pd.DataFrame(self.lcoord_values)
+                        #df_f_proj = pd.DataFrame(self.f_proj_value)
+#
+
+                        
+                        mesh_output_path ="/mnt/gpfs2_4m/scratch/mme250/gr_paper/no_perturb_MR/t_growth_40/sim_output/"
+
+
+                        # Save each parameter to a separate CSV file
+                        df_f0.to_csv(mesh_output_path + "f0_output.csv", index=False, header=False)
+                        df_fdiff.to_csv(mesh_output_path + "fdiff_output.csv", index=False, header=False)
+                        df_lcoord.to_csv(mesh_output_path + "lcoord_output.csv", index=False, header=False)
+                        #df_f_proj.to_csv(mesh_output_path + "f_proj_output.csv", index=False, header=False)
+
+
+                
                 """cnt =0 
                 cnt2 =0 
                 l1 = -0.02
@@ -1693,7 +1749,7 @@ class LV_simulation():
                 l1 = 0
                 l2 = -0.05
 
-                for i in np.arange(self.local_n_of_int_points):
+                '''for i in np.arange(self.local_n_of_int_points):
                     if self.lcoord[i][2]< l2:  # normal FR
                         # wrong way: temp_fiber[i] += local_fdiff[i]
                         temp_fiber[i*3:i*3+3]+= local_fdiff[i*3:i*3+3]
@@ -1704,13 +1760,13 @@ class LV_simulation():
 
                         coef = (l1-self.lcoord[i][2])/(l1-l2)
                         temp_fiber[i*3:i*3+3]+= local_fdiff[i*3:i*3+3] * coef 
-                        cnt2 = cnt2 +1
+                        cnt2 = cnt2 +1'''
                 #print ("cnt",cnt)  
                 #print ("cnt2",cnt2)  
 
 
                 ### all point FR
-                #temp_fiber += fdiff.vector().get_local()[:]
+                temp_fiber += fdiff.vector().get_local()[:]
                 self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
 
                 s1 , n1 ,f1= self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0'])
