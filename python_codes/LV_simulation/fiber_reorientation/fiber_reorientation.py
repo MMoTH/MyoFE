@@ -66,7 +66,16 @@ class fiber_reorientation():
 
         kappa = self.data['time_constant']    
 
+
+
+        traction_vector = project(PK2*f0,VectorFunctionSpace(mesh,"DG",1),
+            form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
+
         f_proj = project(f,VectorFunctionSpace(mesh,"DG",1),
+            form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
+        
+
+        f_proj_CG = project(f,VectorFunctionSpace(mesh,"CG",1),
             form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
         
 
@@ -74,23 +83,31 @@ class fiber_reorientation():
         if self.parent_params.comm.Get_rank() == 0:
 
             print ("chek f_proj", f_proj.vector().get_local()[1:10])
+            print ("chek f_proj_CG", f_proj_CG.vector().get_local()[1:10])
+            print ("chek traction_vector", traction_vector.vector().get_local()[1:10])
 
         if self.parent_params.t_counter%4 == 0:
 
             if self.parent_params.comm.Get_rank() == 0:
                 # Collect data in each iteration
                 self.parent_params.f_proj_value.append(f_proj.vector().get_local()[1:60])
+                self.parent_params.f_proj_CG_value.append(f_proj_CG.vector().get_local()[1:60])
+                self.parent_params.traction_vector_value.append(traction_vector.vector().get_local()[1:60])
 
 
             # Convert lists to DataFrames
 
                 df_f_proj = pd.DataFrame(self.parent_params.f_proj_value)
+                df_f_proj_CG = pd.DataFrame(self.parent_params.f_proj_CG_value)
+                df_traction_vector = pd.DataFrame(self.parent_params.traction_vector_value)
                 
                 mesh_output_path ="/mnt/gpfs2_4m/scratch/mme250/gr_paper/no_perturb_MR/t_growth_40/sim_output/"
 
                 # Save each parameter to a separate CSV file
 
                 df_f_proj.to_csv(mesh_output_path + "f_proj_output.csv", index=False, header=False)
+                df_f_proj_CG.to_csv(mesh_output_path + "f_proj_CG_output.csv", index=False, header=False)
+                df_traction_vector.to_csv(mesh_output_path + "traction_vector_output.csv", index=False, header=False)
 
 
 
