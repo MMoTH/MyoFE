@@ -47,6 +47,8 @@ class LV_simulation():
         self.fdiff_values = []
         self.lcoord_values = []
         self.f_proj_value = []
+        self.f_proj_CG_value = []
+        self.traction_vector_value = []
 
         # Check for model input first
         if not "model" in  instruction_data:
