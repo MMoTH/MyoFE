@@ -392,6 +392,9 @@ class MeshClass():
 
         functions["passive_total_stress"] =passive_total_stress
 
+        Pactive = Function(self.model['function_spaces']['quadrature_space'])
+        functions["Pactive"] = Pactive
+
         functions["Ell"] =Ell
         functions["Ecc"] =Ecc
         functions["Err"] =Err

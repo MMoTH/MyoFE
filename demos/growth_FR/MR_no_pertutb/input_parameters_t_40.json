@@ -10,7 +10,7 @@
                         400
                     ], 
                     "t_start_s": [
-                        40
+                        5
                     ]
                 }
             ]
@@ -25,7 +25,7 @@
                         250
                     ], 
                     "t_start_s": [
-                        5
+                        2
                     ]
                 }
             ]
@@ -34,7 +34,7 @@
             "activations": [
                 {
                     "t_start_s": [
-                        20
+                        3
                     ],
                     "t_stop_s": [
                         200000
@@ -490,7 +490,7 @@
                 "new_stress_kroon"
             ],
             "time_constant": [
-                4
+                10
             ]
         }
     }, 
@@ -552,7 +552,7 @@
             "/mnt/gpfs2_4m/scratch/mme250/gr_paper/no_perturb_MR/t_growth_40/sim_output/"
         ], 
         "dumping_spatial_in_average": [
-            false
+            true
         ], 
         "output_data_path": [
             "/mnt/gpfs2_4m/scratch/mme250/gr_paper/no_perturb_MR/t_growth_40/sim_output/data.csv"
