@@ -625,7 +625,9 @@ class MeshClass():
          
         self.model['functions']['PK2_local'],self.model['functions']['incomp'] = \
             uflforms.passivestress(self.model['functions']["hsl"])
-        self.model['functions']['total_stress'] = Pactive + self.model['functions']["passive_total_stress"]
+        #self.model['functions']['total_stress'] = Pactive + self.model['functions']["passive_total_stress"]
+
+        self.model['functions']['total_stress'] = self.model['functions']['Pactive'] + self.model['functions']["passive_total_stress"]
 
         #self.model['functions']['myofiber_stretch'] = self.model['functions']["hsl"]/self.model['functions']["hsl0"]
         self.model['functions']['alpha_f'] = alpha_f
