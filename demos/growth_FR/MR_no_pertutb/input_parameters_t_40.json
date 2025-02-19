@@ -10,7 +10,7 @@
                         400
                     ], 
                     "t_start_s": [
-                        5
+                        4
                     ]
                 }
             ]
@@ -210,7 +210,7 @@
                 }
             ], 
             "growth_frequency_n": [
-                4
+                2
             ]
         }, 
         "circulation": {

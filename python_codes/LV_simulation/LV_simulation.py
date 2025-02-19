@@ -49,6 +49,12 @@ class LV_simulation():
         self.f_proj_value = []
         self.f_proj_CG_value = []
         self.traction_vector_value = []
+        self.active_value = []
+        self.passive_value = []
+
+
+
+
 
         # Check for model input first
         if not "model" in  instruction_data:
