@@ -57,9 +57,22 @@ class fiber_reorientation():
         mesh = self.parent_params.mesh.model['mesh']
         PK2 = s                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
         f0 = self.parent_params.mesh.model['functions']['f0']
+
+        active = self.parent_params.mesh.model['functions']['Pactive'] 
+
+        passive = self.parent_params.mesh.model['functions']['passive_total_stress'] 
+
+
+        f_actvie = active*f0/(sqrt((inner(active*f0,active*f0))))
+
+        f_passive = passive*f0/(sqrt((inner(passive*f0,passive*f0))))
+
+        f = f_actvie + f_passive
+        
+        #f = PK2*f0/(sqrt((inner(PK2*f0,PK2*f0))))
+
         
         #Pf = (PK2*f0)
-        f = PK2*f0/(sqrt((inner(PK2*f0,PK2*f0))))
         #f = PK2*f0/sqrt(abs(inner((Pf),(Pf))))
 
 
@@ -69,9 +82,7 @@ class fiber_reorientation():
 
 
 
-        active = self.parent_params.mesh.model['functions']['Pactive'] 
-
-        passive = self.parent_params.mesh.model['functions']['passive_total_stress'] 
+        
 
 
 
@@ -82,10 +93,10 @@ class fiber_reorientation():
             form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
         
 
-        active_test = project(active*f0,VectorFunctionSpace(mesh,"CG",1),
+        active_test = project(active*f0,VectorFunctionSpace(mesh,"DG",1),
             form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
         
-        passive_test = project(passive*f0,VectorFunctionSpace(mesh,"CG",1),
+        passive_test = project(passive*f0,VectorFunctionSpace(mesh,"DG",1),
             form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
         
 
