@@ -55,20 +55,21 @@ class fiber_reorientation():
 
 
         mesh = self.parent_params.mesh.model['mesh']
+
+        ### because of an issue in growth and remodig we are not usein this stress anymore and hardcoded using active and passive separatly and mergin at the end for FR purposes
         PK2 = s                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
         f0 = self.parent_params.mesh.model['functions']['f0']
 
-        active = self.parent_params.mesh.model['functions']['Pactive'] 
 
+        ## below is the new modified approach that works with growth 
+        active = self.parent_params.mesh.model['functions']['Pactive'] 
         passive = self.parent_params.mesh.model['functions']['passive_total_stress'] 
 
-
         f_actvie = active*f0/(sqrt((inner(active*f0,active*f0))))
-
         f_passive = passive*f0/(sqrt((inner(passive*f0,passive*f0))))
 
         f = f_actvie + f_passive
-        
+
         #f = PK2*f0/(sqrt((inner(PK2*f0,PK2*f0))))
 
         
@@ -80,32 +81,29 @@ class fiber_reorientation():
         kappa = self.data['time_constant']   
 
 
-
+        f_proj = project(f,VectorFunctionSpace(mesh,"DG",1),
+            form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
 
         
 
 
 
+        
+        
+
+        
+        ## here we save details of FR to debugg
+        ''''
         traction_vector = project(PK2*f0,VectorFunctionSpace(mesh,"DG",1),
             form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
 
-        f_proj = project(f,VectorFunctionSpace(mesh,"DG",1),
-            form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
-        
-
+    
         active_test = project(active*f0,VectorFunctionSpace(mesh,"DG",1),
             form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
         
         passive_test = project(passive*f0,VectorFunctionSpace(mesh,"DG",1),
             form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
         
-
-        
-        if self.parent_params.comm.Get_rank() == 0:
-
-            print ("chek f_proj", f_proj.vector().get_local()[1:10])
-            print ("chek traction_vector", traction_vector.vector().get_local()[1:10])
-
         if self.parent_params.t_counter%4 == 0:
 
             if self.parent_params.comm.Get_rank() == 0:
@@ -117,7 +115,6 @@ class fiber_reorientation():
 
 
             # Convert lists to DataFrames
-
                 df_f_proj = pd.DataFrame(self.parent_params.f_proj_value)
                 df_traction_vector = pd.DataFrame(self.parent_params.traction_vector_value)
                 df_active_vector = pd.DataFrame(self.parent_params.active_value)
@@ -130,7 +127,7 @@ class fiber_reorientation():
                 df_f_proj.to_csv(mesh_output_path + "f_proj_output.csv", index=False, header=False)
                 df_traction_vector.to_csv(mesh_output_path + "traction_vector_output.csv", index=False, header=False)
                 df_active_vector.to_csv(mesh_output_path + "active_vector_output.csv", index=False, header=False)
-                df_passive_vector.to_csv(mesh_output_path + "passive_vector_output.csv", index=False, header=False)
+                df_passive_vector.to_csv(mesh_output_path + "passive_vector_output.csv", index=False, header=False)''''
 
 
 
