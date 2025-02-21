@@ -93,7 +93,7 @@ class fiber_reorientation():
 
         
         ## here we save details of FR to debugg
-        ''''
+        '''
         traction_vector = project(PK2*f0,VectorFunctionSpace(mesh,"DG",1),
             form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
 
@@ -127,7 +127,7 @@ class fiber_reorientation():
                 df_f_proj.to_csv(mesh_output_path + "f_proj_output.csv", index=False, header=False)
                 df_traction_vector.to_csv(mesh_output_path + "traction_vector_output.csv", index=False, header=False)
                 df_active_vector.to_csv(mesh_output_path + "active_vector_output.csv", index=False, header=False)
-                df_passive_vector.to_csv(mesh_output_path + "passive_vector_output.csv", index=False, header=False)''''
+                df_passive_vector.to_csv(mesh_output_path + "passive_vector_output.csv", index=False, header=False)'''
 
 
 
