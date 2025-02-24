@@ -3,39 +3,6 @@
         "time_step": [
             0.001
         ], 
-        "perturbation": {
-            "perturbations": [
-                {
-                    "variable": [
-                        "mitral_insufficiency_conductance"
-                    ], 
-                    "t_stop_s": [
-                        1000
-                    ], 
-                    "total_change": [
-                        0.005
-                    ], 
-                    "t_start_s": [
-                        1000
-                    ], 
-                    "level": [
-                        "circulation"
-                    ]
-                }
-            ]
-        }, 
-        "growth": {
-            "activations": [
-                {
-                    "t_stop_s": [
-                        1000
-                    ], 
-                    "t_start_s": [
-                        1000
-                    ]
-                }
-            ]
-        }, 
         "no_of_time_steps": [
             200000
         ], 
