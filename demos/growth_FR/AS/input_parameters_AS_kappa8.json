@@ -10,13 +10,13 @@
                         "aorta_resistance"
                     ], 
                     "t_stop_s": [
-                        40
+                        60
                     ], 
                     "total_change": [
                         170
                     ], 
                     "t_start_s": [
-                        30
+                        50
                     ], 
                     "level": [
                         "circulation"
@@ -31,13 +31,13 @@
                         400
                     ], 
                     "t_start_s": [
-                        20
+                        40
                     ]
                 }
             ]
         }, 
         "no_of_time_steps": [
-            150000
+            200000
         ], 
         "baroreflex": {
             "activations": [
@@ -55,7 +55,7 @@
             "activations": [
                 {
                     "t_start_s": [
-                        5
+                        20
                     ],
                     "t_stop_s": [
                         200000
@@ -340,7 +340,7 @@
                         2.0
                     ], 
                     "compliance": [
-                        0.1078
+                        0.07
                     ], 
                     "name": [
                         "veins"
@@ -534,7 +534,7 @@
                 "new_stress_kroon"
             ],
             "time_constant": [
-                3
+                8
             ]
         }
     }, 
@@ -593,18 +593,18 @@
             "Helical_Angle"
         ], 
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/AS_kappa3/sim_output/"        ], 
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/AS/AS_kappa8/sim_output/"        ], 
         "dumping_spatial_in_average": [
             false
         ], 
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/AS_kappa3/sim_output/data.csv"
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/AS/AS_kappa8/sim_output/data.csv"
         ], 
         "frequency_n": [
             20
         ], 
         "growth_mesh_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/AS_kappa3/mesh_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/AS/AS_kappa8/mesh_output/"
         ]
     }, 
     "mesh": {
