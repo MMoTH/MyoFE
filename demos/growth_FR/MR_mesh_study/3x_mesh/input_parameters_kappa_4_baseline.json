@@ -756,7 +756,7 @@
             ]
         }, 
         "mesh_path": [
-            "../demos/demos/growth_FR/MR_mesh_study/3x_mesh/mesh/ellipsoidal.hdf5"
+            "../demos/growth_FR/MR_mesh_study/3x_mesh/mesh/ellipsoidal.hdf5"
         ], 
         "relative_path": [
             true
