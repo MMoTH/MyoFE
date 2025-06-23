@@ -528,61 +528,22 @@
     }, 
     "output_handler": {
         "mesh_object_to_save": [
-            "displacement", 
-            "active_stress", 
-            "total_stress", 
-            "total_passive", 
-            "myofiber_passive", 
-            "hs_length", 
-            "facetboundaries", 
-            "k_1", 
-            "k_3", 
-            "k_on", 
-            "k_act", 
-            "k_serca", 
-            "local_theta_vis_sheet", 
-            "global_theta_vis_sheet", 
-            "local_theta_vis_fiber", 
-            "global_theta_vis_fiber", 
-            "deviation_sheet", 
-            "stimulus_sheet", 
-            "setpoint_sheet", 
-            "local_theta_vis_sheet_normal", 
-            "global_theta_vis_sheet_normal", 
-            "deviation_sheet_normal", 
-            "stimulus_sheet_normal", 
-            "setpoint_sheet_normal", 
-            "deviation_fiber", 
-            "stimulus_fiber", 
-            "setpoint_fiber",
-            "active_stress_DG0",
-            "reorienting_angle",
-            "c_param",
-            "c_param_DG0",
-            "fiber_direction",
-            "endo_distance",
-            "cb_number_density_DG0",
-            "cb_number_density",
-            "k_1",
-            "k_1_DG0",
-            "total_stress_vector",
-            "Transverse_Angle",
-            "Helical_Angle"
+            
         ], 
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_lower_cvein/MR_kappa4/sim_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/final_models/MR_growth_baro_FR/sim_output/"
         ], 
         "dumping_spatial_in_average": [
-            false
+            true
         ], 
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_lower_cvein/MR_kappa4/sim_output/data.csv"
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/final_models/MR_growth_baro_FR/sim_output/data.csv"
         ], 
         "frequency_n": [
-            20
+            1
         ], 
         "growth_mesh_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/MR_lower_cvein/MR_kappa4/mesh_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/gr_paper/final_models/MR_growth_baro_FR/mesh_output/"
         ]
     }, 
     "mesh": {
