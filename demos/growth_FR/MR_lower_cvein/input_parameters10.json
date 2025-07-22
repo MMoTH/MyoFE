@@ -1,0 +1,809 @@
+{
+    "protocol": {
+        "time_step": [
+            0.001
+        ], 
+        "perturbation": {
+            "perturbations": [
+                {
+                    "variable": [
+                        "mitral_insufficiency_conductance"
+                    ], 
+                    "t_stop_s": [
+                        40
+                    ], 
+                    "total_change": [
+                        0.005
+                    ], 
+                    "t_start_s": [
+                        30
+                    ], 
+                    "level": [
+                        "circulation"
+                    ]
+                }
+            ]
+        }, 
+        "growth": {
+            "activations": [
+                {
+                    "t_stop_s": [
+                        400
+                    ], 
+                    "t_start_s": [
+                        20
+                    ]
+                }
+            ]
+        }, 
+        "no_of_time_steps": [
+            150000
+        ], 
+        "baroreflex": {
+            "activations": [
+                {
+                    "t_stop_s": [
+                        250000
+                    ], 
+                    "t_start_s": [
+                        50000
+                    ]
+                }
+            ]
+        },
+        "fiber_reorientation": {
+            "activations": [
+                {
+                    "t_start_s": [
+                        300000
+                    ],
+                    "t_stop_s": [
+                        400000
+                    ]
+                }
+            ]
+        }
+    }, 
+    "model": {
+        "half_sarcomere": {
+            "myofilaments": {
+                "int_passive_l_slack": [
+                    850
+                ], 
+                "k_2": [
+                    200
+                ], 
+                "k_on": [
+                    173500000.0
+                ], 
+                "x_ps": [
+                    5.2
+                ], 
+                "prop_fibrosis": [
+                    0.0
+                ], 
+                "k_off": [
+                    200
+                ], 
+                "k_3": [
+                    80
+                ], 
+                "k_4_1": [
+                    1.5
+                ], 
+                "int_passive_exp_sigma": [
+                    100
+                ], 
+                "ext_passive_exp_sigma": [
+                    100
+                ], 
+                "k_cb": [
+                    0.001
+                ], 
+                "k_1": [
+                    4.92
+                ], 
+                "ext_passive_exp_L": [
+                    70
+                ], 
+                "k_4_0": [
+                    80
+                ], 
+                "implementation": {
+                    "max_rate": [
+                        2000
+                    ], 
+                    "int_passive_mode": [
+                        "exponential"
+                    ], 
+                    "kinetic_scheme": [
+                        "3_state_with_SRX"
+                    ], 
+                    "bare_zone_length": [
+                        80
+                    ], 
+                    "bin_min": [
+                        -10
+                    ], 
+                    "delta_G_ATP": [
+                        70000
+                    ], 
+                    "thick_filament_length": [
+                        815
+                    ], 
+                    "ext_passive_mode": [
+                        "exponential"
+                    ], 
+                    "reference_hsl_0": [
+                        1100
+                    ], 
+                    "bin_width": [
+                        1
+                    ], 
+                    "temperature": [
+                        310
+                    ], 
+                    "thick_wall_approximation": [
+                        true
+                    ], 
+                    "bin_max": [
+                        10
+                    ], 
+                    "filament_compliance_factor": [
+                        0.5
+                    ], 
+                    "thin_filament_length": [
+                        1120
+                    ]
+                }, 
+                "prop_myofilaments": [
+                    0.6
+                ], 
+                "cb_number_density": [
+                    6.9e+16
+                ], 
+                "ext_passive_l_slack": [
+                    950
+                ], 
+                "k_force": [
+                    0.001
+                ], 
+                "int_passive_exp_L": [
+                    75
+                ], 
+                "k_coop": [
+                    5
+                ]
+            }, 
+            "reference_hs_length": [
+                1100
+            ], 
+            "initial_hs_length": [
+                900
+            ], 
+            "membranes": {
+                "t_open": [
+                    0.01
+                ], 
+                "k_act": [
+                    0.0806
+                ], 
+                "implementation": {
+                    "kinetic_scheme": [
+                        "simple_2_compartment"
+                    ]
+                }, 
+                "k_leak": [
+                    0.0006
+                ], 
+                "k_serca": [
+                    7.866
+                ], 
+                "Ca_content": [
+                    0.001
+                ]
+            }
+        }, 
+        "growth": {
+            "components": [
+                {
+                    "theta_min": [
+                        0.5
+                    ], 
+                    "tau": [
+                        8
+                    ], 
+                    "local_theta_max": [
+                        1.1
+                    ], 
+                    "signal": [
+                        "myofiber_passive_stress"
+                    ], 
+                    "type": [
+                        "fiber"
+                    ], 
+                    "local_theta_min": [
+                        0.9
+                    ], 
+                    "theta_max": [
+                        1.5
+                    ]
+                }
+            ], 
+            "growth_frequency_n": [
+                4
+            ]
+        }, 
+        "circulation": {
+            "blood_volume": [
+                4.5
+            ], 
+            "model_scheme": [
+                "LV_with_6_compartments"
+            ], 
+            "compartments": [
+                {
+                    "slack_volume": [
+                        0.3
+                    ], 
+                    "compliance": [
+                        0.0004
+                    ], 
+                    "name": [
+                        "aorta"
+                    ], 
+                    "resistance": [
+                        20
+                    ]
+                }, 
+                {
+                    "slack_volume": [
+                        0.3
+                    ], 
+                    "compliance": [
+                        0.0008
+                    ], 
+                    "name": [
+                        "arteries"
+                    ], 
+                    "resistance": [
+                        20
+                    ]
+                }, 
+                {
+                    "slack_volume": [
+                        0.1
+                    ], 
+                    "compliance": [
+                        0.001
+                    ], 
+                    "name": [
+                        "arterioles"
+                    ], 
+                    "resistance": [
+                        787
+                    ]
+                }, 
+                {
+                    "slack_volume": [
+                        0.25
+                    ], 
+                    "compliance": [
+                        0.01
+                    ], 
+                    "name": [
+                        "capillaries"
+                    ], 
+                    "resistance": [
+                        350
+                    ]
+                }, 
+                {
+                    "slack_volume": [
+                        0.5
+                    ], 
+                    "compliance": [
+                        0.03
+                    ], 
+                    "name": [
+                        "venules"
+                    ], 
+                    "resistance": [
+                        50
+                    ]
+                }, 
+                {
+                    "slack_volume": [
+                        2.0
+                    ], 
+                    "compliance": [
+                        0.07
+                    ], 
+                    "name": [
+                        "veins"
+                    ], 
+                    "resistance": [
+                        50
+                    ]
+                }, 
+                {
+                    "slack_volume": [
+                        0.06
+                    ], 
+                    "resistance": [
+                        10
+                    ], 
+                    "initial_ed_volume": [
+                        0.15
+                    ], 
+                    "name": [
+                        "ventricle"
+                    ], 
+                    "wall_density": [
+                        1055
+                    ]
+                }
+            ]
+        }, 
+        "baroreflex": {
+            "k_recov": [
+                0
+            ], 
+            "b_slope": [
+                0.02
+            ], 
+            "k_drive": [
+                20
+            ], 
+            "controls": {
+                "control": [
+                    {
+                        "level": [
+                            "heart_rate"
+                        ], 
+                        "k_recov": [
+                            0.0
+                        ], 
+                        "k_drive": [
+                            0.03
+                        ], 
+                        "symp_factor": [
+                            0.386
+                        ], 
+                        "para_factor": [
+                            1.753497
+                        ], 
+                        "variable": [
+                            "t_quiescent_period"
+                        ]
+                    }, 
+                    {
+                        "level": [
+                            "membranes"
+                        ], 
+                        "k_recov": [
+                            0.0
+                        ], 
+                        "k_drive": [
+                            0.03
+                        ], 
+                        "symp_factor": [
+                            5.0
+                        ], 
+                        "para_factor": [
+                            0.2
+                        ], 
+                        "variable": [
+                            "k_act"
+                        ]
+                    }, 
+                    {
+                        "level": [
+                            "membranes"
+                        ], 
+                        "k_recov": [
+                            0.0
+                        ], 
+                        "k_drive": [
+                            0.03
+                        ], 
+                        "symp_factor": [
+                            5
+                        ], 
+                        "para_factor": [
+                            0.2
+                        ], 
+                        "variable": [
+                            "k_serca"
+                        ]
+                    }, 
+                    {
+                        "level": [
+                            "myofilaments"
+                        ], 
+                        "k_recov": [
+                            0.0
+                        ], 
+                        "k_drive": [
+                            0.03
+                        ], 
+                        "symp_factor": [
+                            5
+                        ], 
+                        "para_factor": [
+                            0.2
+                        ], 
+                        "variable": [
+                            "k_1"
+                        ]
+                    }, 
+                    {
+                        "level": [
+                            "myofilaments"
+                        ], 
+                        "k_recov": [
+                            0.0
+                        ], 
+                        "k_drive": [
+                            0.03
+                        ], 
+                        "symp_factor": [
+                            0.5
+                        ], 
+                        "para_factor": [
+                            2
+                        ], 
+                        "variable": [
+                            "k_on"
+                        ]
+                    }, 
+                    {
+                        "level": [
+                            "circulation"
+                        ], 
+                        "k_recov": [
+                            0.0
+                        ], 
+                        "k_drive": [
+                            0.03
+                        ], 
+                        "symp_factor": [
+                            5
+                        ], 
+                        "para_factor": [
+                            0.2
+                        ], 
+                        "variable": [
+                            "arterioles_resistance"
+                        ]
+                    }, 
+                    {
+                        "level": [
+                            "circulation"
+                        ], 
+                        "k_recov": [
+                            0.0
+                        ], 
+                        "k_drive": [
+                            0.03
+                        ], 
+                        "symp_factor": [
+                            0.2
+                        ], 
+                        "para_factor": [
+                            5
+                        ], 
+                        "variable": [
+                            "veins_compliance"
+                        ]
+                    }
+                ]
+            }, 
+            "b_setpoint": [
+                90
+            ]
+        },
+        "fiber_reorientation": {
+            "stress_type": [
+                "total_stress"
+            ],
+            "law": [
+                "new_stress_kroon"
+            ],
+            "time_constant": [
+                4
+            ]
+        }
+    }, 
+    "heart_rate": {
+        "t_active_period": [
+            0.003
+        ], 
+        "t_first_activation": [
+            0.1
+        ], 
+        "t_quiescent_period": [
+            0.92
+        ]
+    }, 
+    "output_handler": {
+        "mesh_object_to_save": [
+            "displacement", 
+            "fiber_strain",
+            "active_stress", 
+            "total_stress", 
+            "total_passive", 
+            "myofiber_passive", 
+            "total_stress_vector"
+            
+        ], 
+        "mesh_output_path": [
+            "/mnt/gpfs2_4m/scratch/sba431/HCM_paper/growthmr8/sim_output/"
+        ], 
+        "dumping_spatial_in_average": [
+            false
+        ], 
+        "output_data_path": [
+            "/mnt/gpfs2_4m/scratch/sba431/HCM_paper/growthmr8/sim_output/data.csv"
+        ], 
+        "frequency_n": [
+            10
+        ], 
+        "growth_mesh_path": [
+            "/mnt/gpfs2_4m/scratch/sba431/HCM_paper/growthmr8/mesh_output/"
+        ]
+    }, 
+    "mesh": {
+        "solver": {
+            "params": {
+                "debugging_mode": [
+                    false
+                ], 
+                "rel_tol": [
+                    1e-08
+                ], 
+                "max_iter": [
+                    300
+                ], 
+                "abs_tol": [
+                    1e-08
+                ]
+            }
+        }, 
+        "function_spaces": [
+            {
+                "element_type": [
+                    "DG"
+                ], 
+                "type": [
+                    "scalar"
+                ], 
+                "name": [
+                    "stimulusFS"
+                ], 
+                "degree": [
+                    1
+                ]
+            }, 
+            {
+                "element_type": [
+                    "DG"
+                ], 
+                "type": [
+                    "scalar"
+                ], 
+                "name": [
+                    "scalar"
+                ], 
+                "degree": [
+                    1
+                ]
+            }, 
+            {
+                "element_type": [
+                    "DG"
+                ], 
+                "type": [
+                    "tensor"
+                ], 
+                "name": [
+                    "tensor_space"
+                ], 
+                "degree": [
+                    1
+                ]
+            }, 
+            {
+                "element_type": [
+                    "DG"
+                ], 
+                "type": [
+                    "scalar"
+                ], 
+                "name": [
+                    "growth_scalar_FS"
+                ], 
+                "degree": [
+                    1
+                ]
+            }, 
+            {
+                "element_type": [
+                    "DG"
+                ], 
+                "type": [
+                    "scalar"
+                ], 
+                "name": [
+                    "scalar_for_growth"
+                ], 
+                "degree": [
+                    0
+                ]
+            }, 
+            {
+                "element_type": [
+                    "DG"
+                ], 
+                "type": [
+                    "scalar"
+                ], 
+                "name": [
+                    "scalar_for_active"
+                ], 
+                "degree": [
+                    0
+                ]
+            }, 
+            {
+                "element_type": [
+                    "DG"
+                ], 
+                "type": [
+                    "tensor"
+                ], 
+                "name": [
+                    "growth_tensor_FS"
+                ], 
+                "degree": [
+                    1
+                ]
+            }, 
+            {
+                "element_type": [
+                    "Quadrature"
+                ], 
+                "type": [
+                    "vector"
+                ], 
+                "name": [
+                    "material_coord_system_space"
+                ], 
+                "degree": [
+                    2
+                ]
+            }, 
+            {
+                "element_type": [
+                    "Quadrature"
+                ], 
+                "type": [
+                    "scalar"
+                ], 
+                "name": [
+                    "quadrature_space"
+                ], 
+                "degree": [
+                    2
+                ]
+            },
+            {
+                "name": ["fiber_FS"],
+                "type": ["vector" ],
+                "element_type": ["Quadrature" ],
+                "degree": [2]
+            },
+            {
+                "name": ["scalar_CG"],
+                "type": ["scalar"],
+                "element_type": ["CG"],
+                "degree": [1]
+            },
+            {
+                "name": [
+                    "scalar_DG0"
+                ],
+                "type": [
+                    "scalar"
+                ],
+                "element_type": [
+                    "DG"
+                ],
+                "degree": [
+                    0
+                ]
+            }
+        ], 
+        "apex_contractility": {
+            "components": [
+                {
+                    "variable": [
+                        "k_1"
+                    ], 
+                    "level": [
+                        "myofilaments"
+                    ], 
+                    "radius_ratio": [
+                        0.4
+                    ], 
+                    "factor": [
+                        1
+                    ]
+                }, 
+                {
+                    "variable": [
+                        "k_on"
+                    ], 
+                    "level": [
+                        "myofilaments"
+                    ], 
+                    "radius_ratio": [
+                        0.4
+                    ], 
+                    "factor": [
+                        1
+                    ]
+                }
+            ]
+        }, 
+        "mesh_path": [
+            "../demos/HCM_paper/simulations_baseline_final/baseline_final_Kappa_4_k1_3.7/sim_inputs/ellipsoidal.hdf5"
+        ], 
+        "relative_path": [
+            true
+        ], 
+        "forms_parameters": {
+            "passive_law_parameters": {
+                "passive_law": [
+                    "Holzapfel"
+                ],
+                "c": [
+                    200
+                ], 
+                "c2": [
+                    250
+                ],
+                "c3": [
+                    15.0
+                ],
+                "hbf": [
+                    3.8
+                ],
+                "hbfs": [
+                    2.9
+                ],
+                "hbs": [
+                    1.5998
+                ],
+                "hb": [
+                    3.0
+                ],
+                "a": [
+                    94.36
+                ],
+                "af": [
+                    700.0
+                ],
+                "as_": [
+                    350.0
+                ],
+                "afs": [
+                    164.08
+                ],
+                "phi_m": [
+                    1.0
+                ]
+            }
+        }
+    }
+}
