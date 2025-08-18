@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=13-00:00:00             # Time limit for the job (REQUIRED).
+#SBATCH --time=00-00:50:00             # Time limit for the job (REQUIRED).
 #SBATCH --job-name=AS_noFR
 #SBATCH --ntasks=32
 #SBATCH --cpus-per-task=1           # number of CPUs (or cores) per task (same as -c).
