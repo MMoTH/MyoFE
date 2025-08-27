@@ -22,6 +22,10 @@
         "fiber_reorientation": {
             "activations": [
                 {
+
+                    "t_start_s":[0],
+                    "t_stop_s":[0],
+
                     "t_start_s1":[0.001],
                     "t_stop_s1":[0.008],
 
