@@ -516,8 +516,8 @@ class LV_simulation():
                             self.spatial_extra'''
         
         ### to save resutls space, here we save less results
-        '''data_field = self.spatial_fiber_data_fields+\
-                            self.spatial_extra'''
+        data_field = self.spatial_fiber_data_fields+\
+                            self.spatial_extra
                             
 
         if (self.gr != [] ):
@@ -1664,8 +1664,15 @@ class LV_simulation():
         if (self.fr):
             self.data['fr_active'] = 0
             for f in self.prot.fiber_re_activations:
-                if ((self.t_counter >= f.data['t_start_ind']) and
-                        (self.t_counter < f.data['t_stop_ind'])):
+                if ((self.t_counter >= f.data['t_start_ind1']) and
+                        (self.t_counter < f.data['t_stop_ind1'])):
+                    self.data['fr_active'] = 1
+                    if self.comm.Get_rank() == 0:
+                        print("fiber reorientation active")
+
+
+                if ((self.t_counter >= f.data['t_start_ind2']) and
+                        (self.t_counter < f.data['t_stop_ind2'])):
                     self.data['fr_active'] = 1
                     if self.comm.Get_rank() == 0:
                         print("fiber reorientation active")
@@ -1689,10 +1696,11 @@ class LV_simulation():
                 #kappa = self.fr.data['time_constant']
 
 
-
+          
                 fdiff = self.fr.stress_law(self.fr.data['signal'],time_step,self.mesh.model['function_spaces']['fiber_FS'])
+                
                 temp_fiber = self.mesh.model['functions']['f0'].vector().get_local()[:]
-
+                
             
 
                 local_fdiff = fdiff.vector().get_local()[:]
@@ -1711,7 +1719,7 @@ class LV_simulation():
                 l2 = -0.1
 
                 
-
+                
                 for i in np.arange(self.local_n_of_int_points):
                     if self.lcoord[i][2]< l2:  # normal FR
                         # wrong way: temp_fiber[i] += local_fdiff[i]
@@ -1726,11 +1734,14 @@ class LV_simulation():
                         cnt2 = cnt2 +1
                 #print ("cnt",cnt)  
                 #print ("cnt2",cnt2)  
-
+                        
+                
 
                 ### all point FR
                 #temp_fiber += fdiff.vector().get_local()[:]
                 self.mesh.model['functions']['f0'].vector()[:] = temp_fiber 
+
+                
 
                 s1 , n1 ,f1= self.fr.update_local_coordinate_system(self.mesh.model['functions']['f0'])
                 
@@ -2311,7 +2322,7 @@ class LV_simulation():
 
 
             ###since displacement is difiened in CG function space. here to get data in gauss poinst we project it to a qud vector space 
-
+            
             d_temp0 = project(self.mesh.model['functions']['w'].sub(0),self.mesh.model['function_spaces']['fiber_FS'])
             d_temp = d_temp0.vector().get_local()[:]
 

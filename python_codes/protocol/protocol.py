@@ -80,10 +80,15 @@ class fiber_re_activation():
     """ Class for fiber reorientation """
     def __init__(self, fiber_re_struct, time_step):
         self.data = dict()
-        self.data['t_start_s'] = fiber_re_struct['t_start_s'][0]
-        self.data['t_stop_s'] = fiber_re_struct['t_stop_s'][0]
-        self.data['t_start_ind'] = int(self.data['t_start_s'] / time_step)
-        self.data['t_stop_ind'] = int(self.data['t_stop_s'] / time_step)
+        self.data['t_start_s1'] = fiber_re_struct['t_start_s1'][0]
+        self.data['t_stop_s1'] = fiber_re_struct['t_stop_s1'][0]
+        self.data['t_start_ind1'] = int(self.data['t_start_s1'] / time_step)
+        self.data['t_stop_ind1'] = int(self.data['t_stop_s1'] / time_step)
+
+        self.data['t_start_s2'] = fiber_re_struct['t_start_s2'][0]
+        self.data['t_stop_s2'] = fiber_re_struct['t_stop_s2'][0]
+        self.data['t_start_ind2'] = int(self.data['t_start_s2'] / time_step)
+        self.data['t_stop_ind2'] = int(self.data['t_stop_s2'] / time_step)
 
 class baro_activation():
     """ Class for baro-activation """

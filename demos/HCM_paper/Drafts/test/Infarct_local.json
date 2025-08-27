@@ -1,15 +1,18 @@
 {
     "protocol":
     {
-        "no_of_time_steps": [20],
+        "no_of_time_steps": [50],
         "time_step": [0.001],
         "fiber_reorientation":
         {
             "activations":
             [
                 {
-                    "t_start_s":[5],
-                    "t_stop_s":[30]
+                    "t_start_s1":[0.01],
+                    "t_stop_s1":[0.02],
+
+                    "t_start_s2":[0.03],
+                    "t_stop_s2":[0.04]
 
                 } 
             ]
@@ -257,7 +260,7 @@
         {
             "stress_type":["total_stress"],
             "law":["new_stress_kroon"],
-            "time_constant":[20],
+            "time_constant":[4],
             "reorient_t_start":[0.5,"ms"]
         }
         

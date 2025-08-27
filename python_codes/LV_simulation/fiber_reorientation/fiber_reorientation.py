@@ -18,6 +18,7 @@ class fiber_reorientation():
 
     def __init__(self, parent_params):
 
+
         self.parent_params = parent_params
         fiber_struct = self.parent_params.instruction_data['model']['fiber_reorientation']
         self.data=dict()
@@ -41,12 +42,16 @@ class fiber_reorientation():
         #self.f = PK2*f0/np.sqrt(np.inner(PK2*f0,PK2*f0))
         #time_step = self.parent_params.prot.data['time_step']  # since prot is defined in the run_simulation function, we can not use it in the initialization
 
+
         time_step = self.parent_params.instruction_data['protocol']['time_step'][0]
         if self.parent_params.comm.Get_rank() == 0:
             print (time_step)
 
+            print("test3")
+
         function_space = self.parent_params.mesh.model['function_spaces']['fiber_FS']
         self.f_adjusted = self.stress_law(self.data['signal'],time_step,function_space)
+
 
 
 
@@ -85,7 +90,6 @@ class fiber_reorientation():
             form_compiler_parameters={"representation":"uflacs"})  ### uflacs  = quadrture
 
         
-
 
 
         
@@ -186,6 +190,7 @@ class fiber_reorientation():
         #f_adjusted = project(f_adjusted,VectorFunctionSpace(mesh,"DG",1),form_compiler_parameters={"representation":"uflacs"})
         #f_adjusted = project(f_adjusted,function_space,form_compiler_parameters={"representation":"uflacs"}) # error with this line: 
         f_adjusted = project(f_adjusted,function_space)
+
         
         #print('fr_check',f_adjusted.vector().get_local()[:])
 
