@@ -7,6 +7,6 @@
 #SBATCH --account=col_jfwe223_uksr
 #SBATCH --partition=SKY32M192_L# Partition/queue to run the job in. (REQUIRED)
 #SBATCH --output=/mnt/gpfs2_4m/scratch/mme250/AS_paper/output.%J.out # STDOUT
-cd ../../../python_codes
+cd ../../../../python_codes
 singularity exec --cleanenv /home/mme250/fenics.img  mpiexec -np $SLURM_NTASKS  python MyoFE.py LV_sim /home/mme250/MyoFE/demos/growth_FR/AS/FR_timing/input_parameters_AS_kappa4_fr2.json
 scontrol show job $SLURM_JOB_ID
