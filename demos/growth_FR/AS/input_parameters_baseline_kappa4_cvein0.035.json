@@ -256,7 +256,7 @@
                         2.0
                     ], 
                     "compliance": [
-                        0.05
+                        0.035
                     ], 
                     "name": [
                         "veins"
@@ -509,18 +509,18 @@
             "Helical_Angle"
         ], 
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/baseline_c005_kappa4/sim_output/"        ], 
+            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/baseline_c0035_kappa4/sim_output/"        ], 
         "dumping_spatial_in_average": [
             false
         ], 
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/baseline_c005_kappa4/sim_output/data.csv"
+            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/baseline_c0035_kappa4/sim_output/data.csv"
         ], 
         "frequency_n": [
             20
         ], 
         "growth_mesh_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/baseline_c005_kappa4/mesh_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/baseline_c0035_kappa4/mesh_output/"
         ]
     }, 
     "mesh": {
