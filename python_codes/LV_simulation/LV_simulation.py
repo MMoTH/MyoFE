@@ -1672,7 +1672,7 @@ class LV_simulation():
                         print("fiber reorientation active")
 
 
-                if ((self.t_counter >= f.data['t_start_ind1']) and
+                '''if ((self.t_counter >= f.data['t_start_ind1']) and
                         (self.t_counter < f.data['t_stop_ind1'])):
                     self.data['fr_active'] = 1
                     if self.comm.Get_rank() == 0:
@@ -1683,7 +1683,7 @@ class LV_simulation():
                         (self.t_counter < f.data['t_stop_ind2'])):
                     self.data['fr_active'] = 1
                     if self.comm.Get_rank() == 0:
-                        print("fiber reorientation active2")
+                        print("fiber reorientation active2")'''
 
 
 

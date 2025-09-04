@@ -88,7 +88,7 @@ class fiber_re_activation():
 
 
 
-        self.data['t_start_s1'] = fiber_re_struct['t_start_s1'][0]
+        '''self.data['t_start_s1'] = fiber_re_struct['t_start_s1'][0]
         self.data['t_stop_s1'] = fiber_re_struct['t_stop_s1'][0]
         self.data['t_start_ind1'] = int(self.data['t_start_s1'] / time_step)
         self.data['t_stop_ind1'] = int(self.data['t_stop_s1'] / time_step)
@@ -96,7 +96,7 @@ class fiber_re_activation():
         self.data['t_start_s2'] = fiber_re_struct['t_start_s2'][0]
         self.data['t_stop_s2'] = fiber_re_struct['t_stop_s2'][0]
         self.data['t_start_ind2'] = int(self.data['t_start_s2'] / time_step)
-        self.data['t_stop_ind2'] = int(self.data['t_stop_s2'] / time_step)
+        self.data['t_stop_ind2'] = int(self.data['t_stop_s2'] / time_step)'''
 
 class baro_activation():
     """ Class for baro-activation """
