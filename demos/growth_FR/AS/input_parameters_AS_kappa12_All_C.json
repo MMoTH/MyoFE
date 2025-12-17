@@ -593,18 +593,18 @@
             "Helical_Angle"
         ], 
         "mesh_output_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/AS_kappa12_All_stiff/sim_output/"        ], 
+            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/AS_kappa12_All_C/sim_output/"        ], 
         "dumping_spatial_in_average": [
             false
         ], 
         "output_data_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/AS_kappa12_All_stiff/sim_output/data.csv"
+            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/AS_kappa12_All_C/sim_output/data.csv"
         ], 
         "frequency_n": [
             20
         ], 
         "growth_mesh_path": [
-            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/AS_kappa12_All_stiff/mesh_output/"
+            "/mnt/gpfs2_4m/scratch/mme250/AS_paper/AS_kappa12_All_C/mesh_output/"
         ]
     }, 
     "mesh": {
@@ -822,13 +822,13 @@
                     3.58
                 ], 
                 "c": [
-                    200
+                    750
                 ], 
                 "passive_law": [
                     "semi_structural"
                 ], 
                 "bf": [
-                    24.0
+                    8
                 ], 
                 "bfs": [
                     1.627
