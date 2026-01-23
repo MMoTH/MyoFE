@@ -11,7 +11,7 @@
     "x_display":{
         "global_x_field": "time",
         "label": "Time (s)",
-        "global_x_ticks": [0,130]
+        "global_x_ticks": [0,200]
     },
     "formatting":
     {
@@ -74,7 +74,7 @@
             "panel": 0,
             "type": "text",
             "label": "Aortic resistance",
-            "x_coord": 50,
+            "x_coord": 60,
             "y_rel_coord": 1.6
         },
         {
